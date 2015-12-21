@@ -1,5 +1,7 @@
 package eu.toolchain.ogt;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.asyncdatastoreclient.Entity;
@@ -14,6 +16,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import eu.toolchain.ogt.annotations.Bytes;
 import eu.toolchain.ogt.annotations.EntityCreator;
 import eu.toolchain.ogt.annotations.Property;
 import lombok.Data;
@@ -35,7 +38,11 @@ public class DatastoreTest {
     public void setup() {
         final EntityMapper mapper = EntityMapper.nativeBuilder().build();
 
-        provider = mapper.providerFor(new DatastoreEncodingFactory());
+        TypeEncodingProvider<byte[]> bytesEncoding =
+                mapper.providerFor(new JacksonEncodingFactory(new JsonFactory())).convert(
+                        s -> s.getBytes(Charsets.UTF_8), b -> new String(b, Charsets.UTF_8));
+
+        provider = mapper.providerFor(new DatastoreEncodingFactory(bytesEncoding));
 
         foo = provider.encodingFor(Foo.class);
     }

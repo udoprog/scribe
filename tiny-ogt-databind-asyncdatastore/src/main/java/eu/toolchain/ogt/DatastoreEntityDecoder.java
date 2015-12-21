@@ -5,22 +5,21 @@ import com.spotify.asyncdatastoreclient.Entity;
 import java.util.Optional;
 
 import eu.toolchain.ogt.binding.FieldMapping;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DatastoreEntityDecoder implements EntityDecoder {
+    private final TypeEncodingProvider<byte[]> bytesEncoding;
     private final Entity entity;
 
-    public DatastoreEntityDecoder(final Entity entity) {
-        this.entity = entity;
-    }
-
     @Override
-    public Optional<FieldDecoder> getField(FieldMapping field) {
+    public Optional<Object> decodeField(FieldMapping field, Context path) {
         return Optional.ofNullable(entity.getProperties().get(field.name()))
-                .map(DatastoreFieldDecoder::new);
+                .map(v -> field.type().decode(new DatastoreFieldDecoder(bytesEncoding, v), path));
     }
 
     @Override
-    public Optional<String> getType() {
+    public Optional<String> decodeType() {
         return Optional.ofNullable(entity.getString("type"));
     }
 }

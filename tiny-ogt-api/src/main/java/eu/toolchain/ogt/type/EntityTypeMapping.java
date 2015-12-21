@@ -1,10 +1,11 @@
 package eu.toolchain.ogt.type;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
-import eu.toolchain.ogt.EntityEncoder;
+import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.TypeKey;
 
 public interface EntityTypeMapping extends TypeMapping {
@@ -14,7 +15,6 @@ public interface EntityTypeMapping extends TypeMapping {
 
     TypeKey key();
 
-    Object decodeEntity(EntityDecoder decoder, Context path);
-
-    void encodeEntity(EntityEncoder encoder, Object value, Context path);
+    Object decode(EntityDecoder entityDecoder, FieldDecoder decoder,
+            Context path) throws IOException;
 }

@@ -1,13 +1,12 @@
 package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
-import com.spotify.asyncdatastoreclient.Entity;
+import com.google.protobuf.ByteString;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import eu.toolchain.ogt.binding.FieldMapping;
 import eu.toolchain.ogt.type.TypeMapping;
@@ -15,126 +14,110 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DatastoreFieldEncoder implements FieldEncoder {
-    private final Consumer<Object> consumer;
-    private final Consumer<List<Object>> valuesConsumer;
+    private final TypeEncodingProvider<byte[]> bytesEncoding;
 
     @Override
     public byte[] encode(JavaType type, Object value) {
-        throw new RuntimeException("Not supported");
+        return bytesEncoding.encodingFor(type).encode(value);
     }
 
     @Override
-    public void setBytes(byte[] bytes) throws IOException {
-        consumer.accept(bytes);
+    public Object encodeBytes(byte[] bytes) throws IOException {
+        return ByteString.copyFrom(bytes);
     }
 
     @Override
-    public void setShort(short value) throws IOException {
-        consumer.accept(value);
+    public Object encodeShort(short value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setInteger(int value) throws IOException {
-        consumer.accept(value);
+    public Object encodeInteger(int value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setLong(long value) throws IOException {
-        consumer.accept(value);
+    public Object encodeLong(long value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setFloat(float value) throws IOException {
-        consumer.accept(value);
+    public Object encodeFloat(float value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setDouble(double value) throws IOException {
-        consumer.accept(value);
+    public Object encodeDouble(double value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setBoolean(boolean value) throws IOException {
-        consumer.accept(value);
+    public Object encodeBoolean(boolean value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setByte(byte value) throws IOException {
-        consumer.accept(value);
+    public Object encodeByte(byte value) throws IOException {
+        return new byte[] {value};
     }
 
     @Override
-    public void setCharacter(char value) throws IOException {
-        consumer.accept(value);
+    public Object encodeCharacter(char value) throws IOException {
+        return new String(new char[] {value});
     }
 
     @Override
-    public void setDate(Date value) throws IOException {
-        consumer.accept(value);
+    public Object encodeDate(Date value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setString(String string) throws IOException {
-        consumer.accept(string);
+    public Object encodeString(String value) throws IOException {
+        return value;
     }
 
     @Override
-    public void setList(TypeMapping value, List<?> list, Context path) throws IOException {
+    public Object encodeList(TypeMapping value, List<?> list, Context path) throws IOException {
         final ImmutableList.Builder<Object> values = ImmutableList.builder();
-
-        final Consumer<List<Object>> valuesConsumer = v -> {
-            throw new RuntimeException("Lists of lists are not supported");
-        };
-
-        final DatastoreFieldEncoder encoder =
-                new DatastoreFieldEncoder(v -> values.add(v), valuesConsumer);
 
         int index = 0;
 
         for (final Object v : list) {
-            value.encode(encoder, v, path.push(index++));
+            values.add(value.encode(this, path.push(index++), v));
         }
 
-        this.valuesConsumer.accept(values.build());
+        return values.build();
     }
 
     @Override
-    public void setMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
+    public Object encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
             throws IOException {
         if (!key.getType().getRawClass().equals(String.class)) {
             throw path.error("Keys must be strings");
         }
 
-        final Entity.Builder embedded = Entity.builder();
-
         @SuppressWarnings("unchecked")
         final Map<String, ?> stringMap = (Map<String, ?>) map;
 
-        final DatastoreEntityEncoder encoder = new DatastoreEntityEncoder(embedded);
+        final DatastoreEntityEncoder encoder = new DatastoreEntityEncoder(bytesEncoding);
 
         for (final Map.Entry<String, ?> e : stringMap.entrySet()) {
-            final FieldMapping field = new MapFieldMapping(e.getKey());
-            value.encode(encoder.setField(field), e.getValue(), path.push(field.name()));
+            final FieldMapping field = new MapFieldMapping(e.getKey(), value);
+            encoder.setField(field, path.push(field.name()), e.getValue());
         }
 
-        consumer.accept(embedded.build());
+        return encoder.encode();
     }
 
     @Override
-    public EntityEncoder setEntity() {
-        final Entity.Builder builder = Entity.builder();
-
-        return new DatastoreEntityEncoder(builder) {
-            @Override
-            public void endEntity() {
-                consumer.accept(builder.build());
-            }
-        };
+    public EntityEncoder encodeEntity() {
+        return new DatastoreEntityEncoder(bytesEncoding);
     }
 
     @RequiredArgsConstructor
     public static class MapFieldMapping implements FieldMapping {
         private final String name;
+        private final TypeMapping type;
 
         @Override
         public String name() {
@@ -144,6 +127,11 @@ public class DatastoreFieldEncoder implements FieldEncoder {
         @Override
         public boolean indexed() {
             return false;
+        }
+
+        @Override
+        public TypeMapping type() {
+            return type;
         }
     }
 }

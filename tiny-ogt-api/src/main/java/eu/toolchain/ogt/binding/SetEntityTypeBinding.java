@@ -4,6 +4,7 @@ import java.util.List;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityEncoder;
+import eu.toolchain.ogt.FieldEncoder;
 
 /**
  * A type binder mixin that implements a common
@@ -16,7 +17,7 @@ public interface SetEntityTypeBinding extends Binding {
     List<? extends TypeFieldMapping> fields();
 
     @Override
-    default void encodeEntity(EntityEncoder encoder, Object entity, final Context path) {
+    default Object encodeEntity(EntityEncoder encoder, FieldEncoder fieldEncoder, Object entity, final Context path) {
         for (final TypeFieldMapping m : fields()) {
             final Object value;
 
@@ -34,11 +35,13 @@ public interface SetEntityTypeBinding extends Binding {
 
             m.type().asOptional(value).ifPresent(v -> {
                 try {
-                    m.encode(encoder, v, p);
+                    encoder.setField(m, p, v);
                 } catch (Exception e) {
                     throw p.error("Failed to encode field", e);
                 }
             });
         }
+
+        return encoder.encode();
     }
 }

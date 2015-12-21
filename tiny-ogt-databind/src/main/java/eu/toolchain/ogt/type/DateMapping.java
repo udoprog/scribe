@@ -19,13 +19,21 @@ public class DateMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) throws IOException {
-        return accessor.asDate();
+    public Object decode(FieldDecoder accessor, Context path) {
+        try {
+            return accessor.decodeDate();
+        } catch (final IOException e) {
+            throw path.error("Failed to decode date", e);
+        }
     }
 
     @Override
-    public void encode(FieldEncoder visitor, Object string, Context path) throws IOException {
-        visitor.setDate((Date) string);
+    public Object encode(FieldEncoder visitor, Context path, Object value) {
+        try {
+            return visitor.encodeDate((Date) value);
+        } catch (final IOException e) {
+            throw path.error("Failed to encode date", e);
+        }
     }
 
     @Override

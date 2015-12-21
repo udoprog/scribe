@@ -7,9 +7,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Optional;
-
-import eu.toolchain.ogt.binding.FieldMapping;
 
 public class JacksonEncodingFactory implements EncodingFactory<String> {
     private final JsonFactory jsonFactory;
@@ -19,91 +16,79 @@ public class JacksonEncodingFactory implements EncodingFactory<String> {
     }
 
     @Override
-    public BuildableEntityEncoder<String> entityEncoder() {
-        final StringWriter writer = new StringWriter();
-        final JsonGenerator generator;
-
-        try {
-            generator = jsonFactory.createGenerator(writer);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        final EntityEncoder encoder = new JacksonEntityEncoder(generator);
-
-        return new BuildableEntityEncoder<String>() {
+    public EntityEncoder entityEncoder() {
+        return new JacksonEntityEncoder() {
             @Override
-            public void startEntity() throws IOException {
-                encoder.startEntity();
-            }
+            public Object encode() {
+                final JsonNode node = (JsonNode) super.encode();
 
-            @Override
-            public void endEntity() throws IOException {
-                encoder.endEntity();
-            }
-
-            @Override
-            public void setType(final String type) throws IOException {
-                encoder.setType(type);
-            }
-
-            @Override
-            public FieldEncoder setField(final FieldMapping field) throws IOException {
-                return encoder.setField(field);
-            }
-
-            @Override
-            public String build() {
                 try {
-                    generator.close();
-                } catch (final IOException e) {
-                    throw new RuntimeException(e);
-                }
+                    final StringWriter writer = new StringWriter();
 
-                return writer.toString();
+                    try (final JsonGenerator generator = jsonFactory.createGenerator(writer)) {
+                        node.generate(generator);
+                        return writer.toString();
+                    }
+                } catch (final IOException e) {
+                    throw new RuntimeException("Failed to parse JSON", e);
+                }
             }
         };
     }
 
     @Override
     public EntityDecoder entityDecoder(final String input) {
+        final JsonNode node;
+
         final StringReader reader = new StringReader(input);
 
-        final JsonParser parser;
-
         try {
-            parser = jsonFactory.createParser(reader);
+            try (final JsonParser parser = jsonFactory.createParser(reader)) {
+                node = JsonNode.fromParser(parser);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        final EntityDecoder decoder;
+        return new JacksonEntityDecoder(node);
+    }
 
-        try {
-            decoder = new JacksonEntityDecoder(JsonNode.fromParser(parser));
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return new EntityDecoder() {
+    @Override
+    public FieldEncoder fieldEncoder() {
+        return new JacksonFieldEncoder() {
             @Override
-            public Optional<FieldDecoder> getField(FieldMapping field) {
-                return decoder.getField(field);
-            }
+            public Object filter(final Object value) {
+                final JsonNode n = (JsonNode) value;
 
-            @Override
-            public Optional<String> getType() {
-                return decoder.getType();
-            }
-
-            @Override
-            public void end() {
                 try {
-                    parser.close();
+                    final StringWriter writer = new StringWriter();
+
+                    try (final JsonGenerator generator = jsonFactory.createGenerator(writer)) {
+                        n.generate(generator);
+                    }
+
+                    return writer.toString();
                 } catch (final IOException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Failed to parse JSON", e);
                 }
             }
         };
+    }
+
+    @Override
+    public FieldDecoder fieldDecoder(final String input) {
+        final JsonNode node;
+
+        final StringReader reader = new StringReader(input);
+
+        try {
+            try (final JsonParser parser = jsonFactory.createParser(reader)) {
+                node = JsonNode.fromParser(parser);
+            }
+        } catch (final IOException e) {
+            throw new RuntimeException("Failed to parse JSON", e);
+        }
+
+        return new JacksonFieldDecoder(node);
     }
 }

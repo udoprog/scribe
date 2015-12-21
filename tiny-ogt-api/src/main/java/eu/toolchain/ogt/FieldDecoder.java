@@ -17,31 +17,31 @@ public interface FieldDecoder {
      */
     Object decode(JavaType type, byte[] bytes) throws IOException;
 
-    byte[] asBytes() throws IOException;
+    byte[] decodeBytes() throws IOException;
 
-    short asShort() throws IOException;
+    short decodeShort() throws IOException;
 
-    int asInteger() throws IOException;
+    int decodeInteger() throws IOException;
 
-    long asLong() throws IOException;
+    long decodeLong() throws IOException;
 
-    float asFloat() throws IOException;
+    float decodeFloat() throws IOException;
 
-    double asDouble() throws IOException;
+    double decodeDouble() throws IOException;
 
-    boolean asBoolean() throws IOException;
+    boolean decodeBoolean() throws IOException;
 
-    byte asByte() throws IOException;
+    byte decodeByte() throws IOException;
 
-    char asCharacter() throws IOException;
+    char decodeCharacter() throws IOException;
 
-    Date asDate() throws IOException;
+    Date decodeDate() throws IOException;
 
-    List<?> asList(TypeMapping value, Context path) throws IOException;
+    String decodeString() throws IOException;
 
-    Map<?, ?> asMap(TypeMapping key, TypeMapping value, Context path) throws IOException;
+    List<?> decodeList(TypeMapping value, Context path) throws IOException;
 
-    String asString() throws IOException;
+    Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path) throws IOException;
 
     EntityDecoder asEntity() throws IOException;
 }

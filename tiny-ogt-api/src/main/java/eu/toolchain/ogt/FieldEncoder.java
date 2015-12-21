@@ -18,31 +18,36 @@ public interface FieldEncoder {
      */
     byte[] encode(JavaType type, Object value) throws IOException;
 
-    void setBytes(byte[] bytes) throws IOException;
+    Object encodeBytes(byte[] bytes) throws IOException;
 
-    void setShort(short value) throws IOException;
+    Object encodeShort(short value) throws IOException;
 
-    void setInteger(int value) throws IOException;
+    Object encodeInteger(int value) throws IOException;
 
-    void setLong(long value) throws IOException;
+    Object encodeLong(long value) throws IOException;
 
-    void setFloat(float value) throws IOException;
+    Object encodeFloat(float value) throws IOException;
 
-    void setDouble(double value) throws IOException;
+    Object encodeDouble(double value) throws IOException;
 
-    void setBoolean(boolean value) throws IOException;
+    Object encodeBoolean(boolean value) throws IOException;
 
-    void setByte(byte value) throws IOException;
+    Object encodeByte(byte value) throws IOException;
 
-    void setCharacter(char value) throws IOException;
+    Object encodeCharacter(char value) throws IOException;
 
-    void setDate(Date value) throws IOException;
+    Object encodeDate(Date value) throws IOException;
 
-    void setString(String string) throws IOException;
+    Object encodeString(String value) throws IOException;
 
-    void setList(TypeMapping value, List<?> list, Context path) throws IOException;
+    Object encodeList(TypeMapping value, List<?> list, Context path) throws IOException;
 
-    void setMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path) throws IOException;
+    Object encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
+            throws IOException;
 
-    EntityEncoder setEntity() throws IOException;
+    EntityEncoder encodeEntity();
+
+    default Object filter(Object value) {
+        return value;
+    }
 }

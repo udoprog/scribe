@@ -4,17 +4,16 @@ import java.io.IOException;
 import java.util.Optional;
 
 public enum PrimitiveType {
-    SHORT(FieldDecoder::asShort, (e, v) -> e.setShort((short) v)), INTEGER(FieldDecoder::asInteger,
-            (e, v) -> e.setInteger((int) v)), LONG(FieldDecoder::asLong,
-                    (e, v) -> e.setLong((long) v)), FLOAT(FieldDecoder::asFloat,
-                            (e, v) -> e.setFloat((float) v)), DOUBLE(FieldDecoder::asDouble,
-                                    (e, v) -> e.setDouble((double) v)), BOOLEAN(
-                                            FieldDecoder::asBoolean,
-                                            (e, v) -> e.setBoolean((boolean) v)), BYTE(
-                                                    FieldDecoder::asByte,
-                                                    (e, v) -> e.setByte((byte) v)), CHAR(
-                                                            FieldDecoder::asCharacter,
-                                                            (e, v) -> e.setCharacter((char) v));
+    // @formatter:off
+    SHORT(FieldDecoder::decodeShort, (e, v) -> e.encodeShort((short) v)),
+    INTEGER(FieldDecoder::decodeInteger, (e, v) -> e.encodeInteger((int) v)),
+    LONG(FieldDecoder::decodeLong, (e, v) -> e.encodeLong((long) v)),
+    FLOAT(FieldDecoder::decodeFloat, (e, v) -> e.encodeFloat((float) v)),
+    DOUBLE(FieldDecoder::decodeDouble, (e, v) -> e.encodeDouble((double) v)),
+    BOOLEAN(FieldDecoder::decodeBoolean, (e, v) -> e.encodeBoolean((boolean) v)),
+    BYTE(FieldDecoder::decodeByte, (e, v) -> e.encodeByte((byte) v)),
+    CHAR(FieldDecoder::decodeCharacter, (e, v) -> e.encodeCharacter((char) v));
+    // @formatter:on
 
     private final DecodingFunction decoding;
     private final EncodingFunction encoding;
@@ -66,8 +65,8 @@ public enum PrimitiveType {
         return decoding.decode(a);
     }
 
-    public void set(FieldEncoder encoder, Object value) throws IOException {
-        this.encoding.encode(encoder, value);
+    public Object set(FieldEncoder encoder, Object value) throws IOException {
+        return this.encoding.encode(encoder, value);
     }
 
     public static interface DecodingFunction {
@@ -75,6 +74,6 @@ public enum PrimitiveType {
     }
 
     public static interface EncodingFunction {
-        public void encode(FieldEncoder decoder, Object value) throws IOException;
+        public Object encode(FieldEncoder decoder, Object value) throws IOException;
     }
 }

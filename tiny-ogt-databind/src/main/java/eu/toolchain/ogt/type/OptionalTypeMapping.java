@@ -1,6 +1,5 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
@@ -21,7 +20,7 @@ public class OptionalTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) throws IOException {
+    public Object decode(FieldDecoder accessor, Context path) {
         return value.decode(accessor, path);
     }
 
@@ -37,8 +36,8 @@ public class OptionalTypeMapping implements TypeMapping {
     }
 
     @Override
-    public void encode(FieldEncoder visitor, Object inner, Context path) throws IOException {
-        value.encode(visitor, inner, path);
+    public Object encode(FieldEncoder encoder, Context path, Object inner) {
+        return value.encode(encoder, path, inner);
     }
 
     @Override

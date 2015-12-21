@@ -20,13 +20,21 @@ public class PrimitiveTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) throws IOException {
-        return type.get(accessor);
+    public Object decode(FieldDecoder accessor, Context path) {
+        try {
+            return type.get(accessor);
+        } catch (final IOException e) {
+            throw path.error("Failed to encode primitive", e);
+        }
     }
 
     @Override
-    public void encode(FieldEncoder visitor, Object value, Context path) throws IOException {
-        type.set(visitor, value);
+    public Object encode(FieldEncoder visitor, Context path, Object value) {
+        try {
+            return type.set(visitor, value);
+        } catch (final IOException e) {
+            throw path.error("Failed to encode primitive", e);
+        }
     }
 
     @Override

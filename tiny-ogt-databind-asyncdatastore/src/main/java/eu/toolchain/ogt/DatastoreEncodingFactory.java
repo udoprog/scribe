@@ -1,40 +1,33 @@
 package eu.toolchain.ogt;
 
 import com.spotify.asyncdatastoreclient.Entity;
-
-import java.io.IOException;
-
-import eu.toolchain.ogt.binding.FieldMapping;
+import com.spotify.asyncdatastoreclient.Value;
 
 public class DatastoreEncodingFactory implements EncodingFactory<Entity> {
-    public DatastoreEncodingFactory() {
+    private final TypeEncodingProvider<byte[]> bytesEncoding;
+
+    public DatastoreEncodingFactory(final TypeEncodingProvider<byte[]> bytesEncoding) {
+        this.bytesEncoding = bytesEncoding;
     }
 
     @Override
-    public BuildableEntityEncoder<Entity> entityEncoder() {
-        final Entity.Builder builder = Entity.builder();
-        final EntityEncoder encoder = new DatastoreEntityEncoder(builder);
-
-        return new BuildableEntityEncoder<Entity>() {
-            @Override
-            public void setType(String type) throws IOException {
-                encoder.setType(type);
-            }
-
-            @Override
-            public FieldEncoder setField(FieldMapping field) throws IOException {
-                return encoder.setField(field);
-            }
-
-            @Override
-            public Entity build() {
-                return builder.build();
-            }
-        };
+    public EntityEncoder entityEncoder() {
+        return new DatastoreEntityEncoder(bytesEncoding);
     }
 
     @Override
     public EntityDecoder entityDecoder(final Entity entity) {
-        return new DatastoreEntityDecoder(entity);
+        return new DatastoreEntityDecoder(bytesEncoding, entity);
+    }
+
+    @Override
+    public FieldEncoder fieldEncoder() {
+        return new DatastoreFieldEncoder(bytesEncoding);
+    }
+
+    @Override
+    public FieldDecoder fieldDecoder(Entity input) {
+        return new DatastoreFieldDecoder(bytesEncoding,
+                Value.builder(input).build());
     }
 }

@@ -1,36 +1,27 @@
 package eu.toolchain.ogt;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 
 import eu.toolchain.ogt.binding.FieldMapping;
 
 public class JacksonEntityEncoder implements EntityEncoder {
-    private final JsonGenerator generator;
-
-    public JacksonEntityEncoder(final JsonGenerator generator) {
-        this.generator = generator;
-    }
+    final ImmutableMap.Builder<String, JsonNode> object = ImmutableMap.builder();
 
     @Override
-    public void startEntity() throws IOException {
-        generator.writeStartObject();
-    }
-
-    @Override
-    public void endEntity() throws IOException {
-        generator.writeEndObject();
+    public void setField(FieldMapping field, Context path, Object value) throws IOException {
+        final JsonNode v = (JsonNode) field.type().encode(new JacksonFieldEncoder(), path, value);
+        object.put(field.name(), v);
     }
 
     @Override
     public void setType(String type) throws IOException {
-        generator.writeStringField("type", type);
+        object.put("type", new JsonNode.StringJsonNode(type));
     }
 
     @Override
-    public FieldEncoder setField(FieldMapping field) throws IOException {
-        generator.writeFieldName(field.name());
-        return new JacksonFieldEncoder(generator);
+    public Object encode() {
+        return new JsonNode.ObjectJsonNode(object.build());
     }
 }

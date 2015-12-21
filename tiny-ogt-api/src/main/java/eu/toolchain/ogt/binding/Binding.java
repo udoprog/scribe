@@ -3,6 +3,8 @@ package eu.toolchain.ogt.binding;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityEncoder;
+import eu.toolchain.ogt.FieldDecoder;
+import eu.toolchain.ogt.FieldEncoder;
 
 /**
  * Framework for creating and introspecting types using different methods.
@@ -11,7 +13,8 @@ import eu.toolchain.ogt.EntityEncoder;
  * @author udoprog
  */
 public interface Binding {
-    Object decodeEntity(EntityDecoder decoder, Context path);
+    Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path);
 
-    void encodeEntity(EntityEncoder encoder, Object value, Context path);
+    Object encodeEntity(EntityEncoder entityEncoder, FieldEncoder encoder, Object value,
+            Context path);
 }

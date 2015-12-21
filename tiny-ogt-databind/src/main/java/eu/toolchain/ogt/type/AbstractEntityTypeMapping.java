@@ -5,11 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
+import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.EntityDecoder;
-import eu.toolchain.ogt.EntityEncoder;
 import eu.toolchain.ogt.TypeKey;
 import lombok.Data;
 
@@ -32,19 +31,20 @@ public class AbstractEntityTypeMapping<T> implements EntityTypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder decoder, Context path) throws IOException {
-        return decodeEntity(decoder.asEntity(), path);
+    public Object decode(FieldDecoder decoder, Context path) {
+        try {
+            final EntityDecoder entityDecoder = decoder.asEntity();
+            return decode(entityDecoder, decoder, path);
+        } catch (final IOException e) {
+            throw path.error("failed to decode", e);
+        }
     }
 
-    @Override
-    public void encode(FieldEncoder encoder, Object value, Context path) throws IOException {
-        encodeEntity(encoder.setEntity(), value, path);
-    }
-
-    @Override
-    public Object decodeEntity(EntityDecoder decoder, Context path) {
-        final String type =
-                decoder.getType().orElseThrow(() -> path.error("No type information available"));
+    @Override   
+    public Object decode(EntityDecoder entityDecoder, FieldDecoder decoder, Context path)
+            throws IOException {
+        final String type = entityDecoder.decodeType()
+                .orElseThrow(() -> path.error("No type information available"));
 
         final EntityTypeMapping sub = subTypes.get(type);
 
@@ -52,17 +52,17 @@ public class AbstractEntityTypeMapping<T> implements EntityTypeMapping {
             throw path.error("Sub-type (" + type + ") required, but no such type available");
         }
 
-        return sub.decodeEntity(decoder, path);
+        return sub.decode(entityDecoder, decoder, path);
     }
 
     @Override
-    public void encodeEntity(EntityEncoder encoder, Object value, Context path) {
+    public Object encode(FieldEncoder encoder, Context path, Object value) {
         final EntityTypeMapping sub = subTypesByClass.get(JavaType.construct(value.getClass()));
 
         if (sub == null) {
             throw path.error("Could not resolve subtype for: " + value);
         }
 
-        sub.encodeEntity(encoder, value, path);
+        return sub.encode(encoder, path, value);
     }
 }

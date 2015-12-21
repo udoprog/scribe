@@ -21,57 +21,57 @@ public class JacksonFieldDecoder implements FieldDecoder {
     }
 
     @Override
-    public byte[] asBytes() {
+    public byte[] decodeBytes() {
         return node.asBytes();
     }
 
     @Override
-    public short asShort() {
+    public short decodeShort() {
         return node.asShort();
     }
 
     @Override
-    public int asInteger() {
+    public int decodeInteger() {
         return node.asInteger();
     }
 
     @Override
-    public long asLong() {
+    public long decodeLong() {
         return node.asLong();
     }
 
     @Override
-    public float asFloat() {
+    public float decodeFloat() {
         return node.asFloat();
     }
 
     @Override
-    public double asDouble() {
+    public double decodeDouble() {
         return node.asDouble();
     }
 
     @Override
-    public boolean asBoolean() {
+    public boolean decodeBoolean() {
         return node.asBoolean();
     }
 
     @Override
-    public byte asByte() {
+    public byte decodeByte() {
         return node.asByte();
     }
 
     @Override
-    public char asCharacter() {
+    public char decodeCharacter() {
         return node.asCharacter();
     }
 
     @Override
-    public Date asDate() {
+    public Date decodeDate() {
         return new Date(node.asLong());
     }
 
     @Override
-    public List<?> asList(TypeMapping value, Context path) throws IOException {
+    public List<?> decodeList(TypeMapping value, Context path) throws IOException {
         final ImmutableList.Builder<Object> list = ImmutableList.builder();
 
         int index = 0;
@@ -84,7 +84,7 @@ public class JacksonFieldDecoder implements FieldDecoder {
     }
 
     @Override
-    public Map<?, ?> asMap(TypeMapping key, TypeMapping value, Context path) throws IOException {
+    public Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path) throws IOException {
         final ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         for (final Map.Entry<String, JsonNode> e : node.asObject().entrySet()) {
@@ -97,7 +97,7 @@ public class JacksonFieldDecoder implements FieldDecoder {
     }
 
     @Override
-    public String asString() {
+    public String decodeString() {
         return node.asString();
     }
 

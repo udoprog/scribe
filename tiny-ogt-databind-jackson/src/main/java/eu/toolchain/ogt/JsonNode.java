@@ -1,5 +1,6 @@
 package eu.toolchain.ogt;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.google.common.collect.ImmutableList;
@@ -66,6 +67,8 @@ public interface JsonNode {
         throw new RuntimeException(this + ": not a string");
     }
 
+    void generate(final JsonGenerator generator) throws IOException;
+
     public static JsonNode fromParser(final JsonParser parser) throws IOException {
         parser.nextToken();
         return currentFromParser(parser);
@@ -112,6 +115,18 @@ public interface JsonNode {
             return Optional.ofNullable(fields.get(field));
         }
 
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeStartObject();
+
+            for (final Map.Entry<String, JsonNode> e : fields.entrySet()) {
+                generator.writeFieldName(e.getKey());
+                e.getValue().generate(generator);
+            }
+
+            generator.writeEndObject();
+        }
+
         public static JsonNode fromParser(final JsonParser parser) throws IOException {
             final ImmutableMap.Builder<String, JsonNode> fields = ImmutableMap.builder();
 
@@ -143,6 +158,17 @@ public interface JsonNode {
 
             return new ListJsonNode(values.build());
         }
+
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeStartArray();
+
+            for (final JsonNode n : values) {
+                n.generate(generator);
+            }
+
+            generator.writeEndArray();
+        }
     }
 
     @Data
@@ -166,6 +192,11 @@ public interface JsonNode {
             return value.charAt(0);
         }
 
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeString(value);
+        }
+
         public static JsonNode fromParser(final JsonParser parser) throws IOException {
             return new StringJsonNode(parser.getValueAsString());
         }
@@ -181,6 +212,11 @@ public interface JsonNode {
         @Override
         public boolean asBoolean() {
             return value;
+        }
+
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeBoolean(value);
         }
     }
 
@@ -217,6 +253,11 @@ public interface JsonNode {
         public double asDouble() {
             return value;
         }
+
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeNumber(value);
+        }
     }
 
     @Data
@@ -251,6 +292,11 @@ public interface JsonNode {
         @Override
         public double asDouble() {
             return value;
+        }
+
+        @Override
+        public void generate(final JsonGenerator generator) throws IOException {
+            generator.writeNumber(value);
         }
     }
 }

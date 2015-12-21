@@ -18,13 +18,21 @@ public class StringTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) throws IOException {
-        return accessor.asString();
+    public Object decode(FieldDecoder accessor, Context path) {
+        try {
+            return accessor.decodeString();
+        } catch (final IOException e) {
+            throw path.error("Failed to decode string", e);
+        }
     }
 
     @Override
-    public void encode(FieldEncoder visitor, Object string, Context path) throws IOException {
-        visitor.setString((String) string);
+    public Object encode(FieldEncoder encoder, Context path, Object value) {
+        try {
+            return encoder.encodeString((String) value);
+        } catch (final IOException e) {
+            throw path.error("Failed to encode string", e);
+        }
     }
 
     @Override

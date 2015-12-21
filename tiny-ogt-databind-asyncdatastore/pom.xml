@@ -47,6 +47,12 @@
     </dependency>
 
     <dependency>
+      <groupId>eu.toolchain.ogt</groupId>
+      <artifactId>tiny-ogt-databind-jackson</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

@@ -73,6 +73,12 @@
 
       <dependency>
         <groupId>eu.toolchain.ogt</groupId>
+        <artifactId>tiny-ogt-databind-jackson</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.toolchain.ogt</groupId>
         <artifactId>tiny-ogt-annotations-jackson</artifactId>
         <version>${project.version}</version>
       </dependency>

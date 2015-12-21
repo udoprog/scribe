@@ -5,7 +5,6 @@ import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -13,9 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
-import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.EntityDecoder;
+import eu.toolchain.ogt.EntityResolver;
+import eu.toolchain.ogt.FieldDecoder;
+import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.annotations.Bytes;
 import eu.toolchain.ogt.annotations.Indexed;
 import eu.toolchain.ogt.fieldreader.FieldReader;
@@ -45,7 +45,7 @@ public class BuilderBinding implements SetEntityTypeBinding {
     }
 
     @Override
-    public Object decodeEntity(EntityDecoder accessor, Context path) {
+    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path) {
         final Object builder;
 
         try {
@@ -58,15 +58,7 @@ public class BuilderBinding implements SetEntityTypeBinding {
         for (final BuilderFieldMapping m : fields) {
             final Context p = path.push(m.name());
 
-            final Optional<?> value;
-
-            try {
-                value = m.decode(accessor, p);
-            } catch (final IOException e) {
-                throw p.error("Failed to decode field", e);
-            }
-
-            final Object argument = m.type().fromOptional(value)
+            final Object argument = m.type().fromOptional(entityDecoder.decodeField(m, p))
                     .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
 
             try {

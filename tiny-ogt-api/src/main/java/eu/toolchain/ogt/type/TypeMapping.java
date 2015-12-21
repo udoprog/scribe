@@ -1,6 +1,5 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
@@ -21,9 +20,9 @@ import eu.toolchain.ogt.JavaType;
 public interface TypeMapping {
     JavaType getType();
 
-    Object decode(FieldDecoder decoder, Context path) throws IOException;
+    Object decode(FieldDecoder decoder, Context path);
 
-    void encode(FieldEncoder encoder, Object value, Context path) throws IOException;
+    Object encode(FieldEncoder encoder, Context path, Object value);
 
     default Optional<Object> asOptional(Object value) {
         return Optional.of(value);

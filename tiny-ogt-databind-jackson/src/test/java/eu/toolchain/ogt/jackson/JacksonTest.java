@@ -53,8 +53,6 @@ public class JacksonTest {
     public void testEncode() throws Exception {
         final String encoded = this.foo.encode(FOO);
         assertTrue(encoded instanceof String);
-        assertTrue(JsonNode
-                .fromParser(JSON_FACTORY.createParser(encoded)) instanceof JsonNode.ObjectJsonNode);
         assertEquals(FOO, this.foo.decode(encoded));
     }
 

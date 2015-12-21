@@ -62,41 +62,22 @@ public class EntityMapper implements EntityResolver {
     public <O> TypeEncodingProvider<O> providerFor(final EncodingFactory<O> factory) {
         return new TypeEncodingProvider<O>() {
             @Override
-            public <T> TypeEncoding<T, O> encodingFor(Class<T> type) {
+            public TypeEncoding<Object, O> encodingFor(JavaType type) {
                 return EntityMapper.this.encodingFor(factory, type);
-            }
-        };
-    }
-
-    public <T, O> TypeEncoding<T, O> encodingFor(final EncodingFactory<O> factory,
-            final Class<T> type) {
-        final EntityTypeMapping m = mapping(type);
-
-        return new TypeEncoding<T, O>() {
-            @Override
-            public O encode(T instance) {
-                BuildableEntityEncoder<O> entityEncoder = factory.entityEncoder();
-                m.encodeEntity(entityEncoder, instance, Context.ROOT);
-                return entityEncoder.build();
             }
 
             @SuppressWarnings("unchecked")
             @Override
-            public T decode(O instance) {
-                final EntityDecoder entityDecoder = factory.entityDecoder(instance);
-                return (T) m.decodeEntity(entityDecoder, Context.ROOT);
-            }
-
-            @Override
-            public EntityTypeMapping mapping() {
-                return m;
+            public <T> TypeEncoding<T, O> encodingFor(Class<T> type) {
+                return (TypeEncoding<T, O>) EntityMapper.this.encodingFor(factory,
+                        JavaType.construct(type));
             }
         };
     }
 
     @Override
     public EntityTypeMapping mapping(Class<?> input) {
-        return resolvePojo(JavaType.construct(input));
+        return mapping(JavaType.construct(input));
     }
 
     @Override
@@ -140,7 +121,7 @@ public class EntityMapper implements EntityResolver {
         }
 
         /* assume complex entity */
-        return resolvePojo(t);
+        return mapping(t);
     }
 
     @Override
@@ -222,6 +203,31 @@ public class EntityMapper implements EntityResolver {
                 .findFirst();
     }
 
+    private <O> TypeEncoding<Object, O> encodingFor(final EncodingFactory<O> factory,
+            final JavaType type) {
+        final TypeMapping m = resolveType(type);
+
+        return new TypeEncoding<Object, O>() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public O encode(Object instance) {
+                final FieldEncoder fieldEncoder = factory.fieldEncoder();
+                return (O) fieldEncoder.filter(m.encode(fieldEncoder, Context.ROOT, instance));
+            }
+
+            @Override
+            public Object decode(O instance) {
+                final FieldDecoder fieldDecoder = factory.fieldDecoder(instance);
+                return m.decode(fieldDecoder, Context.ROOT);
+            }
+
+            @Override
+            public TypeMapping mapping() {
+                return m;
+            }
+        };
+    }
+
     /**
      * Performed a cached resolve of the given type.
      *
@@ -231,7 +237,7 @@ public class EntityMapper implements EntityResolver {
      * @param pojo The type to resolve.
      * @return A Resolved PojoMapping for the given type.
      */
-    private EntityTypeMapping resolvePojo(final JavaType pojo) {
+    private EntityTypeMapping mapping(final JavaType pojo) {
         final EntityTypeMapping mapping = cache.get(pojo);
 
         if (mapping != null) {
@@ -295,7 +301,7 @@ public class EntityMapper implements EntityResolver {
 
         final Optional<TypeKey> parent =
                 Optional.ofNullable(type.getRawClass().getAnnotation(Parent.class))
-                        .map(a -> resolvePojo(JavaType.construct(a.value())).key());
+                        .map(a -> mapping(JavaType.construct(a.value())).key());
 
         return new TypeKey(kind, parent);
     }

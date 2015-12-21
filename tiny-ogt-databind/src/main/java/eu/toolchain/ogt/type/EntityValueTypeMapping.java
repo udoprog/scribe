@@ -2,7 +2,6 @@ package eu.toolchain.ogt.type;
 
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -44,7 +43,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder field, Context path) throws IOException {
+    public Object decode(FieldDecoder field, Context path) {
         final Object value = mapping.decode(field, path);
 
         try {
@@ -55,7 +54,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public void encode(FieldEncoder encoder, Object value, Context path) throws IOException {
+    public Object encode(FieldEncoder encoder, Context path, Object value) {
         final Object v;
 
         try {
@@ -64,7 +63,7 @@ public class EntityValueTypeMapping implements TypeMapping {
             throw path.error("Could not get value from " + value, e);
         }
 
-        mapping.encode(encoder, v, path);
+        return mapping.encode(encoder, path, v);
     }
 
     @Override

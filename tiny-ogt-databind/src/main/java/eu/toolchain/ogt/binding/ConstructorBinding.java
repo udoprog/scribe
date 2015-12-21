@@ -5,15 +5,15 @@ import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import eu.toolchain.ogt.Context;
-import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.EntityDecoder;
+import eu.toolchain.ogt.EntityResolver;
+import eu.toolchain.ogt.FieldDecoder;
+import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.InstanceBuilder;
 import eu.toolchain.ogt.fieldreader.FieldReader;
@@ -39,21 +39,12 @@ public class ConstructorBinding implements SetEntityTypeBinding {
     }
 
     @Override
-    public Object decodeEntity(EntityDecoder accessor, Context path) {
+    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path) {
         final List<Object> arguments = new ArrayList<>();
 
         for (final TypeFieldMapping m : fields) {
             final Context p = path.push(m.name());
-
-            final Optional<?> value;
-
-            try {
-                value = m.decode(accessor, p);
-            } catch (IOException e) {
-                throw p.error("Failed to decode field", e);
-            }
-
-            arguments.add(m.type().fromOptional(value)
+            arguments.add(m.type().fromOptional(entityDecoder.decodeField(m, p))
                     .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")")));
         }
 
