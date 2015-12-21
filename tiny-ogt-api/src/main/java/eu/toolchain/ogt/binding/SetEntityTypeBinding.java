@@ -17,7 +17,8 @@ public interface SetEntityTypeBinding extends Binding {
     List<? extends TypeFieldMapping> fields();
 
     @Override
-    default Object encodeEntity(EntityEncoder encoder, FieldEncoder fieldEncoder, Object entity, final Context path) {
+    default Object encodeEntity(EntityEncoder encoder, FieldEncoder<?> fieldEncoder, Object entity,
+            final Context path) {
         for (final TypeFieldMapping m : fields()) {
             final Object value;
 

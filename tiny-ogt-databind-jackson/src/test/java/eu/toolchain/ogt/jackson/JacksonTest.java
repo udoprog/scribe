@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.JacksonAnnotationsModule;
 import eu.toolchain.ogt.JacksonEncodingFactory;
-import eu.toolchain.ogt.JsonNode;
 import eu.toolchain.ogt.TypeEncoding;
 import eu.toolchain.ogt.TypeEncodingProvider;
 import lombok.Data;

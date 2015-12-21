@@ -20,8 +20,8 @@ public class OptionalTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
-        return value.decode(accessor, path);
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
+        return value.decode(decoder, path, instance);
     }
 
     @SuppressWarnings("unchecked")
@@ -36,7 +36,7 @@ public class OptionalTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object encode(FieldEncoder encoder, Context path, Object inner) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object inner) {
         return value.encode(encoder, path, inner);
     }
 

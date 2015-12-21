@@ -18,7 +18,7 @@ public class EntityMapperTest {
 
     @Test
     public void testBuilder() {
-        final EntityTypeMapping a = mapper.mapping(BuilderTest.class);
+        final EntityTypeMapping a = (EntityTypeMapping) mapper.mapping(BuilderTest.class);
         assertTrue(a instanceof ConcreteEntityTypeMapping);
         final ConcreteEntityTypeMapping ca = (ConcreteEntityTypeMapping) a;
         assertTrue(ca.getBinder() instanceof BuilderBinding);
@@ -26,7 +26,7 @@ public class EntityMapperTest {
 
     @Test
     public void testEntityCreator() {
-        final EntityTypeMapping a = mapper.mapping(EntityCreatorTest.class);
+        final EntityTypeMapping a = (EntityTypeMapping) mapper.mapping(EntityCreatorTest.class);
         assertTrue(a instanceof ConcreteEntityTypeMapping);
         final ConcreteEntityTypeMapping ca = (ConcreteEntityTypeMapping) a;
         assertTrue(ca.getBinder() instanceof ConstructorBinding);

@@ -20,9 +20,9 @@ import eu.toolchain.ogt.JavaType;
 public interface TypeMapping {
     JavaType getType();
 
-    Object decode(FieldDecoder decoder, Context path);
+    <T> Object decode(FieldDecoder<T> decoder, Context path, T value);
 
-    Object encode(FieldEncoder encoder, Context path, Object value);
+    <T> T encode(FieldEncoder<T> encoder, Context path, Object value);
 
     default Optional<Object> asOptional(Object value) {
         return Optional.of(value);

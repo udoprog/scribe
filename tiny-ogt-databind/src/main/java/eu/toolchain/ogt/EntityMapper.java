@@ -56,7 +56,7 @@ public class EntityMapper implements EntityResolver {
     private final List<PropertyNameDetector> propertyNameDetectors;
     private final List<NameDetector> nameDetectors;
 
-    private final ConcurrentMap<JavaType, EntityTypeMapping> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<JavaType, TypeMapping> cache = new ConcurrentHashMap<>();
     private final Object resolverLock = new Object();
 
     public <O> TypeEncodingProvider<O> providerFor(final EncodingFactory<O> factory) {
@@ -76,12 +76,44 @@ public class EntityMapper implements EntityResolver {
     }
 
     @Override
-    public EntityTypeMapping mapping(Class<?> input) {
+    public TypeMapping mapping(Class<?> input) {
         return mapping(JavaType.construct(input));
     }
 
+    /**
+     * Performed a cached resolve of the given type.
+     *
+     * This will put the resolved type into {@link #cache} before they are being initialized to
+     * allow for circular dependencies.
+     *
+     * @param input The type to resolve.
+     * @return A Resolved PojoMapping for the given type.
+     */
     @Override
-    public TypeMapping resolveType(final JavaType t) {
+    public TypeMapping mapping(final JavaType input) {
+        final TypeMapping mapping = cache.get(input);
+
+        if (mapping != null) {
+            return mapping;
+        }
+
+        synchronized (resolverLock) {
+            final TypeMapping candidate = cache.get(input);
+
+            if (candidate != null) {
+                return candidate;
+            }
+
+            final TypeMapping newMapping = resolveMapping(input);
+            cache.put(input, newMapping);
+
+            // lazily initialize to allow for circular dependencies.
+            newMapping.initialize(this);
+            return newMapping;
+        }
+    }
+
+    private TypeMapping resolveMapping(final JavaType t) {
         final Optional<PrimitiveType> primitive = PrimitiveType.detect(t);
 
         if (primitive.isPresent()) {
@@ -100,16 +132,16 @@ public class EntityMapper implements EntityResolver {
         }
 
         if (List.class.isAssignableFrom(t.getRawClass()) && t.getParameterCount() == 1) {
-            return new ListTypeMapping(t, resolveType(t.getContainedType(0)));
+            return new ListTypeMapping(t, mapping(t.getContainedType(0)));
         }
 
         if (Map.class.isAssignableFrom(t.getRawClass()) && t.getParameterCount() == 2) {
-            return new MapTypeMapping(t, resolveType(t.getContainedType(0)),
-                    resolveType(t.getContainedType(1)));
+            return new MapTypeMapping(t, mapping(t.getContainedType(0)),
+                    mapping(t.getContainedType(1)));
         }
 
         if (Optional.class.isAssignableFrom(t.getRawClass())) {
-            return new OptionalTypeMapping(t, resolveType(t.getContainedType(0)));
+            return new OptionalTypeMapping(t, mapping(t.getContainedType(0)));
         }
 
         if (String.class.isAssignableFrom(t.getRawClass())) {
@@ -121,7 +153,7 @@ public class EntityMapper implements EntityResolver {
         }
 
         /* assume complex entity */
-        return mapping(t);
+        return resolveBean(t);
     }
 
     @Override
@@ -177,7 +209,7 @@ public class EntityMapper implements EntityResolver {
             if (bytes) {
                 mapping = new EncodedBytesTypeMapping(fieldType);
             } else {
-                mapping = resolveType(fieldType);
+                mapping = mapping(fieldType);
             }
 
             fields.add(new EntityMapperCreatorField(indexed, fieldType, mapping, p));
@@ -205,20 +237,23 @@ public class EntityMapper implements EntityResolver {
 
     private <O> TypeEncoding<Object, O> encodingFor(final EncodingFactory<O> factory,
             final JavaType type) {
-        final TypeMapping m = resolveType(type);
+        final TypeMapping m = mapping(type);
 
         return new TypeEncoding<Object, O>() {
             @SuppressWarnings("unchecked")
             @Override
             public O encode(Object instance) {
-                final FieldEncoder fieldEncoder = factory.fieldEncoder();
-                return (O) fieldEncoder.filter(m.encode(fieldEncoder, Context.ROOT, instance));
+                final FieldEncoder<Object> fieldEncoder =
+                        (FieldEncoder<Object>) factory.fieldEncoder();
+                return (O) fieldEncoder.encode(m.encode(fieldEncoder, Context.ROOT, instance));
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public Object decode(O instance) {
-                final FieldDecoder fieldDecoder = factory.fieldDecoder(instance);
-                return m.decode(fieldDecoder, Context.ROOT);
+                final FieldDecoder<Object> fieldDecoder =
+                        (FieldDecoder<Object>) factory.fieldDecoder();
+                return m.decode(fieldDecoder, Context.ROOT, fieldDecoder.decode(instance));
             }
 
             @Override
@@ -226,38 +261,6 @@ public class EntityMapper implements EntityResolver {
                 return m;
             }
         };
-    }
-
-    /**
-     * Performed a cached resolve of the given type.
-     *
-     * This will put the resolved type into {@link #cache} before they are being initialized to
-     * allow for circular dependencies.
-     *
-     * @param pojo The type to resolve.
-     * @return A Resolved PojoMapping for the given type.
-     */
-    private EntityTypeMapping mapping(final JavaType pojo) {
-        final EntityTypeMapping mapping = cache.get(pojo);
-
-        if (mapping != null) {
-            return mapping;
-        }
-
-        synchronized (resolverLock) {
-            final EntityTypeMapping candidate = cache.get(pojo);
-
-            if (candidate != null) {
-                return candidate;
-            }
-
-            final EntityTypeMapping newMapping = resolveBean(pojo);
-            cache.put(pojo, newMapping);
-
-            // lazily initialize to allow for circular dependencies.
-            newMapping.initialize(this);
-            return newMapping;
-        }
     }
 
     private EntityTypeMapping resolveBean(final JavaType type) {
@@ -274,7 +277,7 @@ public class EntityMapper implements EntityResolver {
         return doConcrete(type, typeName, raw);
     }
 
-    private <T> EntityTypeMapping doAbstract(final JavaType type, final Optional<String> typeName,
+    private EntityTypeMapping doAbstract(final JavaType type, final Optional<String> typeName,
             final Map<String, EntityTypeMapping> subTypes) {
         final ImmutableMap.Builder<JavaType, EntityTypeMapping> subTypesByClass =
                 ImmutableMap.builder();
@@ -284,7 +287,7 @@ public class EntityMapper implements EntityResolver {
         }
 
         final TypeKey key = entityKey(type);
-        return new AbstractEntityTypeMapping<T>(type, key, typeName, subTypes,
+        return new AbstractEntityTypeMapping(type, key, typeName, subTypes,
                 subTypesByClass.build());
     }
 
@@ -301,7 +304,9 @@ public class EntityMapper implements EntityResolver {
 
         final Optional<TypeKey> parent =
                 Optional.ofNullable(type.getRawClass().getAnnotation(Parent.class))
-                        .map(a -> mapping(JavaType.construct(a.value())).key());
+                        .map(a -> mapping(JavaType.construct(a.value())))
+                        .filter(v -> v instanceof EntityTypeMapping)
+                        .map(EntityTypeMapping.class::cast).map(EntityTypeMapping::key);
 
         return new TypeKey(kind, parent);
     }

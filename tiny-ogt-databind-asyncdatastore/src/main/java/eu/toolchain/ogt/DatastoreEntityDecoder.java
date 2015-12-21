@@ -15,7 +15,7 @@ public class DatastoreEntityDecoder implements EntityDecoder {
     @Override
     public Optional<Object> decodeField(FieldMapping field, Context path) {
         return Optional.ofNullable(entity.getProperties().get(field.name()))
-                .map(v -> field.type().decode(new DatastoreFieldDecoder(bytesEncoding, v), path));
+                .map(v -> field.type().decode(new DatastoreFieldDecoder(bytesEncoding), path, v));
     }
 
     @Override

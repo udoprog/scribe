@@ -18,9 +18,9 @@ public class StringTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            return accessor.decodeString();
+            return decoder.decodeString(instance);
         } catch (final IOException e) {
             throw path.error("Failed to decode string", e);
         }

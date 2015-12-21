@@ -15,6 +15,6 @@ public interface EntityTypeMapping extends TypeMapping {
 
     TypeKey key();
 
-    Object decode(EntityDecoder entityDecoder, FieldDecoder decoder,
-            Context path) throws IOException;
+    Object decode(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path)
+            throws IOException;
 }

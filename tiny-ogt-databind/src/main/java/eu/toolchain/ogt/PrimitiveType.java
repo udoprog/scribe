@@ -61,19 +61,20 @@ public enum PrimitiveType {
         return Optional.empty();
     }
 
-    public Object get(FieldDecoder a) throws IOException {
-        return decoding.decode(a);
+    public <T> Object get(FieldDecoder<T> a, T instance) throws IOException {
+        return decoding.decode(a, instance);
     }
 
-    public Object set(FieldEncoder encoder, Object value) throws IOException {
-        return this.encoding.encode(encoder, value);
+    @SuppressWarnings("unchecked")
+    public <T> T set(FieldEncoder<T> encoder, Object value) throws IOException {
+        return (T) this.encoding.encode(encoder, value);
     }
 
     public static interface DecodingFunction {
-        public Object decode(FieldDecoder decoder) throws IOException;
+        public <T> Object decode(FieldDecoder<T> decoder, T instance) throws IOException;
     }
 
     public static interface EncodingFunction {
-        public Object encode(FieldEncoder decoder, Object value) throws IOException;
+        public Object encode(FieldEncoder<?> encoder, Object value) throws IOException;
     }
 }

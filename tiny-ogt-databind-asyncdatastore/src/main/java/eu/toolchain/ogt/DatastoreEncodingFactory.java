@@ -21,13 +21,17 @@ public class DatastoreEncodingFactory implements EncodingFactory<Entity> {
     }
 
     @Override
-    public FieldEncoder fieldEncoder() {
+    public FieldEncoder<?> fieldEncoder() {
         return new DatastoreFieldEncoder(bytesEncoding);
     }
 
     @Override
-    public FieldDecoder fieldDecoder(Entity input) {
-        return new DatastoreFieldDecoder(bytesEncoding,
-                Value.builder(input).build());
+    public FieldDecoder<?> fieldDecoder() {
+        return new DatastoreFieldDecoder(bytesEncoding) {
+            @Override
+            public Value decode(Object input) {
+                return Value.builder(input).build();
+            }
+        };
     }
 }

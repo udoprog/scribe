@@ -14,94 +14,92 @@ import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class DatastoreFieldDecoder implements FieldDecoder {
+public class DatastoreFieldDecoder implements FieldDecoder<Value> {
     private final TypeEncodingProvider<byte[]> bytesEncoding;
-    private final Value value;
 
     @Override
-    public Object decode(JavaType type, byte[] bytes) {
+    public Object decodeBytesField(JavaType type, byte[] bytes) {
         return bytesEncoding.encodingFor(type).decode(bytes);
     }
 
     @Override
-    public byte[] decodeBytes() {
+    public byte[] decodeBytes(Value value) {
         return value.getBlob().toByteArray();
     }
 
     @Override
-    public short decodeShort() {
-        return (short) decodeLong();
+    public short decodeShort(Value value) {
+        return (short) decodeLong(value);
     }
 
     @Override
-    public int decodeInteger() {
-        return (int) decodeLong();
+    public int decodeInteger(Value value) {
+        return (int) decodeLong(value);
     }
 
     @Override
-    public long decodeLong() {
+    public long decodeLong(Value value) {
         return value.getInteger();
     }
 
     @Override
-    public float decodeFloat() {
-        return (float) decodeDouble();
+    public float decodeFloat(Value value) {
+        return (float) decodeDouble(value);
     }
 
     @Override
-    public double decodeDouble() {
+    public double decodeDouble(Value value) {
         return value.getDouble();
     }
 
     @Override
-    public boolean decodeBoolean() {
+    public boolean decodeBoolean(Value value) {
         return value.getBoolean();
     }
 
     @Override
-    public byte decodeByte() {
+    public byte decodeByte(Value value) {
         return value.getBlob().byteAt(0);
     }
 
     @Override
-    public char decodeCharacter() {
+    public char decodeCharacter(Value value) {
         return value.getString().charAt(0);
     }
 
     @Override
-    public Date decodeDate() {
+    public Date decodeDate(Value value) {
         return value.getDate();
     }
 
     @Override
-    public String decodeString() {
+    public String decodeString(Value value) {
         return value.getString();
     }
 
     @Override
-    public List<?> decodeList(TypeMapping value, Context path) throws IOException {
+    public List<?> decodeList(TypeMapping valueType, Context path, Value value) throws IOException {
         final ImmutableList.Builder<Object> list = ImmutableList.builder();
 
         int index = 0;
 
-        for (final Value v : this.value.getList()) {
-            list.add(value.decode(new DatastoreFieldDecoder(bytesEncoding, v), path.push(index++)));
+        for (final Value v : value.getList()) {
+            list.add(valueType.decode(this, path.push(index++), v));
         }
 
         return list.build();
     }
 
     @Override
-    public Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path)
-            throws IOException {
+    public Map<?, ?> decodeMap(TypeMapping keyType, TypeMapping valueType, Context path,
+            Value value) throws IOException {
         final ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
-        final Entity entity = this.value.getEntity();
+        final Entity entity = value.getEntity();
 
         for (final Map.Entry<String, Value> e : entity.getProperties().entrySet()) {
             final String k = e.getKey();
-            final Object v = value.decode(new DatastoreFieldDecoder(bytesEncoding, e.getValue()),
-                    path.push(k));
+            final Object v = valueType.decode(this, path.push(k), e.getValue());
             map.put(k, v);
         }
 
@@ -109,7 +107,7 @@ public class DatastoreFieldDecoder implements FieldDecoder {
     }
 
     @Override
-    public EntityDecoder asEntity() {
+    public EntityDecoder decodeEntity(Value value) {
         return new DatastoreEntityDecoder(bytesEncoding, value.getEntity());
     }
 }

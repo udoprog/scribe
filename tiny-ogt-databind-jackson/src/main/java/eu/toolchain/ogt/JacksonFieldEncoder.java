@@ -13,66 +13,66 @@ import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class JacksonFieldEncoder implements FieldEncoder {
+public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
     private static final BaseEncoding BASE64 = JsonNode.StringJsonNode.BASE64;
 
     @Override
-    public byte[] encode(JavaType type, Object value) {
+    public byte[] encodeBytesField(JavaType type, Object value) {
         throw new RuntimeException("Not supported");
     }
 
     @Override
-    public Object encodeBytes(byte[] bytes) throws IOException {
+    public JsonNode encodeBytes(byte[] bytes) throws IOException {
         return new JsonNode.StringJsonNode(BASE64.encode(bytes));
     }
 
     @Override
-    public Object encodeShort(short value) throws IOException {
+    public JsonNode encodeShort(short value) throws IOException {
         return new JsonNode.NumberJsonNode(value);
     }
 
     @Override
-    public Object encodeInteger(int value) throws IOException {
+    public JsonNode encodeInteger(int value) throws IOException {
         return new JsonNode.NumberJsonNode(value);
     }
 
     @Override
-    public Object encodeLong(long value) throws IOException {
+    public JsonNode encodeLong(long value) throws IOException {
         return new JsonNode.NumberJsonNode(value);
     }
 
     @Override
-    public Object encodeFloat(float value) throws IOException {
+    public JsonNode encodeFloat(float value) throws IOException {
         return new JsonNode.FloatJsonNode(value);
     }
 
     @Override
-    public Object encodeDouble(double value) throws IOException {
+    public JsonNode encodeDouble(double value) throws IOException {
         return new JsonNode.FloatJsonNode(value);
     }
 
     @Override
-    public Object encodeBoolean(boolean value) throws IOException {
+    public JsonNode encodeBoolean(boolean value) throws IOException {
         return new JsonNode.BooleanJsonNode(value);
     }
 
     @Override
-    public Object encodeByte(byte value) throws IOException {
+    public JsonNode encodeByte(byte value) throws IOException {
         return new JsonNode.StringJsonNode(BASE64.encode(new byte[] {value}));
     }
 
     @Override
-    public Object encodeCharacter(char value) throws IOException {
+    public JsonNode encodeCharacter(char value) throws IOException {
         return new JsonNode.StringJsonNode(new String(new char[] {value}));
     }
 
     @Override
-    public Object encodeDate(Date value) throws IOException {
+    public JsonNode encodeDate(Date value) throws IOException {
         return new JsonNode.NumberJsonNode(value.getTime());
     }
 
     @Override
-    public Object encodeList(TypeMapping value, List<?> list, Context path) throws IOException {
+    public JsonNode encodeList(TypeMapping value, List<?> list, Context path) throws IOException {
         final ImmutableList.Builder<JsonNode> values = ImmutableList.builder();
 
         int index = 0;
@@ -85,7 +85,7 @@ public class JacksonFieldEncoder implements FieldEncoder {
     }
 
     @Override
-    public Object encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
+    public JsonNode encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
             throws IOException {
         if (!key.getType().getRawClass().equals(String.class)) {
             throw path.error("Keys must be strings");
@@ -104,7 +104,7 @@ public class JacksonFieldEncoder implements FieldEncoder {
     }
 
     @Override
-    public Object encodeString(String string) throws IOException {
+    public JsonNode encodeString(String string) throws IOException {
         return new JsonNode.StringJsonNode(string);
     }
 

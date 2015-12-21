@@ -5,7 +5,7 @@ public interface EncodingFactory<T> {
 
     EntityEncoder entityEncoder();
 
-    FieldDecoder fieldDecoder(T input);
+    FieldDecoder<?> fieldDecoder();
 
-    FieldEncoder fieldEncoder();
+    FieldEncoder<?> fieldEncoder();
 }

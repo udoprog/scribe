@@ -13,7 +13,7 @@ import eu.toolchain.ogt.TypeKey;
 import lombok.Data;
 
 @Data
-public class AbstractEntityTypeMapping<T> implements EntityTypeMapping {
+public class AbstractEntityTypeMapping implements EntityTypeMapping {
     private final JavaType type;
     private final TypeKey key;
     private final Optional<String> typeName;
@@ -31,17 +31,17 @@ public class AbstractEntityTypeMapping<T> implements EntityTypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder decoder, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            final EntityDecoder entityDecoder = decoder.asEntity();
+            final EntityDecoder entityDecoder = decoder.decodeEntity(instance);
             return decode(entityDecoder, decoder, path);
         } catch (final IOException e) {
             throw path.error("failed to decode", e);
         }
     }
 
-    @Override   
-    public Object decode(EntityDecoder entityDecoder, FieldDecoder decoder, Context path)
+    @Override
+    public Object decode(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path)
             throws IOException {
         final String type = entityDecoder.decodeType()
                 .orElseThrow(() -> path.error("No type information available"));
@@ -56,7 +56,7 @@ public class AbstractEntityTypeMapping<T> implements EntityTypeMapping {
     }
 
     @Override
-    public Object encode(FieldEncoder encoder, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
         final EntityTypeMapping sub = subTypesByClass.get(JavaType.construct(value.getClass()));
 
         if (sub == null) {

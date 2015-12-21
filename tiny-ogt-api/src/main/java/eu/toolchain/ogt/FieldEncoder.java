@@ -7,7 +7,7 @@ import java.util.Map;
 
 import eu.toolchain.ogt.type.TypeMapping;
 
-public interface FieldEncoder {
+public interface FieldEncoder<T> {
     /**
      * Encode an instance of the given type annotated with
      * {@code eu.toolchain.ogt.annotations.Bytes}.
@@ -16,38 +16,37 @@ public interface FieldEncoder {
      * @param value The value to encode.
      * @return A byte array representing the instance.
      */
-    byte[] encode(JavaType type, Object value) throws IOException;
+    byte[] encodeBytesField(JavaType type, Object value) throws IOException;
 
-    Object encodeBytes(byte[] bytes) throws IOException;
+    T encodeBytes(byte[] bytes) throws IOException;
 
-    Object encodeShort(short value) throws IOException;
+    T encodeShort(short value) throws IOException;
 
-    Object encodeInteger(int value) throws IOException;
+    T encodeInteger(int value) throws IOException;
 
-    Object encodeLong(long value) throws IOException;
+    T encodeLong(long value) throws IOException;
 
-    Object encodeFloat(float value) throws IOException;
+    T encodeFloat(float value) throws IOException;
 
-    Object encodeDouble(double value) throws IOException;
+    T encodeDouble(double value) throws IOException;
 
-    Object encodeBoolean(boolean value) throws IOException;
+    T encodeBoolean(boolean value) throws IOException;
 
-    Object encodeByte(byte value) throws IOException;
+    T encodeByte(byte value) throws IOException;
 
-    Object encodeCharacter(char value) throws IOException;
+    T encodeCharacter(char value) throws IOException;
 
-    Object encodeDate(Date value) throws IOException;
+    T encodeDate(Date value) throws IOException;
 
-    Object encodeString(String value) throws IOException;
+    T encodeString(String value) throws IOException;
 
-    Object encodeList(TypeMapping value, List<?> list, Context path) throws IOException;
+    T encodeList(TypeMapping value, List<?> list, Context path) throws IOException;
 
-    Object encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
-            throws IOException;
+    T encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path) throws IOException;
 
     EntityEncoder encodeEntity();
 
-    default Object filter(Object value) {
+    default Object encode(T value) {
         return value;
     }
 }

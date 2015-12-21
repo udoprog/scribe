@@ -18,6 +18,7 @@ public class DatastoreEntityEncoder implements EntityEncoder {
         builder.property("type", type);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void setField(FieldMapping field, Context path, Object value) throws IOException {
         final Object v = field.type().encode(new DatastoreFieldEncoder(bytesEncoding), path, value);

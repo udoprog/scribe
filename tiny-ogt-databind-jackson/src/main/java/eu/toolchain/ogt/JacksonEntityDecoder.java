@@ -19,6 +19,6 @@ public class JacksonEntityDecoder implements EntityDecoder {
     @Override
     public Optional<Object> decodeField(FieldMapping field, Context path) {
         return node.get(field.name())
-                .map(n -> field.type().decode(new JacksonFieldDecoder(n), path));
+                .map(n -> field.type().decode(new JacksonFieldDecoder(), path, n));
     }
 }

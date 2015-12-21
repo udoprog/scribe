@@ -9,7 +9,7 @@ public interface TypeEncodingProvider<T> {
 
     public <C> TypeEncoding<C, T> encodingFor(final Class<C> type);
 
-    default public <N> TypeEncodingProvider<N> convert(final Function<T, N> from,
+    public default <N> TypeEncodingProvider<N> convert(final Function<T, N> from,
             final Function<N, T> to) {
         return new TypeEncodingProvider<N>() {
             @Override

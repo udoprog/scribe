@@ -26,16 +26,16 @@ public class ListTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
+    public <T> Object decode(FieldDecoder<T> accessor, Context path, T instance) {
         try {
-            return accessor.decodeList(value, path);
+            return accessor.decodeList(value, path, instance);
         } catch (final IOException e) {
             throw path.error("Failed to decode list", e);
         }
     }
 
     @Override
-    public Object encode(FieldEncoder visitor, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> visitor, Context path, Object value) {
         try {
             return visitor.encodeList(this.value, (List<?>) value, path);
         } catch (final IOException e) {

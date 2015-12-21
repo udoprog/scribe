@@ -43,8 +43,8 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder field, Context path) {
-        final Object value = mapping.decode(field, path);
+    public <T> Object decode(FieldDecoder<T> field, Context path, T instance) {
+        final Object value = mapping.decode(field, path, instance);
 
         try {
             return instanceBuilder.newInstance(ImmutableList.of(value));
@@ -54,7 +54,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object encode(FieldEncoder encoder, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
         final Object v;
 
         try {
@@ -115,7 +115,7 @@ public class EntityValueTypeMapping implements TypeMapping {
 
             /* type to serialize as */
             final TypeMapping targetType =
-                    resolver.resolveType(JavaType.construct(value.getGenericReturnType()));
+                    resolver.mapping(JavaType.construct(value.getGenericReturnType()));
 
             return Optional.of(
                     new EntityValueTypeMapping(sourceType, targetType, c.instanceBuilder(), value));

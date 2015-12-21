@@ -13,8 +13,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
@@ -34,7 +32,8 @@ public class CreatorMethodsTest {
     public void setup() {
         resolver = spy(EntityMapper.nativeBuilder().build());
         string = mock(TypeMapping.class);
-        doReturn(string).when(resolver).resolveType(STRING);
+
+        doReturn(string).when(resolver).mapping(STRING);
     }
 
     static class BadEntity {
@@ -59,7 +58,6 @@ public class CreatorMethodsTest {
     public void testConstructor() {
         Optional<CreatorMethod> method = resolver.detectCreatorMethod(construct(Constructor.class));
 
-        verify(resolver, times(2)).resolveType(STRING);
         assertTrue(method.isPresent());
         final CreatorMethod creator = method.get();
         assertTrue(creator instanceof ConstructorCreatorMethod);
@@ -81,7 +79,6 @@ public class CreatorMethodsTest {
         Optional<CreatorMethod> method =
                 resolver.detectCreatorMethod(construct(StaticMethod.class));
 
-        verify(resolver, times(2)).resolveType(STRING);
         assertTrue(method.isPresent());
         final CreatorMethod creator = method.get();
         assertTrue(creator instanceof StaticMethodCreatorMethod);

@@ -27,18 +27,18 @@ public class MapTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            return accessor.decodeMap(key, value, path);
+            return decoder.decodeMap(key, value, path, instance);
         } catch (final IOException e) {
             throw path.error("Failed to decode map", e);
         }
     }
 
     @Override
-    public Object encode(FieldEncoder visitor, Context path, Object map) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object map) {
         try {
-            return visitor.encodeMap(key, value, (Map<?, ?>) map, path);
+            return encoder.encodeMap(key, value, (Map<?, ?>) map, path);
         } catch (final IOException e) {
             throw path.error("Failed to encode map", e);
         }

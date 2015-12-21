@@ -13,11 +13,11 @@ import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class DatastoreFieldEncoder implements FieldEncoder {
+public class DatastoreFieldEncoder implements FieldEncoder<Object> {
     private final TypeEncodingProvider<byte[]> bytesEncoding;
 
     @Override
-    public byte[] encode(JavaType type, Object value) {
+    public byte[] encodeBytesField(JavaType type, Object value) {
         return bytesEncoding.encodingFor(type).encode(value);
     }
 

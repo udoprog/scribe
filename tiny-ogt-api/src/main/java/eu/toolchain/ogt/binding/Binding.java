@@ -13,8 +13,8 @@ import eu.toolchain.ogt.FieldEncoder;
  * @author udoprog
  */
 public interface Binding {
-    Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path);
+    Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path);
 
-    Object encodeEntity(EntityEncoder entityEncoder, FieldEncoder encoder, Object value,
+    Object encodeEntity(EntityEncoder entityEncoder, FieldEncoder<?> encoder, Object value,
             Context path);
 }

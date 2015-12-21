@@ -20,18 +20,18 @@ public class EncodedBytesTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            return accessor.decode(type, accessor.decodeBytes());
+            return decoder.decodeBytesField(type, decoder.decodeBytes(instance));
         } catch (final IOException e) {
             throw path.error("Failed to decode bytes", e);
         }
     }
 
     @Override
-    public Object encode(FieldEncoder visitor, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
         try {
-            return visitor.encodeBytes(visitor.encode(type, value));
+            return encoder.encodeBytes(encoder.encodeBytesField(type, value));
         } catch (final IOException e) {
             throw path.error("Failed to encode bytes", e);
         }

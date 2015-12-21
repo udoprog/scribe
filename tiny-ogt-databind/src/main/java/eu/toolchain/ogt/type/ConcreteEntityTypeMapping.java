@@ -36,9 +36,9 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder decoder, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            final EntityDecoder entityDecoder = decoder.asEntity();
+            final EntityDecoder entityDecoder = decoder.decodeEntity(instance);
             return decode(entityDecoder, decoder, path);
         } catch (final IOException e) {
             throw path.error("Failed to decode entity", e);
@@ -46,13 +46,14 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public Object decode(EntityDecoder entityDecoder, FieldDecoder decoder, Context path)
+    public Object decode(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path)
             throws IOException {
         return binder.decodeEntity(entityDecoder, decoder, path);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object encode(FieldEncoder encoder, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
         try {
             final EntityEncoder entityEncoder = encoder.encodeEntity();
 
@@ -62,7 +63,7 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
                 entityEncoder.setType(typeName.get());
             }
 
-            return binder.encodeEntity(entityEncoder, encoder, value, path);
+            return (T) binder.encodeEntity(entityEncoder, encoder, value, path);
         } catch (final IOException e) {
             throw path.error("Failed to encode entity", e);
         }

@@ -45,7 +45,7 @@ public class BuilderBinding implements SetEntityTypeBinding {
     }
 
     @Override
-    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path) {
+    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path) {
         final Object builder;
 
         try {
@@ -153,7 +153,7 @@ public class BuilderBinding implements SetEntityTypeBinding {
             if (field.isAnnotationPresent(Bytes.class)) {
                 m = new EncodedBytesTypeMapping(propertyType);
             } else {
-                m = resolver.resolveType(propertyType);
+                m = resolver.mapping(propertyType);
             }
 
             fields.add(new BuilderFieldMapping(field.getName(), indexed, m, reader, setter));

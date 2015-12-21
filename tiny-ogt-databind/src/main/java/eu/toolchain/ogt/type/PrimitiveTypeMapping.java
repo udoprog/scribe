@@ -20,16 +20,16 @@ public class PrimitiveTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object decode(FieldDecoder accessor, Context path) {
+    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
         try {
-            return type.get(accessor);
+            return type.get(decoder, instance);
         } catch (final IOException e) {
             throw path.error("Failed to encode primitive", e);
         }
     }
 
     @Override
-    public Object encode(FieldEncoder visitor, Context path, Object value) {
+    public <T> T encode(FieldEncoder<T> visitor, Context path, Object value) {
         try {
             return type.set(visitor, value);
         } catch (final IOException e) {

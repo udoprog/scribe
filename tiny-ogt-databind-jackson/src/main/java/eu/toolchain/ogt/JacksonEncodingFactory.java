@@ -54,17 +54,15 @@ public class JacksonEncodingFactory implements EncodingFactory<String> {
     }
 
     @Override
-    public FieldEncoder fieldEncoder() {
+    public FieldEncoder<?> fieldEncoder() {
         return new JacksonFieldEncoder() {
             @Override
-            public Object filter(final Object value) {
-                final JsonNode n = (JsonNode) value;
-
+            public Object encode(final JsonNode value) {
                 try {
                     final StringWriter writer = new StringWriter();
 
                     try (final JsonGenerator generator = jsonFactory.createGenerator(writer)) {
-                        n.generate(generator);
+                        value.generate(generator);
                     }
 
                     return writer.toString();
@@ -76,19 +74,20 @@ public class JacksonEncodingFactory implements EncodingFactory<String> {
     }
 
     @Override
-    public FieldDecoder fieldDecoder(final String input) {
-        final JsonNode node;
+    public FieldDecoder<?> fieldDecoder() {
+        return new JacksonFieldDecoder() {
+            @Override
+            public JsonNode decode(final Object value) {
+                final StringReader reader = new StringReader((String) value);
 
-        final StringReader reader = new StringReader(input);
-
-        try {
-            try (final JsonParser parser = jsonFactory.createParser(reader)) {
-                node = JsonNode.fromParser(parser);
+                try {
+                    try (final JsonParser parser = jsonFactory.createParser(reader)) {
+                        return JsonNode.fromParser(parser);
+                    }
+                } catch (final IOException e) {
+                    throw new RuntimeException("Failed to parse JSON", e);
+                }
             }
-        } catch (final IOException e) {
-            throw new RuntimeException("Failed to parse JSON", e);
-        }
-
-        return new JacksonFieldDecoder(node);
+        };
     }
 }

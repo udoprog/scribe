@@ -8,13 +8,12 @@ import eu.toolchain.ogt.binding.Binding;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
 import eu.toolchain.ogt.fieldreader.FieldReader;
-import eu.toolchain.ogt.type.EntityTypeMapping;
 import eu.toolchain.ogt.type.TypeMapping;
 
 public interface EntityResolver {
-    EntityTypeMapping mapping(Class<?> input);
+    TypeMapping mapping(Class<?> input);
 
-    TypeMapping resolveType(JavaType type);
+    TypeMapping mapping(JavaType type);
 
     Optional<CreatorMethod> detectCreatorMethod(JavaType type);
 
