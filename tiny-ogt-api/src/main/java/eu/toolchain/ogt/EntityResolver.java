@@ -26,4 +26,6 @@ public interface EntityResolver {
     Optional<String> detectPropertyName(JavaType type, CreatorField field);
 
     Optional<String> detectName(JavaType type);
+
+    <T> TypeEncodingProvider<T> providerFor(final EncodingFactory<T> factory);
 }

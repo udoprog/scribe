@@ -5,7 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
+import eu.toolchain.ogt.EntityMapper;
+import eu.toolchain.ogt.JacksonAnnotationsModule;
+import eu.toolchain.ogt.JacksonEntityMapper;
+import eu.toolchain.ogt.JacksonTypeEncoding;
+import eu.toolchain.ogt.JsonNode;
+import eu.toolchain.ogt.TypeEncoding;
+import eu.toolchain.ogt.TypeEncodingProvider;
+import lombok.Data;
+import lombok.experimental.Builder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,45 +22,37 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import eu.toolchain.ogt.EntityMapper;
-import eu.toolchain.ogt.JacksonAnnotationsModule;
-import eu.toolchain.ogt.JacksonEncodingFactory;
-import eu.toolchain.ogt.TypeEncoding;
-import eu.toolchain.ogt.TypeEncodingProvider;
-import lombok.Data;
-import lombok.experimental.Builder;
 
 public class JacksonTest {
     private static final Map<String, String> MAP =
-            ImmutableMap.of("hello", "world", "hello2", "world2");
+        ImmutableMap.of("hello", "world", "hello2", "world2");
     private static final Bar BAR1 = new Bar(0.1d, MAP);
     private static final Bar BAR2 = new Bar(0.2d, MAP);
-    private static final Foo FOO =
-            Foo.builder().missing(Optional.empty()).existing(Optional.of("existing"))
-                    .field("hello world").bars(ImmutableList.of(BAR1, BAR2)).build();
+    private static final Foo FOO = Foo
+        .builder()
+        .missing(Optional.empty())
+        .existing(Optional.of("existing"))
+        .field("hello world")
+        .bars(ImmutableList.of(BAR1, BAR2))
+        .build();
 
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
-    private TypeEncoding<Foo, String> foo;
-    private TypeEncodingProvider<String> provider;
+    private JacksonTypeEncoding<Foo> foo;
 
     @Before
     public void setup() {
-        final EntityMapper mapper =
-                EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build();
+        final JacksonEntityMapper mapper = new JacksonEntityMapper(
+            EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
+            JSON_FACTORY);
 
-        provider = mapper.providerFor(new JacksonEncodingFactory(JSON_FACTORY));
-
-        foo = provider.encodingFor(Foo.class);
+        foo = mapper.encodingFor(Foo.class);
     }
 
     @Test
     public void testEncode() throws Exception {
-        final String encoded = this.foo.encode(FOO);
-        assertTrue(encoded instanceof String);
-        assertEquals(FOO, this.foo.decode(encoded));
+        final String encoded = this.foo.encodeAsString(FOO);
+        assertEquals(FOO, this.foo.decodeFromString(encoded));
     }
 
     @Data
@@ -70,8 +70,10 @@ public class JacksonTest {
         private final Map<String, String> map;
 
         @JsonCreator
-        public Bar(@JsonProperty("value") final double value,
-                @JsonProperty("map") final Map<String, String> map) {
+        public Bar(
+            @JsonProperty("value") final double value,
+            @JsonProperty("map") final Map<String, String> map
+        ) {
             this.value = value;
             this.map = map;
         }

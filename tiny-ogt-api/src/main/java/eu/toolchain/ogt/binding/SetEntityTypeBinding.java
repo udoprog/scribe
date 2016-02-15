@@ -1,24 +1,25 @@
 package eu.toolchain.ogt.binding;
 
-import java.util.List;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityEncoder;
 import eu.toolchain.ogt.FieldEncoder;
 
+import java.util.List;
+
 /**
- * A type binder mixin that implements a common
- * {@link #encodeEntity(EntityEncoder, Object, Context)} method that uses fields of type
+ * A type binder mixin that implements a common {@link #encodeEntity(eu.toolchain.ogt.EntityEncoder,
+ * eu.toolchain.ogt.FieldEncoder, Object, eu.toolchain.ogt.Context)} method that uses fields of type
  * {@link TypeFieldMapping}.
  *
  * @author udoprog
  */
-public interface SetEntityTypeBinding extends Binding {
+public interface SetEntityTypeBinding<T> extends Binding<T> {
     List<? extends TypeFieldMapping> fields();
 
     @Override
-    default Object encodeEntity(EntityEncoder encoder, FieldEncoder<?> fieldEncoder, Object entity,
-            final Context path) {
+    default T encodeEntity(
+        EntityEncoder<T> entityEncoder, FieldEncoder<T> encoder, final Context path, Object entity
+    ) {
         for (final TypeFieldMapping m : fields()) {
             final Object value;
 
@@ -36,13 +37,13 @@ public interface SetEntityTypeBinding extends Binding {
 
             m.type().asOptional(value).ifPresent(v -> {
                 try {
-                    encoder.setField(m, p, v);
+                    entityEncoder.setField(m, p, v);
                 } catch (Exception e) {
                     throw p.error("Failed to encode field", e);
                 }
             });
         }
 
-        return encoder.encode();
+        return entityEncoder.build();
     }
 }

@@ -3,14 +3,13 @@ package eu.toolchain.ogt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
+import eu.toolchain.ogt.type.TypeMapping;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import eu.toolchain.ogt.type.TypeMapping;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
@@ -58,12 +57,12 @@ public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
 
     @Override
     public JsonNode encodeByte(byte value) throws IOException {
-        return new JsonNode.StringJsonNode(BASE64.encode(new byte[] {value}));
+        return new JsonNode.StringJsonNode(BASE64.encode(new byte[]{value}));
     }
 
     @Override
     public JsonNode encodeCharacter(char value) throws IOException {
-        return new JsonNode.StringJsonNode(new String(new char[] {value}));
+        return new JsonNode.StringJsonNode(new String(new char[]{value}));
     }
 
     @Override
@@ -86,18 +85,17 @@ public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
 
     @Override
     public JsonNode encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path)
-            throws IOException {
+        throws IOException {
         if (!key.getType().getRawClass().equals(String.class)) {
             throw path.error("Keys must be strings");
         }
 
-        @SuppressWarnings("unchecked")
-        final Map<String, ?> input = (Map<String, ?>) map;
+        @SuppressWarnings("unchecked") final Map<String, ?> input = (Map<String, ?>) map;
         final ImmutableMap.Builder<String, JsonNode> output = ImmutableMap.builder();
 
         for (final Map.Entry<String, ?> e : input.entrySet()) {
             output.put(e.getKey(),
-                    (JsonNode) value.encode(this, path.push(e.getKey()), e.getValue()));
+                (JsonNode) value.encode(this, path.push(e.getKey()), e.getValue()));
         }
 
         return new JsonNode.ObjectJsonNode(output.build());
@@ -109,7 +107,7 @@ public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
     }
 
     @Override
-    public EntityEncoder encodeEntity() {
+    public EntityEncoder<JsonNode> newEntityEncoder() {
         return new JacksonEntityEncoder();
     }
 }

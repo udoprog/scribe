@@ -2,18 +2,6 @@ package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import java.lang.reflect.Executable;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
-
 import eu.toolchain.ogt.annotations.Bytes;
 import eu.toolchain.ogt.annotations.Indexed;
 import eu.toolchain.ogt.annotations.Kind;
@@ -44,6 +32,17 @@ import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.lang.reflect.Executable;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+
 @RequiredArgsConstructor
 public class EntityMapper implements EntityResolver {
     public static final List<FieldReaderDetector> DEFAULT_FIELD_READERS = new ArrayList<>();
@@ -59,18 +58,17 @@ public class EntityMapper implements EntityResolver {
     private final ConcurrentMap<JavaType, TypeMapping> cache = new ConcurrentHashMap<>();
     private final Object resolverLock = new Object();
 
-    public <O> TypeEncodingProvider<O> providerFor(final EncodingFactory<O> factory) {
-        return new TypeEncodingProvider<O>() {
+    public <T> TypeEncodingProvider<T> providerFor(final EncodingFactory<T> factory) {
+        return new TypeEncodingProvider<T>() {
             @Override
-            public TypeEncoding<Object, O> encodingFor(JavaType type) {
+            public TypeEncoding<Object, T> encodingFor(JavaType type) {
                 return EntityMapper.this.encodingFor(factory, type);
             }
 
-            @SuppressWarnings("unchecked")
             @Override
-            public <T> TypeEncoding<T, O> encodingFor(Class<T> type) {
-                return (TypeEncoding<T, O>) EntityMapper.this.encodingFor(factory,
-                        JavaType.construct(type));
+            public <O> TypeEncoding<O, T> encodingFor(Class<O> type) {
+                return (TypeEncoding<O, T>) EntityMapper.this.encodingFor(factory,
+                    JavaType.construct(type));
             }
         };
     }
@@ -82,7 +80,7 @@ public class EntityMapper implements EntityResolver {
 
     /**
      * Performed a cached resolve of the given type.
-     *
+     * <p>
      * This will put the resolved type into {@link #cache} before they are being initialized to
      * allow for circular dependencies.
      *
@@ -137,7 +135,7 @@ public class EntityMapper implements EntityResolver {
 
         if (Map.class.isAssignableFrom(t.getRawClass()) && t.getParameterCount() == 2) {
             return new MapTypeMapping(t, mapping(t.getContainedType(0)),
-                    mapping(t.getContainedType(1)));
+                mapping(t.getContainedType(1)));
         }
 
         if (Optional.class.isAssignableFrom(t.getRawClass())) {
@@ -162,8 +160,9 @@ public class EntityMapper implements EntityResolver {
     }
 
     @Override
-    public Optional<FieldReader> detectFieldReader(final JavaType type, final JavaType returnType,
-            final String fieldName) {
+    public Optional<FieldReader> detectFieldReader(
+        final JavaType type, final JavaType returnType, final String fieldName
+    ) {
         return firstMatch(fieldReaders, c -> c.detect(type, returnType, fieldName));
     }
 
@@ -173,8 +172,9 @@ public class EntityMapper implements EntityResolver {
     }
 
     public Map<String, EntityTypeMapping> resolveSubTypes(final JavaType type) {
-        return firstMatch(subTypeDetectors, d -> d.detect(this, type)).map(s -> s.subtypes())
-                .orElseGet(ImmutableMap::of);
+        return firstMatch(subTypeDetectors, d -> d.detect(this, type))
+            .map(s -> s.subtypes())
+            .orElseGet(ImmutableMap::of);
     }
 
     public Optional<TypeMapping> detectValueType(final JavaType type) {
@@ -199,7 +199,7 @@ public class EntityMapper implements EntityResolver {
 
         for (final Parameter p : executable.getParameters()) {
             final JavaType fieldType =
-                    JavaType.construct(executable.getGenericParameterTypes()[index++]);
+                JavaType.construct(executable.getGenericParameterTypes()[index++]);
 
             final boolean indexed = p.isAnnotationPresent(Indexed.class);
             final boolean bytes = p.isAnnotationPresent(Bytes.class);
@@ -231,29 +231,32 @@ public class EntityMapper implements EntityResolver {
     }
 
     private <T, O> Optional<O> firstMatch(List<T> alternatives, Function<T, Optional<O>> map) {
-        return alternatives.stream().map(map).filter(Optional::isPresent).map(Optional::get)
-                .findFirst();
+        return alternatives
+            .stream()
+            .map(map)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst();
     }
 
-    private <O> TypeEncoding<Object, O> encodingFor(final EncodingFactory<O> factory,
-            final JavaType type) {
+    private <O> TypeEncoding<Object, O> encodingFor(
+        final EncodingFactory<O> factory, final JavaType type
+    ) {
         final TypeMapping m = mapping(type);
 
         return new TypeEncoding<Object, O>() {
             @SuppressWarnings("unchecked")
             @Override
             public O encode(Object instance) {
-                final FieldEncoder<Object> fieldEncoder =
-                        (FieldEncoder<Object>) factory.fieldEncoder();
-                return (O) fieldEncoder.encode(m.encode(fieldEncoder, Context.ROOT, instance));
+                final FieldEncoder<O> fieldEncoder = factory.fieldEncoder();
+                return m.encode(fieldEncoder, Context.ROOT, instance);
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Object decode(O instance) {
-                final FieldDecoder<Object> fieldDecoder =
-                        (FieldDecoder<Object>) factory.fieldDecoder();
-                return m.decode(fieldDecoder, Context.ROOT, fieldDecoder.decode(instance));
+                final FieldDecoder<O> fieldDecoder = factory.fieldDecoder();
+                return m.decode(fieldDecoder, Context.ROOT, instance);
             }
 
             @Override
@@ -277,10 +280,12 @@ public class EntityMapper implements EntityResolver {
         return doConcrete(type, typeName, raw);
     }
 
-    private EntityTypeMapping doAbstract(final JavaType type, final Optional<String> typeName,
-            final Map<String, EntityTypeMapping> subTypes) {
+    private EntityTypeMapping doAbstract(
+        final JavaType type, final Optional<String> typeName,
+        final Map<String, EntityTypeMapping> subTypes
+    ) {
         final ImmutableMap.Builder<JavaType, EntityTypeMapping> subTypesByClass =
-                ImmutableMap.builder();
+            ImmutableMap.builder();
 
         for (final Map.Entry<String, EntityTypeMapping> e : subTypes.entrySet()) {
             subTypesByClass.put(e.getValue().getType(), e.getValue());
@@ -288,25 +293,29 @@ public class EntityMapper implements EntityResolver {
 
         final TypeKey key = entityKey(type);
         return new AbstractEntityTypeMapping(type, key, typeName, subTypes,
-                subTypesByClass.build());
+            subTypesByClass.build());
     }
 
-    private EntityTypeMapping doConcrete(final JavaType type, final Optional<String> typeName,
-            final Class<?> raw) {
+    private EntityTypeMapping doConcrete(
+        final JavaType type, final Optional<String> typeName, final Class<?> raw
+    ) {
         final TypeKey key = entityKey(type);
         return new ConcreteEntityTypeMapping(this, type, key, typeName);
     }
 
     private TypeKey entityKey(final JavaType type) {
-        final String kind = Optional.ofNullable(type.getRawClass().getAnnotation(Kind.class))
-                .map(Kind::value).filter(v -> !"".equals(v))
-                .orElseGet(() -> type.getRawClass().getCanonicalName());
+        final String kind = Optional
+            .ofNullable(type.getRawClass().getAnnotation(Kind.class))
+            .map(Kind::value)
+            .filter(v -> !"".equals(v))
+            .orElseGet(() -> type.getRawClass().getCanonicalName());
 
-        final Optional<TypeKey> parent =
-                Optional.ofNullable(type.getRawClass().getAnnotation(Parent.class))
-                        .map(a -> mapping(JavaType.construct(a.value())))
-                        .filter(v -> v instanceof EntityTypeMapping)
-                        .map(EntityTypeMapping.class::cast).map(EntityTypeMapping::key);
+        final Optional<TypeKey> parent = Optional
+            .ofNullable(type.getRawClass().getAnnotation(Parent.class))
+            .map(a -> mapping(JavaType.construct(a.value())))
+            .filter(v -> v instanceof EntityTypeMapping)
+            .map(EntityTypeMapping.class::cast)
+            .map(EntityTypeMapping::key);
 
         return new TypeKey(kind, parent);
     }
@@ -393,7 +402,7 @@ public class EntityMapper implements EntityResolver {
         @Override
         public EntityMapper build() {
             return new EntityMapper(fieldReaders, creatorMethods, bindings, subTypesDetectors,
-                    valueTypeDetectors, propertyNameDetectors, nameDetectors);
+                valueTypeDetectors, propertyNameDetectors, nameDetectors);
         }
 
         @Override
@@ -402,7 +411,7 @@ public class EntityMapper implements EntityResolver {
         }
 
         private <T> List<T> copyAndAdd(List<T> original, T addition) {
-            return ImmutableList.<T> builder().addAll(original).add(addition).build();
+            return ImmutableList.<T>builder().addAll(original).add(addition).build();
         }
     }
 }

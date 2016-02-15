@@ -1,20 +1,15 @@
 package eu.toolchain.ogt;
 
+import eu.toolchain.ogt.binding.FieldMapping;
+import eu.toolchain.ogt.type.TypeMapping;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import eu.toolchain.ogt.type.TypeMapping;
+import java.util.Optional;
 
 public interface FieldDecoder<T> {
-    /**
-     * Decode a value annotated with {@code eu.toolchain.ogt.annotations.Bytes}.
-     *
-     * @param mapping The mapping of the type.
-     * @param bytes The bytes of the type.
-     * @return A decoded instance of the given type.
-     */
     Object decodeBytesField(JavaType type, byte[] bytes) throws IOException;
 
     byte[] decodeBytes(T input) throws IOException;
@@ -42,12 +37,7 @@ public interface FieldDecoder<T> {
     List<?> decodeList(TypeMapping value, Context path, T input) throws IOException;
 
     Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path, T input)
-            throws IOException;
+        throws IOException;
 
-    EntityDecoder decodeEntity(T input) throws IOException;
-
-    @SuppressWarnings("unchecked")
-    default T decode(Object input) {
-        return (T) input;
-    }
+    EntityDecoder<T> newEntityDecoder();
 }

@@ -9,12 +9,14 @@ import eu.toolchain.ogt.FieldEncoder;
 /**
  * Framework for creating and introspecting types using different methods.
  *
- * @see BuilderMethodTypeBinder
  * @author udoprog
  */
-public interface Binding {
-    Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path);
+public interface Binding<T> {
+    Object decodeEntity(
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+    );
 
-    Object encodeEntity(EntityEncoder entityEncoder, FieldEncoder<?> encoder, Object value,
-            Context path);
+    T encodeEntity(
+        EntityEncoder<T> entityEncoder, FieldEncoder<T> encoder, Context path, Object value
+    );
 }

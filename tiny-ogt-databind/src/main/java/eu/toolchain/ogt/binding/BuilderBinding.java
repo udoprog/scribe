@@ -4,13 +4,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
@@ -24,15 +17,21 @@ import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
 import lombok.Getter;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Type binding implementation that uses builder methods for constructing instances.
  *
  * @author udoprog
  */
 @Data
-public class BuilderBinding implements SetEntityTypeBinding {
+public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
     public static final Converter<String, String> LOWER_TO_UPPER =
-            CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
+        CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
     public static final Joiner FIELD_JOINER = Joiner.on(", ");
 
     private final List<BuilderFieldMapping> fields;
@@ -45,27 +44,32 @@ public class BuilderBinding implements SetEntityTypeBinding {
     }
 
     @Override
-    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path) {
+    public Object decodeEntity(
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+    ) {
         final Object builder;
 
         try {
             builder = newInstance.invoke(null);
         } catch (final ReflectiveOperationException e) {
             throw new RuntimeException("Failed to create instance of builder (" + newInstance + ")",
-                    e);
+                e);
         }
 
         for (final BuilderFieldMapping m : fields) {
             final Context p = path.push(m.name());
 
-            final Object argument = m.type().fromOptional(entityDecoder.decodeField(m, p))
-                    .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
+            final Object argument = m
+                .type()
+                .fromOptional(entityDecoder.decodeField(m, p, encoded))
+                .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
 
             try {
                 m.getSetter().invoke(builder, argument);
             } catch (final Exception e) {
-                throw p.error("Failed to invoke builder method " + m.name() + " with argument ("
-                        + argument + ")", e);
+                throw p.error(
+                    "Failed to invoke builder method " + m.name() + " with argument (" + argument +
+                        ")", e);
             }
         }
 
@@ -85,8 +89,10 @@ public class BuilderBinding implements SetEntityTypeBinding {
         @Getter
         private final Method setter;
 
-        public BuilderFieldMapping(final String name, final boolean indexed, final TypeMapping type,
-                final FieldReader reader, final Method setter) {
+        public BuilderFieldMapping(
+            final String name, final boolean indexed, final TypeMapping type,
+            final FieldReader reader, final Method setter
+        ) {
             super(name, indexed, type, reader);
             this.setter = setter;
         }
@@ -120,11 +126,10 @@ public class BuilderBinding implements SetEntityTypeBinding {
 
             final JavaType propertyType = JavaType.construct(field.getGenericType());
 
-            final FieldReader reader =
-                    resolver.detectFieldReader(type, propertyType, field.getName())
-                            .orElseThrow(() -> new IllegalArgumentException(
-                                    "Can't figure out how to read " + type + " field ("
-                                            + field.getName() + ")"));
+            final FieldReader reader = resolver
+                .detectFieldReader(type, propertyType, field.getName())
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Can't figure out how to read " + type + " field (" + field.getName() + ")"));
 
             final Method setter;
 
@@ -132,20 +137,19 @@ public class BuilderBinding implements SetEntityTypeBinding {
                 setter = builderType.getMethod(field.getName(), propertyType.getRawClass());
             } catch (ReflectiveOperationException e) {
                 throw new IllegalArgumentException(
-                        "Builder does not have method " + builderType.getCanonicalName() + "#"
-                                + field.getName() + "(" + propertyType + ")",
-                        e);
+                    "Builder does not have method " + builderType.getCanonicalName() + "#" +
+                        field.getName() + "(" + propertyType + ")", e);
             }
 
             if (setter.getParameterTypes().length != 1) {
                 throw new IllegalArgumentException(
-                        "Builder method (" + field.getName() + ") must take exactly one argument");
+                    "Builder method (" + field.getName() + ") must take exactly one argument");
             }
 
             if (!propertyType.equals(JavaType.construct(setter.getGenericParameterTypes()[0]))) {
                 throw new IllegalArgumentException(
-                        "Builder parameter (" + setter.getParameterTypes()[0]
-                                + ") is not assignable to expected (" + propertyType + ")");
+                    "Builder parameter (" + setter.getParameterTypes()[0] +
+                        ") is not assignable to expected (" + propertyType + ")");
             }
 
             final TypeMapping m;
@@ -165,7 +169,7 @@ public class BuilderBinding implements SetEntityTypeBinding {
             builderBuild = builderType.getMethod("build");
         } catch (final Exception e) {
             throw new IllegalArgumentException(
-                    "Missing method #build() on type (" + builderType + ")");
+                "Missing method #build() on type (" + builderType + ")");
         }
 
         return Optional.of(new BuilderBinding(fields.build(), newInstance, builderBuild));

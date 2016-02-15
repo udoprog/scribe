@@ -1,8 +1,5 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityEncoder;
@@ -14,6 +11,9 @@ import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.TypeKey;
 import eu.toolchain.ogt.binding.Binding;
 import lombok.Data;
+
+import java.io.IOException;
+import java.util.Optional;
 
 @Data
 public class ConcreteEntityTypeMapping implements EntityTypeMapping {
@@ -37,25 +37,15 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
-        try {
-            final EntityDecoder entityDecoder = decoder.decodeEntity(instance);
-            return decode(entityDecoder, decoder, path);
-        } catch (final IOException e) {
-            throw path.error("Failed to decode entity", e);
-        }
-    }
-
-    @Override
-    public Object decode(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path)
-            throws IOException {
-        return binder.decodeEntity(entityDecoder, decoder, path);
+        final EntityDecoder<T> entityDecoder = decoder.newEntityDecoder();
+        return binder.decodeEntity(entityDecoder, decoder, path, instance);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
         try {
-            final EntityEncoder entityEncoder = encoder.encodeEntity();
+            final EntityEncoder entityEncoder = encoder.newEntityEncoder();
 
             final Optional<String> typeName = typeName();
 
@@ -63,7 +53,7 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
                 entityEncoder.setType(typeName.get());
             }
 
-            return (T) binder.encodeEntity(entityEncoder, encoder, value, path);
+            return (T) binder.encodeEntity(entityEncoder, encoder, path, value);
         } catch (final IOException e) {
             throw path.error("Failed to encode entity", e);
         }
@@ -76,7 +66,9 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public void initialize(final EntityResolver resolver) {
-        this.binder = resolver.detectBinding(type).orElseThrow(
+        this.binder = resolver
+            .detectBinding(type)
+            .orElseThrow(
                 () -> new IllegalArgumentException("Cannot detect how to construct type: " + type));
     }
 }

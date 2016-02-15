@@ -1,21 +1,13 @@
 package eu.toolchain.ogt;
 
+import eu.toolchain.ogt.type.TypeMapping;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import eu.toolchain.ogt.type.TypeMapping;
-
 public interface FieldEncoder<T> {
-    /**
-     * Encode an instance of the given type annotated with
-     * {@code eu.toolchain.ogt.annotations.Bytes}.
-     *
-     * @param mapping The type to encode.
-     * @param value The value to encode.
-     * @return A byte array representing the instance.
-     */
     byte[] encodeBytesField(JavaType type, Object value) throws IOException;
 
     T encodeBytes(byte[] bytes) throws IOException;
@@ -44,9 +36,5 @@ public interface FieldEncoder<T> {
 
     T encodeMap(TypeMapping key, TypeMapping value, Map<?, ?> map, Context path) throws IOException;
 
-    EntityEncoder encodeEntity();
-
-    default Object encode(T value) {
-        return value;
-    }
+    EntityEncoder<T> newEntityEncoder();
 }

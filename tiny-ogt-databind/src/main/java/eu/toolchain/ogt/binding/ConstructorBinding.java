@@ -4,11 +4,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
@@ -19,15 +14,19 @@ import eu.toolchain.ogt.creatormethod.InstanceBuilder;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Type binding implementation that uses builder methods for constructing instances.
  *
  * @author udoprog
  */
 @Data
-public class ConstructorBinding implements SetEntityTypeBinding {
+public class ConstructorBinding<T> implements SetEntityTypeBinding<T> {
     public static final Converter<String, String> LOWER_TO_UPPER =
-            CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
+        CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
     public static final Joiner FIELD_JOINER = Joiner.on(", ");
 
     private final List<TypeFieldMapping> fields;
@@ -39,13 +38,20 @@ public class ConstructorBinding implements SetEntityTypeBinding {
     }
 
     @Override
-    public Object decodeEntity(EntityDecoder entityDecoder, FieldDecoder decoder, Context path) {
+    public Object decodeEntity(
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+    ) {
         final List<Object> arguments = new ArrayList<>();
 
         for (final TypeFieldMapping m : fields) {
             final Context p = path.push(m.name());
-            arguments.add(m.type().fromOptional(entityDecoder.decodeField(m, p))
-                    .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")")));
+
+            Object argument = m
+                .type()
+                .fromOptional(entityDecoder.decodeField(m, p, encoded))
+                .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
+
+            arguments.add(argument);
         }
 
         try {
@@ -65,18 +71,18 @@ public class ConstructorBinding implements SetEntityTypeBinding {
             final ImmutableList.Builder<TypeFieldMapping> fields = ImmutableList.builder();
 
             for (final CreatorField field : creator.fields()) {
-                final String fieldName = resolver.detectPropertyName(type, field)
-                        .orElseThrow(() -> new IllegalArgumentException(
-                                "Cannot detect property name for field: " + field.toString()));
+                final String fieldName = resolver
+                    .detectPropertyName(type, field)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                        "Cannot detect property name for field: " + field.toString()));
 
-                final FieldReader reader =
-                        resolver.detectFieldReader(type, field.type(), fieldName)
-                                .orElseThrow(() -> new IllegalArgumentException(
-                                        "Can't figure out how to read " + type + " field ("
-                                                + fieldName + ")"));
+                final FieldReader reader = resolver
+                    .detectFieldReader(type, field.type(), fieldName)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                        "Can't figure out how to read " + type + " field (" + fieldName + ")"));
 
                 fields.add(
-                        new TypeFieldMapping(fieldName, field.indexed(), field.mapping(), reader));
+                    new TypeFieldMapping(fieldName, field.indexed(), field.mapping(), reader));
             }
 
             return Optional.of(new ConstructorBinding(fields.build(), creator.instanceBuilder()));

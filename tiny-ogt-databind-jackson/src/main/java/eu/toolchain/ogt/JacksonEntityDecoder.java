@@ -1,24 +1,19 @@
 package eu.toolchain.ogt;
 
-import java.util.Optional;
-
 import eu.toolchain.ogt.binding.FieldMapping;
 
-public class JacksonEntityDecoder implements EntityDecoder {
-    private final JsonNode node;
+import java.util.Optional;
 
-    public JacksonEntityDecoder(final JsonNode node) {
-        this.node = node;
-    }
-
+public class JacksonEntityDecoder implements EntityDecoder<JsonNode> {
     @Override
-    public Optional<String> decodeType() {
+    public Optional<String> decodeType(JsonNode node) {
         return node.get("type").map(JsonNode::asString);
     }
 
     @Override
-    public Optional<Object> decodeField(FieldMapping field, Context path) {
-        return node.get(field.name())
-                .map(n -> field.type().decode(new JacksonFieldDecoder(), path, n));
+    public Optional<Object> decodeField(FieldMapping field, Context path, JsonNode node) {
+        return node
+            .get(field.name())
+            .map(n -> field.type().decode(new JacksonFieldDecoder(), path, n));
     }
 }

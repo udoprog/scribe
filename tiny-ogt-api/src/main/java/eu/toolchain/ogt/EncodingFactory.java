@@ -1,11 +1,7 @@
 package eu.toolchain.ogt;
 
 public interface EncodingFactory<T> {
-    EntityDecoder entityDecoder(T input);
+    FieldDecoder<T> fieldDecoder();
 
-    EntityEncoder entityEncoder();
-
-    FieldDecoder<?> fieldDecoder();
-
-    FieldEncoder<?> fieldEncoder();
+    FieldEncoder<T> fieldEncoder();
 }

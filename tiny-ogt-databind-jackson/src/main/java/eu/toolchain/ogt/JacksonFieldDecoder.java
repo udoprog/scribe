@@ -2,14 +2,13 @@ package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import eu.toolchain.ogt.type.TypeMapping;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import eu.toolchain.ogt.type.TypeMapping;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class JacksonFieldDecoder implements FieldDecoder<JsonNode> {
@@ -83,7 +82,7 @@ public class JacksonFieldDecoder implements FieldDecoder<JsonNode> {
 
     @Override
     public Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path, JsonNode node)
-            throws IOException {
+        throws IOException {
         final ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         for (final Map.Entry<String, JsonNode> e : node.asObject().entrySet()) {
@@ -101,7 +100,7 @@ public class JacksonFieldDecoder implements FieldDecoder<JsonNode> {
     }
 
     @Override
-    public EntityDecoder decodeEntity(JsonNode node) {
-        return new JacksonEntityDecoder(node);
+    public EntityDecoder<JsonNode> newEntityDecoder() {
+        return new JacksonEntityDecoder();
     }
 }

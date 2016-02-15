@@ -1,9 +1,5 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.FieldDecoder;
@@ -11,6 +7,9 @@ import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.TypeKey;
 import lombok.Data;
+
+import java.util.Map;
+import java.util.Optional;
 
 @Data
 public class AbstractEntityTypeMapping implements EntityTypeMapping {
@@ -32,19 +31,11 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
-        try {
-            final EntityDecoder entityDecoder = decoder.decodeEntity(instance);
-            return decode(entityDecoder, decoder, path);
-        } catch (final IOException e) {
-            throw path.error("failed to decode", e);
-        }
-    }
+        final EntityDecoder<T> entityDecoder = decoder.newEntityDecoder();
 
-    @Override
-    public Object decode(EntityDecoder entityDecoder, FieldDecoder<?> decoder, Context path)
-            throws IOException {
-        final String type = entityDecoder.decodeType()
-                .orElseThrow(() -> path.error("No type information available"));
+        final String type = entityDecoder
+            .decodeType(instance)
+            .orElseThrow(() -> path.error("No type information available"));
 
         final EntityTypeMapping sub = subTypes.get(type);
 
@@ -52,7 +43,7 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
             throw path.error("Sub-type (" + type + ") required, but no such type available");
         }
 
-        return sub.decode(entityDecoder, decoder, path);
+        return sub.decode(decoder, path, instance);
     }
 
     @Override
