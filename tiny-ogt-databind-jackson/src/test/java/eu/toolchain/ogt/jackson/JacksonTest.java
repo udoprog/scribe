@@ -9,9 +9,6 @@ import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.JacksonAnnotationsModule;
 import eu.toolchain.ogt.JacksonEntityMapper;
 import eu.toolchain.ogt.JacksonTypeEncoding;
-import eu.toolchain.ogt.JsonNode;
-import eu.toolchain.ogt.TypeEncoding;
-import eu.toolchain.ogt.TypeEncodingProvider;
 import lombok.Data;
 import lombok.experimental.Builder;
 import org.junit.Before;
@@ -41,7 +38,7 @@ public class JacksonTest {
     private JacksonTypeEncoding<Foo> foo;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         final JacksonEntityMapper mapper = new JacksonEntityMapper(
             EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
             JSON_FACTORY);

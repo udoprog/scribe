@@ -26,6 +26,7 @@
     <module>tiny-ogt-processor</module>
     <module>tiny-ogt-annotations-jackson</module>
     <module>tiny-ogt-databind-jackson</module>
+    <module>tiny-ogt-benchmarks</module>
   </modules>
 
   <licenses>

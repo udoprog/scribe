@@ -25,7 +25,7 @@ public class JacksonTypeEncoding<T> {
     public T decodeFromString(String json) {
         try (final JsonParser parser = this.json.createParser(json)) {
             return parent.decode(JsonNode.fromParser(parser));
-        } catch(final IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Failed to generate", e);
         }
     }
@@ -38,7 +38,7 @@ public class JacksonTypeEncoding<T> {
             node.generate(generator);
             generator.close();
             return new String(out.toByteArray(), Charsets.UTF_8);
-        } catch(final IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Failed to generate", e);
         }
     }

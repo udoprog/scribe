@@ -1,13 +1,11 @@
 package eu.toolchain.ogt;
 
-import eu.toolchain.ogt.binding.FieldMapping;
 import eu.toolchain.ogt.type.TypeMapping;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public interface FieldDecoder<T> {
     Object decodeBytesField(JavaType type, byte[] bytes) throws IOException;

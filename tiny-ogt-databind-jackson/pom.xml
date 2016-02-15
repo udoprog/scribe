@@ -42,13 +42,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>eu.toolchain.ogt</groupId>
       <artifactId>tiny-ogt-annotations-jackson</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
