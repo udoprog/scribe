@@ -20,7 +20,8 @@ public interface EntityMapperBuilder<T> {
     public EntityMapperBuilder<T> registerValueType(ValueTypeDetector valueTypeDetector);
 
     public EntityMapperBuilder<T> registerPropertyNameDetector(
-            PropertyNameDetector propertyNameDetector);
+        PropertyNameDetector propertyNameDetector
+    );
 
     public EntityMapperBuilder<T> registerNameDetector(NameDetector nameDetector);
 

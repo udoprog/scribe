@@ -1,13 +1,13 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
-import java.util.Date;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
+
+import java.io.IOException;
+import java.util.Date;
 
 @Data
 public class DateMapping implements TypeMapping {

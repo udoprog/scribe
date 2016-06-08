@@ -1,16 +1,15 @@
 package eu.toolchain.ogt.subtype;
 
 import com.google.common.collect.ImmutableMap;
-
-import java.util.Map;
-import java.util.Optional;
-
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.annotations.EntitySubTypes;
 import eu.toolchain.ogt.type.EntityTypeMapping;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class NativeEntitySubTypesResolver implements EntitySubTypesProvider {
@@ -21,10 +20,11 @@ public class NativeEntitySubTypesResolver implements EntitySubTypesProvider {
         return subtypes;
     }
 
-    public static Optional<EntitySubTypesProvider> detect(final EntityResolver resolver,
-            final JavaType type) {
+    public static Optional<EntitySubTypesProvider> detect(
+        final EntityResolver resolver, final JavaType type
+    ) {
         final Optional<EntitySubTypes> annotation =
-                Optional.ofNullable(type.getRawClass().getAnnotation(EntitySubTypes.class));
+            Optional.ofNullable(type.getRawClass().getAnnotation(EntitySubTypes.class));
 
         return annotation.map(a -> {
             final ImmutableMap.Builder<String, EntityTypeMapping> subtypes = ImmutableMap.builder();
@@ -38,7 +38,9 @@ public class NativeEntitySubTypesResolver implements EntitySubTypesProvider {
 
                 final EntityTypeMapping e = (EntityTypeMapping) sub;
 
-                final String name = e.typeName().orElseThrow(() -> new IllegalStateException(
+                final String name = e
+                    .typeName()
+                    .orElseThrow(() -> new IllegalStateException(
                         "Class must have a name annotation: " + s.value()));
 
                 subtypes.put(name, e);

@@ -1,8 +1,7 @@
 package eu.toolchain.ogt;
 
-import static eu.toolchain.ogt.JavaType.construct;
-import static eu.toolchain.ogt.JavaType.of;
-
+import lombok.Data;
+import lombok.experimental.Builder;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -11,11 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+import static eu.toolchain.ogt.JavaType.construct;
+import static eu.toolchain.ogt.JavaType.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-
-import lombok.Data;
-import lombok.experimental.Builder;
 
 public class JavaTypeTest {
     @Test
@@ -59,7 +57,7 @@ public class JavaTypeTest {
         assertNotEquals(set1, type("set3", ParmeterizedTypes.class));
 
         assertEquals(of(List.class, of(Object.class)),
-                type("listObjects", ParmeterizedTypes.class));
+            type("listObjects", ParmeterizedTypes.class));
         assertEquals(of(Object[].class), type("arrayObjects", ParmeterizedTypes.class));
         assertEquals(of(Object.class), type("object", ParmeterizedTypes.class));
     }

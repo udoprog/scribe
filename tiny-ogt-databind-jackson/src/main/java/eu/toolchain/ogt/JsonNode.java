@@ -6,13 +6,12 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
+import lombok.Data;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import lombok.Data;
 
 public interface JsonNode {
     default Optional<JsonNode> get(final String field) {
@@ -82,22 +81,22 @@ public interface JsonNode {
         }
 
         switch (token) {
-        case START_OBJECT:
-            return ObjectJsonNode.fromParser(parser);
-        case START_ARRAY:
-            return ListJsonNode.fromParser(parser);
-        case VALUE_STRING:
-            return StringJsonNode.fromParser(parser);
-        case VALUE_FALSE:
-            return BooleanJsonNode.FALSE;
-        case VALUE_TRUE:
-            return BooleanJsonNode.TRUE;
-        case VALUE_NUMBER_FLOAT:
-            return new FloatJsonNode(parser.getDoubleValue());
-        case VALUE_NUMBER_INT:
-            return new NumberJsonNode(parser.getLongValue());
-        default:
-            throw new IllegalStateException("Unsupported token: " + token);
+            case START_OBJECT:
+                return ObjectJsonNode.fromParser(parser);
+            case START_ARRAY:
+                return ListJsonNode.fromParser(parser);
+            case VALUE_STRING:
+                return StringJsonNode.fromParser(parser);
+            case VALUE_FALSE:
+                return BooleanJsonNode.FALSE;
+            case VALUE_TRUE:
+                return BooleanJsonNode.TRUE;
+            case VALUE_NUMBER_FLOAT:
+                return new FloatJsonNode(parser.getDoubleValue());
+            case VALUE_NUMBER_INT:
+                return new NumberJsonNode(parser.getLongValue());
+            default:
+                throw new IllegalStateException("Unsupported token: " + token);
         }
     }
 

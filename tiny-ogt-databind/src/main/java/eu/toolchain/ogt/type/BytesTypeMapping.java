@@ -1,12 +1,12 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
+
+import java.io.IOException;
 
 @Data
 public class BytesTypeMapping implements TypeMapping {

@@ -3,6 +3,9 @@ package eu.toolchain.ogt;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -16,10 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
@@ -41,8 +40,10 @@ public class JavaType {
         PRIMITIVE_BUILTINS.put(void.class, Void.class);
     }
 
-    public static final Set<Class<?>> PRIMITIVES = ImmutableSet.<Class<?>> builder()
-            .addAll(PRIMITIVE_BUILTINS.keySet()).addAll(PRIMITIVE_BUILTINS.values()).build();
+    public static final Set<Class<?>> PRIMITIVES = ImmutableSet.<Class<?>>builder()
+        .addAll(PRIMITIVE_BUILTINS.keySet())
+        .addAll(PRIMITIVE_BUILTINS.values())
+        .build();
 
     private final Class<?> raw;
     private final List<JavaType> parameters;
@@ -114,7 +115,7 @@ public class JavaType {
 
             if (v.getBounds().length > 1) {
                 throw new IllegalArgumentException(
-                        "TypeVariable with more than one bound is not supported: " + type);
+                    "TypeVariable with more than one bound is not supported: " + type);
             }
 
             try {
@@ -129,18 +130,18 @@ public class JavaType {
             final List<JavaType> parameters;
 
             try {
-                parameters = ImmutableList.copyOf(Arrays.stream(p.getActualTypeArguments())
-                        .map(JavaType::construct).iterator());
+                parameters = ImmutableList.copyOf(
+                    Arrays.stream(p.getActualTypeArguments()).map(JavaType::construct).iterator());
             } catch (final Exception e) {
                 throw new IllegalArgumentException(
-                        "Failed to construct parameters from type: " + type, e);
+                    "Failed to construct parameters from type: " + type, e);
             }
 
             final Type raw = p.getRawType();
 
             if (!(raw instanceof Class)) {
                 throw new IllegalArgumentException(
-                        "Raw type for parameterized not supported: " + type);
+                    "Raw type for parameterized not supported: " + type);
             }
 
             return new JavaType((Class<?>) raw, parameters);

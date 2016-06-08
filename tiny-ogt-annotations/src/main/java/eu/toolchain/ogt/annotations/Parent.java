@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 /**
  * Mark which parent a type has.
  *
- * @see EntityKey#getParent()
  * @author udoprog
  */
 @Retention(RetentionPolicy.RUNTIME)

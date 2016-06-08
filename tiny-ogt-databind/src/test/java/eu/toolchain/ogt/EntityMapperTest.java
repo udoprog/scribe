@@ -1,9 +1,5 @@
 package eu.toolchain.ogt;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
-
 import eu.toolchain.ogt.annotations.EntityCreator;
 import eu.toolchain.ogt.annotations.Property;
 import eu.toolchain.ogt.binding.BuilderBinding;
@@ -12,6 +8,9 @@ import eu.toolchain.ogt.type.ConcreteEntityTypeMapping;
 import eu.toolchain.ogt.type.EntityTypeMapping;
 import lombok.Data;
 import lombok.experimental.Builder;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class EntityMapperTest {
     private final EntityMapper mapper = EntityMapper.nativeBuilder().build();

@@ -1,14 +1,14 @@
 package eu.toolchain.ogt.type;
 
-import java.io.IOException;
-import java.util.Map;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
+
+import java.io.IOException;
+import java.util.Map;
 
 @Data
 public class MapTypeMapping implements TypeMapping {

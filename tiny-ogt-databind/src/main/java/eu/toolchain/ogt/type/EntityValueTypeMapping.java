@@ -1,12 +1,6 @@
 package eu.toolchain.ogt.type;
 
 import com.google.common.collect.ImmutableList;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.FieldDecoder;
@@ -19,6 +13,11 @@ import eu.toolchain.ogt.creatormethod.InstanceBuilder;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 import lombok.Data;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Represents a type that is constructed using {@link JsonCreator} and {@link JsonValue}
  * annotations.
@@ -30,7 +29,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     public static final Class<? extends Annotation> VALUE = EntityValue.class;
 
     public static final Optional<Class<? extends Annotation>> JSON_VALUE =
-            Reflection.detectPresentAnnotation("com.fasterxml.jackson.annotation.JsonValue");
+        Reflection.detectPresentAnnotation("com.fasterxml.jackson.annotation.JsonValue");
 
     private final JavaType sourceType;
     private final TypeMapping mapping;
@@ -72,10 +71,11 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     public static ValueTypeDetector forAnnotation(
-            final Class<? extends Annotation> valueAnnotation) {
+        final Class<? extends Annotation> valueAnnotation
+    ) {
         return (resolver, sourceType) -> {
             final List<Method> values = ImmutableList.copyOf(
-                    Reflection.findAnnotatedMethods(sourceType, valueAnnotation).iterator());
+                Reflection.findAnnotatedMethods(sourceType, valueAnnotation).iterator());
 
             final Optional<CreatorMethod> creator = resolver.detectCreatorMethod(sourceType);
 
@@ -85,40 +85,43 @@ public class EntityValueTypeMapping implements TypeMapping {
 
             if (values.size() > 1) {
                 throw new IllegalArgumentException(
-                        String.format("@%s: Only one method may be annoted, found: %s",
-                                VALUE.getSimpleName(), values));
+                    String.format("@%s: Only one method may be annoted, found: %s",
+                        VALUE.getSimpleName(), values));
             }
 
             final CreatorMethod c = creator.get();
 
             if (c.fields().size() != 1) {
-                throw new IllegalArgumentException(String.format(
-                        "%s must have exactly one parameter, not %d", c, c.fields().size()));
+                throw new IllegalArgumentException(
+                    String.format("%s must have exactly one parameter, not %d", c,
+                        c.fields().size()));
             }
 
             final Method value = values.get(0);
 
             if (value.getParameterTypes().length != 0) {
-                throw new IllegalArgumentException(String.format(
-                        "@%s method must have no parameters: %s", VALUE.getSimpleName(), value));
+                throw new IllegalArgumentException(
+                    String.format("@%s method must have no parameters: %s", VALUE.getSimpleName(),
+                        value));
             }
 
             if (!Reflection.isPublic(value)) {
-                throw new IllegalArgumentException(String.format("@%s method must be public: %s",
-                        VALUE.getSimpleName(), value));
+                throw new IllegalArgumentException(
+                    String.format("@%s method must be public: %s", VALUE.getSimpleName(), value));
             }
 
             if (Reflection.isStatic(value)) {
-                throw new IllegalArgumentException(String
-                        .format("@%s method must not be static: %s", VALUE.getSimpleName(), value));
+                throw new IllegalArgumentException(
+                    String.format("@%s method must not be static: %s", VALUE.getSimpleName(),
+                        value));
             }
 
             /* type to serialize as */
             final TypeMapping targetType =
-                    resolver.mapping(JavaType.construct(value.getGenericReturnType()));
+                resolver.mapping(JavaType.construct(value.getGenericReturnType()));
 
             return Optional.of(
-                    new EntityValueTypeMapping(sourceType, targetType, c.instanceBuilder(), value));
+                new EntityValueTypeMapping(sourceType, targetType, c.instanceBuilder(), value));
         };
     }
 }

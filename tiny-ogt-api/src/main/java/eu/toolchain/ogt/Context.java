@@ -2,7 +2,6 @@ package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import lombok.Data;
 
 public interface Context {

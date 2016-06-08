@@ -7,10 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * Mark which kind the annotated type has.
- *
+ * <p>
  * The default kind will otherwise by the canonical name of the type.
  *
- * @see EntityKey#getKind()
  * @author udoprog
  */
 @Retention(RetentionPolicy.RUNTIME)

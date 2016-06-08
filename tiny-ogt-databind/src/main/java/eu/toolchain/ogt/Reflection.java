@@ -17,8 +17,8 @@ public abstract class Reflection {
      * @return {@code true} if the specified type is abstract.
      */
     public static boolean isAbstract(final Class<?> type) {
-        return (type.getModifiers() & Modifier.INTERFACE) != 0
-                || (type.getModifiers() & Modifier.ABSTRACT) != 0;
+        return (type.getModifiers() & Modifier.INTERFACE) != 0 ||
+            (type.getModifiers() & Modifier.ABSTRACT) != 0;
     }
 
     public static boolean isPublic(final Executable value) {
@@ -29,21 +29,26 @@ public abstract class Reflection {
         return (value.getModifiers() & Modifier.STATIC) != 0;
     }
 
-    public static Stream<Constructor<?>> findAnnotatedConstructors(final JavaType type,
-            final Class<? extends Annotation> a) {
-        return Arrays.stream(type.getRawClass().getDeclaredConstructors())
-                .filter(m -> m.isAnnotationPresent(a));
+    public static Stream<Constructor<?>> findAnnotatedConstructors(
+        final JavaType type, final Class<? extends Annotation> a
+    ) {
+        return Arrays
+            .stream(type.getRawClass().getDeclaredConstructors())
+            .filter(m -> m.isAnnotationPresent(a));
     }
 
-    public static Stream<Method> findAnnotatedMethods(final JavaType type,
-            final Class<? extends Annotation> a) {
-        return Arrays.stream(type.getRawClass().getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(a));
+    public static Stream<Method> findAnnotatedMethods(
+        final JavaType type, final Class<? extends Annotation> a
+    ) {
+        return Arrays
+            .stream(type.getRawClass().getDeclaredMethods())
+            .filter(m -> m.isAnnotationPresent(a));
     }
 
     @SuppressWarnings("unchecked")
     public static Optional<Class<? extends Annotation>> detectPresentAnnotation(
-            final String canonicalName) {
+        final String canonicalName
+    ) {
         final Class<?> detected;
 
         try {

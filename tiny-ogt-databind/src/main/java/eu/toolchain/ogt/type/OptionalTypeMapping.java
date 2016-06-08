@@ -1,13 +1,13 @@
 package eu.toolchain.ogt.type;
 
-import java.util.Optional;
-
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
+
+import java.util.Optional;
 
 @Data
 public class OptionalTypeMapping implements TypeMapping {

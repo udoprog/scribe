@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,8 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
 @BenchmarkMode(Mode.AverageTime)
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -34,7 +35,7 @@ public class Basic {
     @Param({"ogt", "jackson"})
     String type;
 
-    @Param({"simple"})
+    @Param({"simple", "harder"})
     String instanceType;
 
     final Map<String, InstanceDeclaration> instances = new HashMap<>();
@@ -73,6 +74,7 @@ public class Basic {
                 break;
             case "jackson":
                 final ObjectMapper jackson = new ObjectMapper();
+                jackson.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
                 jackson.writeValueAsString(i);
 
                 benchmark = () -> jackson.writeValueAsString(i);
