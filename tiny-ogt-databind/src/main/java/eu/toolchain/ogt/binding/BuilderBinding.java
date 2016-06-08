@@ -4,15 +4,14 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.annotations.Bytes;
-import eu.toolchain.ogt.annotations.Indexed;
+import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.fieldreader.FieldReader;
-import eu.toolchain.ogt.type.EncodedBytesTypeMapping;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
 import lombok.Getter;
@@ -90,10 +89,10 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
         private final Method setter;
 
         public BuilderFieldMapping(
-            final String name, final boolean indexed, final TypeMapping type,
+            final String name, final boolean indexed, final TypeMapping mapping,
             final FieldReader reader, final Method setter
         ) {
-            super(name, indexed, type, reader);
+            super(name, indexed, mapping, reader);
             this.setter = setter;
         }
     }
@@ -122,12 +121,10 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
                 continue;
             }
 
-            final boolean indexed = field.isAnnotationPresent(Indexed.class);
-
             final JavaType propertyType = JavaType.construct(field.getGenericType());
 
             final FieldReader reader = resolver
-                .detectFieldReader(type, propertyType, field.getName())
+                .detectFieldReader(type, field.getName(), Optional.of(propertyType))
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Can't figure out how to read " + type + " field (" + field.getName() + ")"));
 
@@ -152,14 +149,13 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
                         ") is not assignable to expected (" + propertyType + ")");
             }
 
-            final TypeMapping m;
+            final Annotations annotations = Annotations.of(field.getAnnotations());
 
-            if (field.isAnnotationPresent(Bytes.class)) {
-                m = new EncodedBytesTypeMapping(propertyType);
-            } else {
-                m = resolver.mapping(propertyType);
-            }
+            final CreatorField f =
+                new CreatorField(annotations, Optional.empty(), Optional.empty());
 
+            final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
+            final boolean indexed = resolver.isIndexed(f.annotations());
             fields.add(new BuilderFieldMapping(field.getName(), indexed, m, reader, setter));
         }
 

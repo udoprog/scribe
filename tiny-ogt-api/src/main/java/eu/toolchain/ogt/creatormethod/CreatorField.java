@@ -1,16 +1,26 @@
 package eu.toolchain.ogt.creatormethod;
 
-import java.lang.reflect.Parameter;
-
+import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.type.TypeMapping;
+import lombok.RequiredArgsConstructor;
 
-public interface CreatorField {
-    boolean indexed();
+import java.util.Optional;
 
-    JavaType type();
+@RequiredArgsConstructor
+public class CreatorField {
+    private final Annotations annotations;
+    private final Optional<JavaType> type;
+    private final Optional<String> name;
 
-    TypeMapping mapping();
+    public Annotations annotations() {
+        return annotations;
+    }
 
-    Parameter parameter();
+    public Optional<JavaType> type() {
+        return type;
+    }
+
+    public Optional<String> name() {
+        return name;
+    }
 }

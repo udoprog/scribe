@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public class TypeFieldMapping implements FieldMapping {
     private final String name;
     private final boolean indexed;
-    private final TypeMapping type;
+    private final TypeMapping mapping;
     private final FieldReader reader;
 
     @Override
@@ -23,7 +23,7 @@ public class TypeFieldMapping implements FieldMapping {
 
     @Override
     public TypeMapping type() {
-        return type;
+        return mapping;
     }
 
     public FieldReader reader() {
@@ -32,6 +32,6 @@ public class TypeFieldMapping implements FieldMapping {
 
     @Override
     public String toString() {
-        return name + "=" + type;
+        return name + "=" + mapping;
     }
 }

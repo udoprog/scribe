@@ -30,11 +30,9 @@ import eu.toolchain.ogt.type.PrimitiveTypeMapping;
 import eu.toolchain.ogt.type.StringTypeMapping;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +43,6 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 public class EntityMapper implements EntityResolver {
-    public static final List<FieldReaderDetector> DEFAULT_FIELD_READERS = new ArrayList<>();
-
     private final List<FieldReaderDetector> fieldReaders;
     private final List<CreatorMethodDetector> creatorMethods;
     private final List<BindingDetector> bindings;
@@ -111,6 +107,15 @@ public class EntityMapper implements EntityResolver {
         }
     }
 
+    @Override
+    public TypeMapping mapping(final JavaType type, final Annotations annotations) {
+        if (isBytes(annotations)) {
+            return new EncodedBytesTypeMapping(type);
+        } else {
+            return mapping(type);
+        }
+    }
+
     private TypeMapping resolveMapping(final JavaType t) {
         final Optional<PrimitiveType> primitive = PrimitiveType.detect(t);
 
@@ -161,9 +166,9 @@ public class EntityMapper implements EntityResolver {
 
     @Override
     public Optional<FieldReader> detectFieldReader(
-        final JavaType type, final JavaType returnType, final String fieldName
+        final JavaType type, final String fieldName, final Optional<JavaType> knownType
     ) {
-        return firstMatch(fieldReaders, c -> c.detect(type, returnType, fieldName));
+        return firstMatch(fieldReaders, c -> c.detect(type, fieldName, knownType));
     }
 
     @Override
@@ -200,22 +205,30 @@ public class EntityMapper implements EntityResolver {
         for (final Parameter p : executable.getParameters()) {
             final JavaType fieldType =
                 JavaType.construct(executable.getGenericParameterTypes()[index++]);
+            final Annotations annotations = Annotations.of(p.getAnnotations());
 
-            final boolean indexed = p.isAnnotationPresent(Indexed.class);
-            final boolean bytes = p.isAnnotationPresent(Bytes.class);
-
-            final TypeMapping mapping;
-
-            if (bytes) {
-                mapping = new EncodedBytesTypeMapping(fieldType);
-            } else {
-                mapping = mapping(fieldType);
-            }
-
-            fields.add(new EntityMapperCreatorField(indexed, fieldType, mapping, p));
+            fields.add(setupCreatorField(annotations, Optional.of(fieldType), Optional.empty()));
         }
 
         return fields.build();
+    }
+
+    @Override
+    public CreatorField setupCreatorField(
+        final Annotations annotations, final Optional<JavaType> fieldType,
+        final Optional<String> fieldName
+    ) {
+        return new CreatorField(annotations, fieldType, fieldName);
+    }
+
+    @Override
+    public boolean isIndexed(final Annotations annotations) {
+        return annotations.isAnnotationPresent(Indexed.class);
+    }
+
+    @Override
+    public boolean isBytes(final Annotations annotations) {
+        return annotations.isAnnotationPresent(Bytes.class);
     }
 
     public static EntityMapperBuilder<EntityMapper> builder() {
@@ -318,35 +331,6 @@ public class EntityMapper implements EntityResolver {
             .map(EntityTypeMapping::key);
 
         return new TypeKey(kind, parent);
-    }
-
-    @RequiredArgsConstructor
-    @ToString
-    static class EntityMapperCreatorField implements CreatorField {
-        private final boolean indexed;
-        private final JavaType type;
-        private final TypeMapping mapping;
-        private final Parameter parameter;
-
-        @Override
-        public boolean indexed() {
-            return indexed;
-        }
-
-        @Override
-        public JavaType type() {
-            return type;
-        }
-
-        @Override
-        public TypeMapping mapping() {
-            return mapping;
-        }
-
-        @Override
-        public Parameter parameter() {
-            return parameter;
-        }
     }
 
     public static class Builder implements EntityMapperBuilder<EntityMapper> {

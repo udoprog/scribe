@@ -1,19 +1,5 @@
 package eu.toolchain.ogt.creatormethod;
 
-import static eu.toolchain.ogt.JavaType.construct;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.JavaType;
@@ -21,6 +7,18 @@ import eu.toolchain.ogt.annotations.EntityCreator;
 import eu.toolchain.ogt.annotations.Indexed;
 import eu.toolchain.ogt.annotations.Property;
 import eu.toolchain.ogt.type.TypeMapping;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Optional;
+
+import static eu.toolchain.ogt.JavaType.construct;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class CreatorMethodsTest {
     private static final JavaType STRING = construct(String.class);
@@ -49,8 +47,10 @@ public class CreatorMethodsTest {
 
     static class Constructor {
         @EntityCreator
-        public Constructor(@Property("field") final String field,
-                @Property("indexed") @Indexed final String indexed) {
+        public Constructor(
+            @Property("field") final String field,
+            @Property("indexed") @Indexed final String indexed
+        ) {
         }
     }
 
@@ -68,8 +68,10 @@ public class CreatorMethodsTest {
 
     static class StaticMethod {
         @EntityCreator
-        public static StaticMethod build(@Property("field") final String field,
-                @Property("indexed") @Indexed final String indexed) {
+        public static StaticMethod build(
+            @Property("field") final String field,
+            @Property("indexed") @Indexed final String indexed
+        ) {
             return new StaticMethod();
         }
     }
@@ -77,7 +79,7 @@ public class CreatorMethodsTest {
     @Test
     public void testStaticMethod() {
         Optional<CreatorMethod> method =
-                resolver.detectCreatorMethod(construct(StaticMethod.class));
+            resolver.detectCreatorMethod(construct(StaticMethod.class));
 
         assertTrue(method.isPresent());
         final CreatorMethod creator = method.get();
@@ -90,14 +92,10 @@ public class CreatorMethodsTest {
     private void checkFields(final CreatorMethod c) {
         assertEquals(2, c.fields().size());
 
-        assertFalse(c.fields().get(0).indexed());
         assertEquals(STRING, c.fields().get(0).type());
-        assertEquals(string, c.fields().get(0).mapping());
-        assertTrue(c.fields().get(0).parameter().isAnnotationPresent(Property.class));
+        assertTrue(c.fields().get(0).annotations().isAnnotationPresent(Property.class));
 
-        assertTrue(c.fields().get(1).indexed());
         assertEquals(STRING, c.fields().get(1).type());
-        assertEquals(string, c.fields().get(1).mapping());
-        assertTrue(c.fields().get(1).parameter().isAnnotationPresent(Property.class));
+        assertTrue(c.fields().get(1).annotations().isAnnotationPresent(Property.class));
     }
 }

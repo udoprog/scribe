@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
@@ -12,6 +13,7 @@ import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.InstanceBuilder;
 import eu.toolchain.ogt.fieldreader.FieldReader;
+import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -71,18 +73,24 @@ public class ConstructorBinding<T> implements SetEntityTypeBinding<T> {
             final ImmutableList.Builder<TypeFieldMapping> fields = ImmutableList.builder();
 
             for (final CreatorField field : creator.fields()) {
-                final String fieldName = resolver
-                    .detectPropertyName(type, field)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                        "Cannot detect property name for field: " + field.toString()));
+                final String fieldName = field
+                    .name()
+                    .orElseGet(() -> resolver
+                        .detectPropertyName(type, field)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                            "Cannot detect property name for field: " + field.toString())));
 
                 final FieldReader reader = resolver
-                    .detectFieldReader(type, field.type(), fieldName)
+                    .detectFieldReader(type, fieldName, field.type())
                     .orElseThrow(() -> new IllegalArgumentException(
                         "Can't figure out how to read " + type + " field (" + fieldName + ")"));
 
-                fields.add(
-                    new TypeFieldMapping(fieldName, field.indexed(), field.mapping(), reader));
+                final Annotations annotations = field.annotations().merge(reader.annotations());
+                final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
+
+                final boolean indexed = resolver.isIndexed(annotations);
+
+                fields.add(new TypeFieldMapping(fieldName, indexed, m, reader));
             }
 
             return Optional.of(new ConstructorBinding(fields.build(), creator.instanceBuilder()));

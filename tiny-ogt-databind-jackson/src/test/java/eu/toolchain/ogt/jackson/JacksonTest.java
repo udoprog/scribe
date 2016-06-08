@@ -14,6 +14,7 @@ import lombok.experimental.Builder;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,11 +67,8 @@ public class JacksonTest {
         private final double value;
         private final Map<String, String> map;
 
-        @JsonCreator
-        public Bar(
-            @JsonProperty("value") final double value,
-            @JsonProperty("map") final Map<String, String> map
-        ) {
+        @ConstructorProperties({"value", "map"})
+        public Bar(final double value, final Map<String, String> map) {
             this.value = value;
             this.map = map;
         }
