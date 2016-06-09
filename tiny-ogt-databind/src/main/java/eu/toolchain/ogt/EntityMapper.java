@@ -3,9 +3,6 @@ package eu.toolchain.ogt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import eu.toolchain.ogt.annotations.Bytes;
-import eu.toolchain.ogt.annotations.Indexed;
-import eu.toolchain.ogt.annotations.Kind;
-import eu.toolchain.ogt.annotations.Parent;
 import eu.toolchain.ogt.binding.Binding;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
@@ -17,6 +14,7 @@ import eu.toolchain.ogt.entitymapper.PropertyNameDetector;
 import eu.toolchain.ogt.entitymapper.SubTypesDetector;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 import eu.toolchain.ogt.fieldreader.FieldReader;
+import eu.toolchain.ogt.subtype.EntitySubTypesProvider;
 import eu.toolchain.ogt.type.AbstractEntityTypeMapping;
 import eu.toolchain.ogt.type.BytesTypeMapping;
 import eu.toolchain.ogt.type.ConcreteEntityTypeMapping;
@@ -178,7 +176,7 @@ public class EntityMapper implements EntityResolver {
 
     public Map<String, EntityTypeMapping> resolveSubTypes(final JavaType type) {
         return firstMatch(subTypeDetectors, d -> d.detect(this, type))
-            .map(s -> s.subtypes())
+            .map(EntitySubTypesProvider::subtypes)
             .orElseGet(ImmutableMap::of);
     }
 
@@ -219,11 +217,6 @@ public class EntityMapper implements EntityResolver {
         final Optional<String> fieldName
     ) {
         return new CreatorField(annotations, fieldType, fieldName);
-    }
-
-    @Override
-    public boolean isIndexed(final Annotations annotations) {
-        return annotations.isAnnotationPresent(Indexed.class);
     }
 
     @Override
@@ -304,33 +297,14 @@ public class EntityMapper implements EntityResolver {
             subTypesByClass.put(e.getValue().getType(), e.getValue());
         }
 
-        final TypeKey key = entityKey(type);
-        return new AbstractEntityTypeMapping(type, key, typeName, subTypes,
+        return new AbstractEntityTypeMapping(type, typeName, subTypes,
             subTypesByClass.build());
     }
 
     private EntityTypeMapping doConcrete(
         final JavaType type, final Optional<String> typeName, final Class<?> raw
     ) {
-        final TypeKey key = entityKey(type);
-        return new ConcreteEntityTypeMapping(this, type, key, typeName);
-    }
-
-    private TypeKey entityKey(final JavaType type) {
-        final String kind = Optional
-            .ofNullable(type.getRawClass().getAnnotation(Kind.class))
-            .map(Kind::value)
-            .filter(v -> !"".equals(v))
-            .orElseGet(() -> type.getRawClass().getCanonicalName());
-
-        final Optional<TypeKey> parent = Optional
-            .ofNullable(type.getRawClass().getAnnotation(Parent.class))
-            .map(a -> mapping(JavaType.construct(a.value())))
-            .filter(v -> v instanceof EntityTypeMapping)
-            .map(EntityTypeMapping.class::cast)
-            .map(EntityTypeMapping::key);
-
-        return new TypeKey(kind, parent);
+        return new ConcreteEntityTypeMapping(this, type, typeName);
     }
 
     public static class Builder implements EntityMapperBuilder<EntityMapper> {

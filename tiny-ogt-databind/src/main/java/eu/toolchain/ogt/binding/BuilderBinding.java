@@ -89,10 +89,10 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
         private final Method setter;
 
         public BuilderFieldMapping(
-            final String name, final boolean indexed, final TypeMapping mapping,
-            final FieldReader reader, final Method setter
+            final String name, final TypeMapping mapping, final FieldReader reader,
+            final Method setter
         ) {
-            super(name, indexed, mapping, reader);
+            super(name, mapping, reader);
             this.setter = setter;
         }
     }
@@ -155,8 +155,7 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
                 new CreatorField(annotations, Optional.empty(), Optional.empty());
 
             final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
-            final boolean indexed = resolver.isIndexed(f.annotations());
-            fields.add(new BuilderFieldMapping(field.getName(), indexed, m, reader, setter));
+            fields.add(new BuilderFieldMapping(field.getName(), m, reader, setter));
         }
 
         final Method builderBuild;

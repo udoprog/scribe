@@ -4,7 +4,6 @@ import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.annotations.EntityCreator;
-import eu.toolchain.ogt.annotations.Indexed;
 import eu.toolchain.ogt.annotations.Property;
 import eu.toolchain.ogt.type.TypeMapping;
 import org.junit.Before;
@@ -48,8 +47,7 @@ public class CreatorMethodsTest {
     static class Constructor {
         @EntityCreator
         public Constructor(
-            @Property("field") final String field,
-            @Property("indexed") @Indexed final String indexed
+            @Property("field") final String field, @Property("indexed") final String indexed
         ) {
         }
     }
@@ -69,8 +67,7 @@ public class CreatorMethodsTest {
     static class StaticMethod {
         @EntityCreator
         public static StaticMethod build(
-            @Property("field") final String field,
-            @Property("indexed") @Indexed final String indexed
+            @Property("field") final String field, @Property("indexed") final String indexed
         ) {
             return new StaticMethod();
         }

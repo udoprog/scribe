@@ -3,9 +3,7 @@ package eu.toolchain.ogt.binding;
 import eu.toolchain.ogt.type.TypeMapping;
 
 public interface FieldMapping {
-    public String name();
+    String name();
 
-    public boolean indexed();
-
-    public TypeMapping type();
+    TypeMapping type();
 }

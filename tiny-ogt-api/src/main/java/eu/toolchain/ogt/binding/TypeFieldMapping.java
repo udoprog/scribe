@@ -7,18 +7,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TypeFieldMapping implements FieldMapping {
     private final String name;
-    private final boolean indexed;
     private final TypeMapping mapping;
     private final FieldReader reader;
 
     @Override
     public String name() {
         return name;
-    }
-
-    @Override
-    public boolean indexed() {
-        return indexed;
     }
 
     @Override

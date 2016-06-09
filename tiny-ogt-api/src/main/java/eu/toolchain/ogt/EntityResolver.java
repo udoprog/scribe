@@ -37,7 +37,5 @@ public interface EntityResolver {
 
     <T> TypeEncodingProvider<T> providerFor(final EncodingFactory<T> factory);
 
-    boolean isIndexed(Annotations annotations);
-
     boolean isBytes(Annotations annotations);
 }

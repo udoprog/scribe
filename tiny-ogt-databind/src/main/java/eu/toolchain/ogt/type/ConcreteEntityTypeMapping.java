@@ -8,7 +8,6 @@ import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.TypeKey;
 import eu.toolchain.ogt.binding.Binding;
 import lombok.Data;
 
@@ -19,16 +18,10 @@ import java.util.Optional;
 public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     private final EntityMapper mapper;
     private final JavaType type;
-    private final TypeKey key;
     private final Optional<String> typeName;
 
     /* left uninitialized to allow for circular dependencies */
     private Binding binder;
-
-    @Override
-    public TypeKey key() {
-        return key;
-    }
 
     @Override
     public Optional<String> typeName() {

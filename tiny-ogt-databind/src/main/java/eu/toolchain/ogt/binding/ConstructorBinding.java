@@ -88,9 +88,7 @@ public class ConstructorBinding<T> implements SetEntityTypeBinding<T> {
                 final Annotations annotations = field.annotations().merge(reader.annotations());
                 final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
 
-                final boolean indexed = resolver.isIndexed(annotations);
-
-                fields.add(new TypeFieldMapping(fieldName, indexed, m, reader));
+                fields.add(new TypeFieldMapping(fieldName, m, reader));
             }
 
             return Optional.of(new ConstructorBinding(fields.build(), creator.instanceBuilder()));

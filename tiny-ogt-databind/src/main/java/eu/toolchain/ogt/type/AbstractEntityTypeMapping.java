@@ -5,7 +5,6 @@ import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.FieldDecoder;
 import eu.toolchain.ogt.FieldEncoder;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.TypeKey;
 import lombok.Data;
 
 import java.util.Map;
@@ -14,15 +13,9 @@ import java.util.Optional;
 @Data
 public class AbstractEntityTypeMapping implements EntityTypeMapping {
     private final JavaType type;
-    private final TypeKey key;
     private final Optional<String> typeName;
     private final Map<String, EntityTypeMapping> subTypes;
     private final Map<JavaType, EntityTypeMapping> subTypesByClass;
-
-    @Override
-    public TypeKey key() {
-        return key;
-    }
 
     @Override
     public Optional<String> typeName() {

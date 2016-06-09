@@ -17,7 +17,7 @@ public @interface EntitySubTypes {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    public @interface Type {
+    @interface Type {
         Class<?> value();
     }
 }
