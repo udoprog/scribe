@@ -44,7 +44,7 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
 
     @Override
     public Object decodeEntity(
-        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path
     ) {
         final Object builder;
 
@@ -60,7 +60,7 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
 
             final Object argument = m
                 .type()
-                .fromOptional(entityDecoder.decodeField(m, p, encoded))
+                .fromOptional(entityDecoder.decodeField(m, p))
                 .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
 
             try {

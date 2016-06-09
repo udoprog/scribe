@@ -41,7 +41,7 @@ public class ConstructorBinding<T> implements SetEntityTypeBinding<T> {
 
     @Override
     public Object decodeEntity(
-        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path
     ) {
         final List<Object> arguments = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class ConstructorBinding<T> implements SetEntityTypeBinding<T> {
 
             Object argument = m
                 .type()
-                .fromOptional(entityDecoder.decodeField(m, p, encoded))
+                .fromOptional(entityDecoder.decodeField(m, p))
                 .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
 
             arguments.add(argument);

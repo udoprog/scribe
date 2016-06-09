@@ -37,5 +37,5 @@ public interface FieldDecoder<T> {
     Map<?, ?> decodeMap(TypeMapping key, TypeMapping value, Context path, T input)
         throws IOException;
 
-    EntityDecoder<T> newEntityDecoder();
+    EntityDecoder<T> decodeEntity(T input);
 }

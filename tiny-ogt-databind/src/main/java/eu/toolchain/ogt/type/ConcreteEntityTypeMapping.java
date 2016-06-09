@@ -37,8 +37,8 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
-        final EntityDecoder<T> entityDecoder = decoder.newEntityDecoder();
-        return binder.decodeEntity(entityDecoder, decoder, path, instance);
+        final EntityDecoder<T> entityDecoder = decoder.decodeEntity(instance);
+        return binder.decodeEntity(entityDecoder, decoder, path);
     }
 
     @SuppressWarnings("unchecked")

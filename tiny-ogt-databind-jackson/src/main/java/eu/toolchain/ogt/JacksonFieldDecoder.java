@@ -100,7 +100,7 @@ public class JacksonFieldDecoder implements FieldDecoder<JsonNode> {
     }
 
     @Override
-    public EntityDecoder<JsonNode> newEntityDecoder() {
-        return new JacksonEntityDecoder();
+    public EntityDecoder<JsonNode> decodeEntity(JsonNode node) {
+        return new JacksonEntityDecoder(node.asObject(), this);
     }
 }

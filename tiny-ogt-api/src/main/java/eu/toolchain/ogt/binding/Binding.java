@@ -13,7 +13,7 @@ import eu.toolchain.ogt.FieldEncoder;
  */
 public interface Binding<T> {
     Object decodeEntity(
-        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path, T encoded
+        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path
     );
 
     T encodeEntity(

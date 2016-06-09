@@ -5,7 +5,7 @@ import eu.toolchain.ogt.binding.FieldMapping;
 import java.util.Optional;
 
 public interface EntityDecoder<T> {
-    Optional<Object> decodeField(FieldMapping field, Context path, T node);
+    Optional<Object> decodeField(FieldMapping field, Context path);
 
-    Optional<String> decodeType(T node);
+    Optional<String> decodeType();
 }

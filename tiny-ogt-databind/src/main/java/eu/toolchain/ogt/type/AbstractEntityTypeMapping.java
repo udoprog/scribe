@@ -31,10 +31,10 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
-        final EntityDecoder<T> entityDecoder = decoder.newEntityDecoder();
+        final EntityDecoder<T> entityDecoder = decoder.decodeEntity(instance);
 
         final String type = entityDecoder
-            .decodeType(instance)
+            .decodeType()
             .orElseThrow(() -> path.error("No type information available"));
 
         final EntityTypeMapping sub = subTypes.get(type);
