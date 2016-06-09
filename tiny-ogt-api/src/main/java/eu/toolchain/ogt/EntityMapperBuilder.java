@@ -6,26 +6,31 @@ import eu.toolchain.ogt.entitymapper.FieldReaderDetector;
 import eu.toolchain.ogt.entitymapper.NameDetector;
 import eu.toolchain.ogt.entitymapper.PropertyNameDetector;
 import eu.toolchain.ogt.entitymapper.SubTypesDetector;
+import eu.toolchain.ogt.entitymapper.TypeMappingInterceptor;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 
 public interface EntityMapperBuilder<T> {
-    public EntityMapperBuilder<T> registerFieldReader(FieldReaderDetector fieldReader);
+    EntityMapperBuilder<T> registerFieldReader(FieldReaderDetector fieldReader);
 
-    public EntityMapperBuilder<T> registerCreatorMethod(CreatorMethodDetector creatorMethod);
+    EntityMapperBuilder<T> registerCreatorMethod(CreatorMethodDetector creatorMethod);
 
-    public EntityMapperBuilder<T> registerBinding(BindingDetector binding);
+    EntityMapperBuilder<T> registerBinding(BindingDetector binding);
 
-    public EntityMapperBuilder<T> registerSubTypes(SubTypesDetector subTypeDetector);
+    EntityMapperBuilder<T> registerSubTypes(SubTypesDetector subTypeDetector);
 
-    public EntityMapperBuilder<T> registerValueType(ValueTypeDetector valueTypeDetector);
+    EntityMapperBuilder<T> registerValueType(ValueTypeDetector valueTypeDetector);
 
-    public EntityMapperBuilder<T> registerPropertyNameDetector(
+    EntityMapperBuilder<T> registerPropertyNameDetector(
         PropertyNameDetector propertyNameDetector
     );
 
-    public EntityMapperBuilder<T> registerNameDetector(NameDetector nameDetector);
+    EntityMapperBuilder<T> registerNameDetector(NameDetector nameDetector);
 
-    public EntityMapperBuilder<T> register(Module module);
+    EntityMapperBuilder<T> registerTypeMappingInterceptor(
+        TypeMappingInterceptor typeMappingInterceptor
+    );
 
-    public T build();
+    EntityMapperBuilder<T> register(Module module);
+
+    T build();
 }

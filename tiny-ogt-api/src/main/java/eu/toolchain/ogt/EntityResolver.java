@@ -36,6 +36,4 @@ public interface EntityResolver {
     Optional<String> detectName(JavaType type);
 
     <T> TypeEncodingProvider<T> providerFor(final EncodingFactory<T> factory);
-
-    boolean isBytes(Annotations annotations);
 }

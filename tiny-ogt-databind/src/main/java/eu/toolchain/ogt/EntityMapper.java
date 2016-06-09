@@ -2,7 +2,6 @@ package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import eu.toolchain.ogt.annotations.Bytes;
 import eu.toolchain.ogt.binding.Binding;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
@@ -12,6 +11,7 @@ import eu.toolchain.ogt.entitymapper.FieldReaderDetector;
 import eu.toolchain.ogt.entitymapper.NameDetector;
 import eu.toolchain.ogt.entitymapper.PropertyNameDetector;
 import eu.toolchain.ogt.entitymapper.SubTypesDetector;
+import eu.toolchain.ogt.entitymapper.TypeMappingInterceptor;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import eu.toolchain.ogt.subtype.EntitySubTypesProvider;
@@ -19,7 +19,6 @@ import eu.toolchain.ogt.type.AbstractEntityTypeMapping;
 import eu.toolchain.ogt.type.BytesTypeMapping;
 import eu.toolchain.ogt.type.ConcreteEntityTypeMapping;
 import eu.toolchain.ogt.type.DateMapping;
-import eu.toolchain.ogt.type.EncodedBytesTypeMapping;
 import eu.toolchain.ogt.type.EntityTypeMapping;
 import eu.toolchain.ogt.type.ListTypeMapping;
 import eu.toolchain.ogt.type.MapTypeMapping;
@@ -48,6 +47,7 @@ public class EntityMapper implements EntityResolver {
     private final List<ValueTypeDetector> valueTypeDetectors;
     private final List<PropertyNameDetector> propertyNameDetectors;
     private final List<NameDetector> nameDetectors;
+    private final List<TypeMappingInterceptor> typeMappingInterceptors;
 
     private final ConcurrentMap<JavaType, TypeMapping> cache = new ConcurrentHashMap<>();
     private final Object resolverLock = new Object();
@@ -107,11 +107,13 @@ public class EntityMapper implements EntityResolver {
 
     @Override
     public TypeMapping mapping(final JavaType type, final Annotations annotations) {
-        if (isBytes(annotations)) {
-            return new EncodedBytesTypeMapping(type);
-        } else {
-            return mapping(type);
-        }
+        return typeMappingInterceptors
+            .stream()
+            .map(i -> i.intercept(this, type, annotations))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst()
+            .orElseGet(() -> mapping(type));
     }
 
     private TypeMapping resolveMapping(final JavaType t) {
@@ -219,11 +221,6 @@ public class EntityMapper implements EntityResolver {
         return new CreatorField(annotations, fieldType, fieldName);
     }
 
-    @Override
-    public boolean isBytes(final Annotations annotations) {
-        return annotations.isAnnotationPresent(Bytes.class);
-    }
-
     public static EntityMapperBuilder<EntityMapper> builder() {
         return new Builder();
     }
@@ -297,8 +294,7 @@ public class EntityMapper implements EntityResolver {
             subTypesByClass.put(e.getValue().getType(), e.getValue());
         }
 
-        return new AbstractEntityTypeMapping(type, typeName, subTypes,
-            subTypesByClass.build());
+        return new AbstractEntityTypeMapping(type, typeName, subTypes, subTypesByClass.build());
     }
 
     private EntityTypeMapping doConcrete(
@@ -315,6 +311,7 @@ public class EntityMapper implements EntityResolver {
         private List<ValueTypeDetector> valueTypeDetectors = ImmutableList.of();
         private List<PropertyNameDetector> propertyNameDetectors = ImmutableList.of();
         private List<NameDetector> nameDetectors = ImmutableList.of();
+        private List<TypeMappingInterceptor> typeMappingInterceptors = ImmutableList.of();
 
         @Override
         public Builder registerFieldReader(FieldReaderDetector fieldReader) {
@@ -358,9 +355,18 @@ public class EntityMapper implements EntityResolver {
         }
 
         @Override
+        public Builder registerTypeMappingInterceptor(
+            TypeMappingInterceptor typeMappingInterceptor
+        ) {
+            this.typeMappingInterceptors =
+                copyAndAdd(typeMappingInterceptors, typeMappingInterceptor);
+            return this;
+        }
+
+        @Override
         public EntityMapper build() {
             return new EntityMapper(fieldReaders, creatorMethods, bindings, subTypesDetectors,
-                valueTypeDetectors, propertyNameDetectors, nameDetectors);
+                valueTypeDetectors, propertyNameDetectors, nameDetectors, typeMappingInterceptors);
         }
 
         @Override
