@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class JacksonFieldEncoder implements FieldEncoder<JsonNode> {
+public class JacksonTypeEncoder implements TypeEncoder<JsonNode> {
     private static final BaseEncoding BASE64 = JsonNode.StringJsonNode.BASE64;
 
     @Override

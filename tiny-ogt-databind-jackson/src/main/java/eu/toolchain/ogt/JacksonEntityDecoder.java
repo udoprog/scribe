@@ -9,7 +9,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JacksonEntityDecoder implements EntityDecoder<JsonNode> {
     private final Map<String, JsonNode> value;
-    private final JacksonFieldDecoder decoder;
+    private final JacksonTypeDecoder decoder;
 
     @Override
     public Optional<String> decodeType() {

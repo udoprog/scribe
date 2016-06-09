@@ -8,7 +8,7 @@ import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.FieldDecoder;
+import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.fieldreader.FieldReader;
@@ -44,7 +44,7 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
 
     @Override
     public Object decodeEntity(
-        EntityDecoder<T> entityDecoder, FieldDecoder<T> decoder, Context path
+        EntityDecoder<T> entityDecoder, TypeDecoder<T> decoder, Context path
     ) {
         final Object builder;
 

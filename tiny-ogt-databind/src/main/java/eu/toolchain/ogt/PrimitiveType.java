@@ -5,14 +5,14 @@ import java.util.Optional;
 
 public enum PrimitiveType {
     // @formatter:off
-    SHORT(FieldDecoder::decodeShort, (e, v) -> e.encodeShort((short) v)),
-    INTEGER(FieldDecoder::decodeInteger, (e, v) -> e.encodeInteger((int) v)),
-    LONG(FieldDecoder::decodeLong, (e, v) -> e.encodeLong((long) v)),
-    FLOAT(FieldDecoder::decodeFloat, (e, v) -> e.encodeFloat((float) v)),
-    DOUBLE(FieldDecoder::decodeDouble, (e, v) -> e.encodeDouble((double) v)),
-    BOOLEAN(FieldDecoder::decodeBoolean, (e, v) -> e.encodeBoolean((boolean) v)),
-    BYTE(FieldDecoder::decodeByte, (e, v) -> e.encodeByte((byte) v)),
-    CHAR(FieldDecoder::decodeCharacter, (e, v) -> e.encodeCharacter((char) v));
+    SHORT(TypeDecoder::decodeShort, (e, v) -> e.encodeShort((short) v)),
+    INTEGER(TypeDecoder::decodeInteger, (e, v) -> e.encodeInteger((int) v)),
+    LONG(TypeDecoder::decodeLong, (e, v) -> e.encodeLong((long) v)),
+    FLOAT(TypeDecoder::decodeFloat, (e, v) -> e.encodeFloat((float) v)),
+    DOUBLE(TypeDecoder::decodeDouble, (e, v) -> e.encodeDouble((double) v)),
+    BOOLEAN(TypeDecoder::decodeBoolean, (e, v) -> e.encodeBoolean((boolean) v)),
+    BYTE(TypeDecoder::decodeByte, (e, v) -> e.encodeByte((byte) v)),
+    CHAR(TypeDecoder::decodeCharacter, (e, v) -> e.encodeCharacter((char) v));
     // @formatter:on
 
     private final DecodingFunction decoding;
@@ -61,20 +61,20 @@ public enum PrimitiveType {
         return Optional.empty();
     }
 
-    public <T> Object get(FieldDecoder<T> a, T instance) throws IOException {
+    public <T> Object get(TypeDecoder<T> a, T instance) throws IOException {
         return decoding.decode(a, instance);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T set(FieldEncoder<T> encoder, Object value) throws IOException {
+    public <T> T set(TypeEncoder<T> encoder, Object value) throws IOException {
         return (T) this.encoding.encode(encoder, value);
     }
 
     public static interface DecodingFunction {
-        public <T> Object decode(FieldDecoder<T> decoder, T instance) throws IOException;
+        public <T> Object decode(TypeDecoder<T> decoder, T instance) throws IOException;
     }
 
     public static interface EncodingFunction {
-        public Object encode(FieldEncoder<?> encoder, Object value) throws IOException;
+        public Object encode(TypeEncoder<?> encoder, Object value) throws IOException;
     }
 }

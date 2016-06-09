@@ -2,8 +2,8 @@ package eu.toolchain.ogt.type;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 
 import java.util.Optional;
@@ -21,11 +21,11 @@ public interface TypeMapping {
     JavaType getType();
 
     <T> Object decode(
-        FieldDecoder<T> decoder, Context path, T value
+        TypeDecoder<T> decoder, Context path, T value
     );
 
     <T> T encode(
-        FieldEncoder<T> encoder, Context path, Object value
+        TypeEncoder<T> encoder, Context path, Object value
     );
 
     default Optional<Object> asOptional(Object value) {

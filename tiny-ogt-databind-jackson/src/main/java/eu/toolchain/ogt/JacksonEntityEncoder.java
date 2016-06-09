@@ -10,7 +10,7 @@ public class JacksonEntityEncoder implements EntityEncoder<JsonNode> {
 
     @Override
     public void setField(FieldMapping field, Context path, Object value) throws IOException {
-        final JsonNode v = field.type().encode(new JacksonFieldEncoder(), path, value);
+        final JsonNode v = field.type().encode(new JacksonTypeEncoder(), path, value);
         object.put(field.name(), v);
     }
 

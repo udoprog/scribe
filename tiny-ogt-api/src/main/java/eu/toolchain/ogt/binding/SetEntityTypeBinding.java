@@ -2,13 +2,13 @@ package eu.toolchain.ogt.binding;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityEncoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeEncoder;
 
 import java.util.List;
 
 /**
  * A type binder mixin that implements a common {@link #encodeEntity(eu.toolchain.ogt.EntityEncoder,
- * eu.toolchain.ogt.FieldEncoder, Object, eu.toolchain.ogt.Context)} method that uses fields of type
+ * eu.toolchain.ogt.TypeEncoder, Object, eu.toolchain.ogt.Context)} method that uses fields of type
  * {@link TypeFieldMapping}.
  *
  * @author udoprog
@@ -18,7 +18,7 @@ public interface SetEntityTypeBinding<T> extends Binding<T> {
 
     @Override
     default T encodeEntity(
-        EntityEncoder<T> entityEncoder, FieldEncoder<T> encoder, final Context path, Object entity
+        EntityEncoder<T> entityEncoder, TypeEncoder<T> encoder, final Context path, Object entity
     ) {
         for (final TypeFieldMapping m : fields()) {
             final Object value;

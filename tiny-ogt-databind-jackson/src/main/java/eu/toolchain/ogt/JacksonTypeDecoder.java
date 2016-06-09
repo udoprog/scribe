@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class JacksonFieldDecoder implements FieldDecoder<JsonNode> {
+public class JacksonTypeDecoder implements TypeDecoder<JsonNode> {
     @Override
     public Object decodeBytesField(JavaType type, byte[] bytes) {
         throw new RuntimeException("not supported");

@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public interface FieldDecoder<T> {
+public interface TypeDecoder<T> {
     Object decodeBytesField(JavaType type, byte[] bytes) throws IOException;
 
     byte[] decodeBytes(T input) throws IOException;

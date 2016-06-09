@@ -2,8 +2,8 @@ package eu.toolchain.ogt.type;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
 
@@ -23,7 +23,7 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
+    public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         final EntityDecoder<T> entityDecoder = decoder.decodeEntity(instance);
 
         final String type = entityDecoder
@@ -40,7 +40,7 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
+    public <T> T encode(TypeEncoder<T> encoder, Context path, Object value) {
         final EntityTypeMapping sub = subTypesByClass.get(JavaType.construct(value.getClass()));
 
         if (sub == null) {

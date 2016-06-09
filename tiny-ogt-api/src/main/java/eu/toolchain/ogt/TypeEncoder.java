@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public interface FieldEncoder<T> {
+public interface TypeEncoder<T> {
     byte[] encodeBytesField(JavaType type, Object value) throws IOException;
 
     T encodeBytes(byte[] bytes) throws IOException;

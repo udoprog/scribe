@@ -3,8 +3,8 @@ package eu.toolchain.ogt.type;
 import com.google.common.collect.ImmutableList;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.Reflection;
 import eu.toolchain.ogt.annotations.EntityValue;
@@ -42,7 +42,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public <T> Object decode(FieldDecoder<T> field, Context path, T instance) {
+    public <T> Object decode(TypeDecoder<T> field, Context path, T instance) {
         final Object value = mapping.decode(field, path, instance);
 
         try {
@@ -53,7 +53,7 @@ public class EntityValueTypeMapping implements TypeMapping {
     }
 
     @Override
-    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
+    public <T> T encode(TypeEncoder<T> encoder, Context path, Object value) {
         final Object v;
 
         try {

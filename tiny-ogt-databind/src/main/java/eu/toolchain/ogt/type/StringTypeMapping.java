@@ -1,8 +1,8 @@
 package eu.toolchain.ogt.type;
 
 import eu.toolchain.ogt.Context;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
 
@@ -18,7 +18,7 @@ public class StringTypeMapping implements TypeMapping {
     }
 
     @Override
-    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
+    public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         try {
             return decoder.decodeString(instance);
         } catch (final IOException e) {
@@ -27,7 +27,7 @@ public class StringTypeMapping implements TypeMapping {
     }
 
     @Override
-    public Object encode(FieldEncoder encoder, Context path, Object value) {
+    public Object encode(TypeEncoder encoder, Context path, Object value) {
         try {
             return encoder.encodeString((String) value);
         } catch (final IOException e) {

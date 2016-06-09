@@ -2,8 +2,8 @@ package eu.toolchain.ogt.type;
 
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 import lombok.Data;
 
@@ -27,7 +27,7 @@ public class MapTypeMapping implements TypeMapping {
     }
 
     @Override
-    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
+    public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         try {
             return decoder.decodeMap(key, value, path, instance);
         } catch (final IOException e) {
@@ -36,7 +36,7 @@ public class MapTypeMapping implements TypeMapping {
     }
 
     @Override
-    public <T> T encode(FieldEncoder<T> encoder, Context path, Object map) {
+    public <T> T encode(TypeEncoder<T> encoder, Context path, Object map) {
         try {
             return encoder.encodeMap(key, value, (Map<?, ?>) map, path);
         } catch (final IOException e) {

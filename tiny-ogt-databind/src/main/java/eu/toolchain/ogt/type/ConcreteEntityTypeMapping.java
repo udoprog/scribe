@@ -5,8 +5,8 @@ import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityEncoder;
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.FieldDecoder;
-import eu.toolchain.ogt.FieldEncoder;
+import eu.toolchain.ogt.TypeDecoder;
+import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.binding.Binding;
 import lombok.Data;
@@ -29,14 +29,14 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public <T> Object decode(FieldDecoder<T> decoder, Context path, T instance) {
+    public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         final EntityDecoder<T> entityDecoder = decoder.decodeEntity(instance);
         return binder.decodeEntity(entityDecoder, decoder, path);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T encode(FieldEncoder<T> encoder, Context path, Object value) {
+    public <T> T encode(TypeEncoder<T> encoder, Context path, Object value) {
         try {
             final EntityEncoder entityEncoder = encoder.newEntityEncoder();
 

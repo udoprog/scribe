@@ -2,12 +2,12 @@ package eu.toolchain.ogt;
 
 public class JacksonEncodingFactory implements EncodingFactory<JsonNode> {
     @Override
-    public JacksonFieldEncoder fieldEncoder() {
-        return new JacksonFieldEncoder();
+    public JacksonTypeEncoder fieldEncoder() {
+        return new JacksonTypeEncoder();
     }
 
     @Override
-    public JacksonFieldDecoder fieldDecoder() {
-        return new JacksonFieldDecoder();
+    public JacksonTypeDecoder fieldDecoder() {
+        return new JacksonTypeDecoder();
     }
 }

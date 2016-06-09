@@ -251,15 +251,15 @@ public class EntityMapper implements EntityResolver {
             @SuppressWarnings("unchecked")
             @Override
             public O encode(Object instance) {
-                final FieldEncoder<O> fieldEncoder = factory.fieldEncoder();
-                return m.encode(fieldEncoder, Context.ROOT, instance);
+                final TypeEncoder<O> typeEncoder = factory.fieldEncoder();
+                return m.encode(typeEncoder, Context.ROOT, instance);
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Object decode(O instance) {
-                final FieldDecoder<O> fieldDecoder = factory.fieldDecoder();
-                return m.decode(fieldDecoder, Context.ROOT, instance);
+                final TypeDecoder<O> typeDecoder = factory.fieldDecoder();
+                return m.decode(typeDecoder, Context.ROOT, instance);
             }
 
             @Override
