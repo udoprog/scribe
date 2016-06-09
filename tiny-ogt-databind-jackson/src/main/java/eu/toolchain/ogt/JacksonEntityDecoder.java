@@ -13,7 +13,14 @@ public class JacksonEntityDecoder implements EntityDecoder<JsonNode> {
 
     @Override
     public Optional<String> decodeType() {
-        return Optional.ofNullable(value.get("type")).map(JsonNode::asString);
+        return Optional
+            .ofNullable(value.get("type"))
+            .map(v -> v.visit(new JsonNode.Visitor<String>() {
+                @Override
+                public String visitString(final JsonNode.StringJsonNode string) {
+                    return string.getValue();
+                }
+            }));
     }
 
     @Override

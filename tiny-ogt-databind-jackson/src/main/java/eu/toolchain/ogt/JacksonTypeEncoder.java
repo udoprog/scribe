@@ -57,7 +57,7 @@ public class JacksonTypeEncoder implements TypeEncoder<JsonNode> {
 
     @Override
     public JsonNode encodeByte(byte value) throws IOException {
-        return new JsonNode.StringJsonNode(BASE64.encode(new byte[]{value}));
+        return new JsonNode.NumberJsonNode(value);
     }
 
     @Override
