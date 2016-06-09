@@ -89,10 +89,10 @@ public class CreatorMethodsTest {
     private void checkFields(final CreatorMethod c) {
         assertEquals(2, c.fields().size());
 
-        assertEquals(STRING, c.fields().get(0).type());
+        assertEquals(Optional.of(STRING), c.fields().get(0).type());
         assertTrue(c.fields().get(0).annotations().isAnnotationPresent(Property.class));
 
-        assertEquals(STRING, c.fields().get(1).type());
+        assertEquals(Optional.of(STRING), c.fields().get(1).type());
         assertTrue(c.fields().get(1).annotations().isAnnotationPresent(Property.class));
     }
 }
