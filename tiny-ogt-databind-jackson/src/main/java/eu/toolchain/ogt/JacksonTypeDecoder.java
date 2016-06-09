@@ -16,7 +16,12 @@ public class JacksonTypeDecoder implements TypeDecoder<JsonNode> {
     private static final BaseEncoding BASE64 = BaseEncoding.base64();
 
     @Override
-    public Object decodeBytesField(JavaType type, byte[] bytes) {
+    public Object decodeBytesField(final TypeMapping type, final byte[] bytes) throws IOException {
+        throw new RuntimeException("not supported");
+    }
+
+    @Override
+    public Object decodeForeignBytesField(JavaType type, byte[] bytes) {
         throw new RuntimeException("not supported");
     }
 

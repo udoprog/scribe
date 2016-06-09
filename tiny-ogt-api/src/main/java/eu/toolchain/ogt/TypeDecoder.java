@@ -8,7 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface TypeDecoder<T> {
-    Object decodeBytesField(JavaType type, byte[] bytes) throws IOException;
+    /**
+     * A bytes field for OGT-based encoder.
+     */
+    Object decodeBytesField(TypeMapping type, byte[] bytes) throws IOException;
+
+    /**
+     * A bytes field for a foreign encoding.
+     */
+    Object decodeForeignBytesField(JavaType type, byte[] bytes) throws IOException;
 
     byte[] decodeBytes(T input) throws IOException;
 

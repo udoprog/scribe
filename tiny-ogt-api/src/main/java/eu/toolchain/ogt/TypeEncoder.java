@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface TypeEncoder<T> {
-    byte[] encodeBytesField(JavaType type, Object value) throws IOException;
+    byte[] encodeBytesField(TypeMapping type, Object value) throws IOException;
+
+    byte[] encodeForeignBytesField(JavaType type, Object value) throws IOException;
 
     T encodeBytes(byte[] bytes) throws IOException;
 

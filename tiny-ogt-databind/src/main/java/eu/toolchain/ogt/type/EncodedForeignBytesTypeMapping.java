@@ -9,10 +9,10 @@ import lombok.Data;
 import java.io.IOException;
 
 @Data
-public class EncodedBytesTypeMapping implements TypeMapping {
+public class EncodedForeignBytesTypeMapping implements TypeMapping {
     public static final JavaType TYPE = JavaType.construct(byte[].class);
 
-    private final TypeMapping type;
+    private final JavaType type;
 
     @Override
     public JavaType getType() {
@@ -22,7 +22,7 @@ public class EncodedBytesTypeMapping implements TypeMapping {
     @Override
     public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         try {
-            return decoder.decodeBytesField(type, decoder.decodeBytes(instance));
+            return decoder.decodeForeignBytesField(type, decoder.decodeBytes(instance));
         } catch (final IOException e) {
             throw path.error("Failed to decode bytes", e);
         }
@@ -31,7 +31,7 @@ public class EncodedBytesTypeMapping implements TypeMapping {
     @Override
     public <T> T encode(TypeEncoder<T> encoder, Context path, Object value) {
         try {
-            return encoder.encodeBytes(encoder.encodeBytesField(type, value));
+            return encoder.encodeBytes(encoder.encodeForeignBytesField(type, value));
         } catch (final IOException e) {
             throw path.error("Failed to encode bytes", e);
         }
