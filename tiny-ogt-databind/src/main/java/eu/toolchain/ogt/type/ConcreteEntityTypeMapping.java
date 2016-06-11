@@ -8,7 +8,7 @@ import eu.toolchain.ogt.EntityResolver;
 import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.TypeEncoder;
 import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.binding.Binding;
+import eu.toolchain.ogt.binding.EntityBinding;
 import lombok.Data;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     private final Optional<String> typeName;
 
     /* left uninitialized to allow for circular dependencies */
-    private Binding binder;
+    private EntityBinding binding;
 
     @Override
     public Optional<String> typeName() {
@@ -31,7 +31,7 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     @Override
     public <T> Object decode(TypeDecoder<T> decoder, Context path, T instance) {
         final EntityDecoder<T> entityDecoder = decoder.decodeEntity(instance);
-        return binder.decodeEntity(entityDecoder, decoder, path);
+        return binding.decodeEntity(entityDecoder, decoder, path);
     }
 
     @SuppressWarnings("unchecked")
@@ -46,7 +46,7 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
                 entityEncoder.setType(typeName.get());
             }
 
-            return (T) binder.encodeEntity(entityEncoder, encoder, path, value);
+            return (T) binding.encodeEntity(entityEncoder, encoder, path, value);
         } catch (final IOException e) {
             throw path.error("Failed to encode entity", e);
         }
@@ -54,12 +54,12 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
 
     @Override
     public String toString() {
-        return type + "(" + binder.toString() + ")";
+        return type + "(" + binding.toString() + ")";
     }
 
     @Override
     public void initialize(final EntityResolver resolver) {
-        this.binder = resolver
+        this.binding = resolver
             .detectBinding(type)
             .orElseThrow(
                 () -> new IllegalArgumentException("Cannot detect how to construct type: " + type));

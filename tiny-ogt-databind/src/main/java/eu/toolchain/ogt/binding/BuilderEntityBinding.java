@@ -8,13 +8,13 @@ import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.JavaType;
+import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,7 +28,7 @@ import java.util.Optional;
  * @author udoprog
  */
 @Data
-public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
+public class BuilderEntityBinding implements ReadFieldsEntityBinding {
     public static final Converter<String, String> LOWER_TO_UPPER =
         CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
     public static final Joiner FIELD_JOINER = Joiner.on(", ");
@@ -38,12 +38,13 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
     private final Method build;
 
     @Override
-    public List<? extends TypeFieldMapping> fields() {
+    public List<? extends FieldMapping> fields() {
         return fields;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object decodeEntity(
+    public <T> Object decodeEntity(
         EntityDecoder<T> entityDecoder, TypeDecoder<T> decoder, Context path
     ) {
         final Object builder;
@@ -64,7 +65,7 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
                 .orElseThrow(() -> p.error("Missing required field (" + m.name() + ")"));
 
             try {
-                m.getSetter().invoke(builder, argument);
+                m.setter.invoke(builder, argument);
             } catch (final Exception e) {
                 throw p.error(
                     "Failed to invoke builder method " + m.name() + " with argument (" + argument +
@@ -84,20 +85,36 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
         return FIELD_JOINER.join(fields);
     }
 
-    public static class BuilderFieldMapping extends TypeFieldMapping {
-        @Getter
+    @RequiredArgsConstructor
+    public static class BuilderFieldMapping implements FieldMapping {
+        private final String name;
+        private final TypeMapping mapping;
+        private final FieldReader reader;
         private final Method setter;
 
-        public BuilderFieldMapping(
-            final String name, final TypeMapping mapping, final FieldReader reader,
-            final Method setter
-        ) {
-            super(name, mapping, reader);
-            this.setter = setter;
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public TypeMapping type() {
+            return mapping;
+        }
+
+        public FieldReader reader() {
+            return reader;
+        }
+
+        @Override
+        public String toString() {
+            return name + "=" + mapping;
         }
     }
 
-    public static Optional<Binding> detect(final EntityResolver resolver, final JavaType type) {
+    public static Optional<EntityBinding> detect(
+        final EntityResolver resolver, final JavaType type
+    ) {
         final Method newInstance;
 
         try {
@@ -167,6 +184,6 @@ public class BuilderBinding<T> implements SetEntityTypeBinding<T> {
                 "Missing method #build() on type (" + builderType + ")");
         }
 
-        return Optional.of(new BuilderBinding(fields.build(), newInstance, builderBuild));
+        return Optional.of(new BuilderEntityBinding(fields.build(), newInstance, builderBuild));
     }
 }

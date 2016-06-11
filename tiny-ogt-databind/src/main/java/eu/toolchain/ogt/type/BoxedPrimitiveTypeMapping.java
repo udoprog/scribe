@@ -1,18 +1,16 @@
 package eu.toolchain.ogt.type;
 
+import eu.toolchain.ogt.BoxedPrimitiveType;
 import eu.toolchain.ogt.Context;
+import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.TypeEncoder;
-import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.PrimitiveType;
 import lombok.Data;
 
-import java.io.IOException;
-
 @Data
-public class PrimitiveTypeMapping implements TypeMapping {
+public class BoxedPrimitiveTypeMapping implements TypeMapping {
     private final JavaType javaType;
-    private final PrimitiveType type;
+    private final BoxedPrimitiveType type;
 
     @Override
     public JavaType getType() {

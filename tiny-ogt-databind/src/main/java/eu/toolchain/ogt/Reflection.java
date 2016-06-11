@@ -10,17 +10,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class Reflection {
-    /**
-     * Check if the given type is abstract through its modifiers.
-     *
-     * @param type The type to check.
-     * @return {@code true} if the specified type is abstract.
-     */
-    public static boolean isAbstract(final Class<?> type) {
-        return (type.getModifiers() & Modifier.INTERFACE) != 0 ||
-            (type.getModifiers() & Modifier.ABSTRACT) != 0;
-    }
-
     public static boolean isPublic(final Executable value) {
         return (value.getModifiers() & Modifier.PUBLIC) != 0;
     }

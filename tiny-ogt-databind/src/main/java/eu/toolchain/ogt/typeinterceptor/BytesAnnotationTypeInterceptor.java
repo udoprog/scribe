@@ -1,4 +1,4 @@
-package eu.toolchain.ogt.typemappinginterceptor;
+package eu.toolchain.ogt.typeinterceptor;
 
 import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.EntityResolver;
@@ -10,7 +10,7 @@ import eu.toolchain.ogt.type.TypeMapping;
 
 import java.util.Optional;
 
-public class BytesTypeMappingInterceptor {
+public class BytesAnnotationTypeInterceptor {
     public static Optional<TypeMapping> intercept(
         final EntityResolver resolver, final JavaType type, final Annotations annotations
     ) {

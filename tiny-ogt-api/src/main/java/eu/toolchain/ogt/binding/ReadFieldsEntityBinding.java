@@ -4,26 +4,15 @@ import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityEncoder;
 import eu.toolchain.ogt.TypeEncoder;
 
-import java.util.List;
-
-/**
- * A type binder mixin that implements a common {@link #encodeEntity(eu.toolchain.ogt.EntityEncoder,
- * eu.toolchain.ogt.TypeEncoder, Object, eu.toolchain.ogt.Context)} method that uses fields of type
- * {@link TypeFieldMapping}.
- *
- * @author udoprog
- */
-public interface SetEntityTypeBinding<T> extends Binding<T> {
-    List<? extends TypeFieldMapping> fields();
-
+public interface ReadFieldsEntityBinding extends EntityBinding {
     @Override
-    default T encodeEntity(
+    default <T> T encodeEntity(
         EntityEncoder<T> entityEncoder, TypeEncoder<T> encoder, final Context path, Object entity
     ) {
-        for (final TypeFieldMapping m : fields()) {
-            final Object value;
+        for (final FieldMapping m : fields()) {
+            final Context p = path.push(m.name());
 
-            final Context p = path;
+            final Object value;
 
             try {
                 value = m.reader().read(entity);

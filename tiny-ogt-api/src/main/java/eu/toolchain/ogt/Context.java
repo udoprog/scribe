@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import lombok.Data;
 
 public interface Context {
-    public static final Context ROOT = new Root();
+    Context ROOT = new Root();
 
     Context parent();
 
@@ -62,7 +62,7 @@ public interface Context {
         return new Field(this, name);
     }
 
-    static class Root implements Context {
+    class Root implements Context {
         @Override
         public Context parent() {
             throw new IllegalStateException("no parent");
@@ -70,7 +70,7 @@ public interface Context {
     }
 
     @Data
-    static class Field implements Context {
+    class Field implements Context {
         private final Context parent;
         private final String field;
 
@@ -86,7 +86,7 @@ public interface Context {
     }
 
     @Data
-    static class Index implements Context {
+    class Index implements Context {
         private final Context parent;
         private final int index;
 

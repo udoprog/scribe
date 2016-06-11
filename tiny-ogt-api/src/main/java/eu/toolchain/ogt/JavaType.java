@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -169,5 +170,10 @@ public class JavaType {
 
     static Class<?> box(final Class<?> input) {
         return PRIMITIVE_BUILTINS.getOrDefault(input, input);
+    }
+
+    public boolean isAbstract() {
+        return (raw.getModifiers() & Modifier.INTERFACE) != 0 ||
+            (raw.getModifiers() & Modifier.ABSTRACT) != 0;
     }
 }

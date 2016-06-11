@@ -7,7 +7,7 @@ import eu.toolchain.ogt.type.TypeMapping;
 
 import java.util.Optional;
 
-public interface TypeMappingInterceptor {
+public interface TypeInterceptor {
     Optional<TypeMapping> intercept(
         EntityResolver resolver, JavaType type, Annotations annotations
     );

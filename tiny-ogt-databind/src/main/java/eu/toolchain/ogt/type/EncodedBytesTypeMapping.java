@@ -39,6 +39,6 @@ public class EncodedBytesTypeMapping implements TypeMapping {
 
     @Override
     public String toString() {
-        return "<byte[]>";
+        return "@Bytes " + type;
     }
 }

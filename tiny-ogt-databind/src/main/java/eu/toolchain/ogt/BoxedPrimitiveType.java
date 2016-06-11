@@ -3,21 +3,21 @@ package eu.toolchain.ogt;
 import java.io.IOException;
 import java.util.Optional;
 
-public enum PrimitiveType {
-    SHORT(TypeDecoder::decodeShort, (e, v) -> e.encodeShort((short) v), "short"),
-    INTEGER(TypeDecoder::decodeInteger, (e, v) -> e.encodeInteger((int) v), "int"),
-    LONG(TypeDecoder::decodeLong, (e, v) -> e.encodeLong((long) v), "long"),
-    FLOAT(TypeDecoder::decodeFloat, (e, v) -> e.encodeFloat((float) v), "float"),
-    DOUBLE(TypeDecoder::decodeDouble, (e, v) -> e.encodeDouble((double) v), "double"),
-    BOOLEAN(TypeDecoder::decodeBoolean, (e, v) -> e.encodeBoolean((boolean) v), "boolean"),
-    BYTE(TypeDecoder::decodeByte, (e, v) -> e.encodeByte((byte) v), "byte"),
-    CHAR(TypeDecoder::decodeCharacter, (e, v) -> e.encodeCharacter((char) v), "char");
+public enum BoxedPrimitiveType {
+    SHORT(TypeDecoder::decodeShort, (e, v) -> e.encodeShort((short) v), "Short"),
+    INTEGER(TypeDecoder::decodeInteger, (e, v) -> e.encodeInteger((int) v), "Integer"),
+    LONG(TypeDecoder::decodeLong, (e, v) -> e.encodeLong((long) v), "Long"),
+    FLOAT(TypeDecoder::decodeFloat, (e, v) -> e.encodeFloat((float) v), "Float"),
+    DOUBLE(TypeDecoder::decodeDouble, (e, v) -> e.encodeDouble((double) v), "Double"),
+    BOOLEAN(TypeDecoder::decodeBoolean, (e, v) -> e.encodeBoolean((boolean) v), "Boolean"),
+    BYTE(TypeDecoder::decodeByte, (e, v) -> e.encodeByte((byte) v), "Byte"),
+    CHAR(TypeDecoder::decodeCharacter, (e, v) -> e.encodeCharacter((char) v), "Char");
 
     private final DecodingFunction decoding;
     private final EncodingFunction encoding;
     private final String name;
 
-    PrimitiveType(
+    BoxedPrimitiveType(
         final DecodingFunction accessor, final EncodingFunction setter, final String name
     ) {
         this.decoding = accessor;
@@ -25,38 +25,38 @@ public enum PrimitiveType {
         this.name = name;
     }
 
-    public static Optional<PrimitiveType> detect(final JavaType type) {
+    public static Optional<BoxedPrimitiveType> detect(final JavaType type) {
         final Class<?> raw = type.getRawClass();
 
-        if (raw == boolean.class) {
+        if (raw == Boolean.class) {
             return Optional.of(BOOLEAN);
         }
 
-        if (raw == byte.class) {
+        if (raw == Byte.class) {
             return Optional.of(BYTE);
         }
 
-        if (raw == char.class) {
+        if (raw == Character.class) {
             return Optional.of(CHAR);
         }
 
-        if (raw == short.class) {
+        if (raw == Short.class) {
             return Optional.of(SHORT);
         }
 
-        if (raw == int.class) {
+        if (raw == Integer.class) {
             return Optional.of(INTEGER);
         }
 
-        if (raw == long.class) {
+        if (raw == Long.class) {
             return Optional.of(LONG);
         }
 
-        if (raw == float.class) {
+        if (raw == Float.class) {
             return Optional.of(FLOAT);
         }
 
-        if (raw == double.class) {
+        if (raw == Double.class) {
             return Optional.of(DOUBLE);
         }
 

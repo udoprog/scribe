@@ -6,7 +6,7 @@ import eu.toolchain.ogt.entitymapper.FieldReaderDetector;
 import eu.toolchain.ogt.entitymapper.NameDetector;
 import eu.toolchain.ogt.entitymapper.PropertyNameDetector;
 import eu.toolchain.ogt.entitymapper.SubTypesDetector;
-import eu.toolchain.ogt.entitymapper.TypeMappingInterceptor;
+import eu.toolchain.ogt.entitymapper.TypeInterceptor;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 
 public interface EntityMapperBuilder<T> {
@@ -26,9 +26,7 @@ public interface EntityMapperBuilder<T> {
 
     EntityMapperBuilder<T> registerNameDetector(NameDetector nameDetector);
 
-    EntityMapperBuilder<T> registerTypeMappingInterceptor(
-        TypeMappingInterceptor typeMappingInterceptor
-    );
+    EntityMapperBuilder<T> registerTypeInterceptor(TypeInterceptor typeInterceptor);
 
     EntityMapperBuilder<T> register(Module module);
 

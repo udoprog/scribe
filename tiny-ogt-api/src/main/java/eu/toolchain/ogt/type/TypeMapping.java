@@ -14,19 +14,13 @@ import java.util.Optional;
  * They can represent everything from primitive types, to full-blown entities.
  *
  * @author udoprog
- * @see PrimitiveTypeMapping
- * @see ConcreteEntityTypeMapping
  */
 public interface TypeMapping {
     JavaType getType();
 
-    <T> Object decode(
-        TypeDecoder<T> decoder, Context path, T value
-    );
+    <T> Object decode(TypeDecoder<T> decoder, Context path, T value);
 
-    <T> T encode(
-        TypeEncoder<T> encoder, Context path, Object value
-    );
+    <T> T encode(TypeEncoder<T> encoder, Context path, Object value);
 
     default Optional<Object> asOptional(Object value) {
         return Optional.of(value);

@@ -53,8 +53,10 @@ public class ConstructorPropertiesCreatorMethod implements CreatorMethod {
         final ImmutableList.Builder<CreatorField> fields = ImmutableList.builder();
 
         for (final String name : properties.value()) {
-            fields.add(resolver.setupCreatorField(Annotations.empty(), Optional.empty(),
-                Optional.of(name)));
+            final Annotations annotations = resolver.detectFieldAnnotations(type, name);
+
+            fields.add(
+                resolver.setupCreatorField(annotations, Optional.empty(), Optional.of(name)));
         }
 
         return Optional.of(new ConstructorPropertiesCreatorMethod(fields.build(), constructor));
