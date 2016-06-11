@@ -1,13 +1,14 @@
 package eu.toolchain.ogt.type;
 
+import com.google.common.base.Joiner;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
 import eu.toolchain.ogt.EntityEncoder;
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
+import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.TypeEncoder;
-import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.binding.EntityBinding;
 import lombok.Data;
 
@@ -16,6 +17,8 @@ import java.util.Optional;
 
 @Data
 public class ConcreteEntityTypeMapping implements EntityTypeMapping {
+    public static final Joiner FIELD_JOINER = Joiner.on(", ");
+
     private final EntityMapper mapper;
     private final JavaType type;
     private final Optional<String> typeName;
@@ -53,15 +56,17 @@ public class ConcreteEntityTypeMapping implements EntityTypeMapping {
     }
 
     @Override
-    public String toString() {
-        return type + "(" + binding.toString() + ")";
-    }
-
-    @Override
     public void initialize(final EntityResolver resolver) {
         this.binding = resolver
             .detectBinding(type)
             .orElseThrow(
                 () -> new IllegalArgumentException("Cannot detect how to construct type: " + type));
+    }
+
+    @Override
+    public String toString() {
+        final String arguments = FIELD_JOINER.join(
+            binding.fields().stream().map(f -> f.name() + "=" + f.type()).iterator());
+        return type + "(" + arguments + ")";
     }
 }

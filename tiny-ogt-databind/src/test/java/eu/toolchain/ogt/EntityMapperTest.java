@@ -1,13 +1,17 @@
 package eu.toolchain.ogt;
 
-import eu.toolchain.ogt.annotations.Bytes;
+import com.google.common.collect.ImmutableList;
 import eu.toolchain.ogt.annotations.EntityCreator;
+import eu.toolchain.ogt.annotations.FieldGetter;
 import eu.toolchain.ogt.annotations.Property;
 import eu.toolchain.ogt.binding.BuilderEntityBinding;
 import eu.toolchain.ogt.binding.ConstructorEntityBinding;
 import eu.toolchain.ogt.binding.FieldMapping;
+import eu.toolchain.ogt.type.BoxedPrimitiveTypeMapping;
 import eu.toolchain.ogt.type.ConcreteEntityTypeMapping;
 import eu.toolchain.ogt.type.EntityTypeMapping;
+import eu.toolchain.ogt.type.PrimitiveTypeMapping;
+import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
 import lombok.experimental.Builder;
 import org.junit.Test;
@@ -15,6 +19,8 @@ import org.junit.Test;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
+import static eu.toolchain.ogt.JavaType.construct;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class EntityMapperTest {
@@ -37,31 +43,57 @@ public class EntityMapperTest {
     }
 
     @Test
-    public void testComplexEntity() {
-        final ConcreteEntityTypeMapping mapping =
-            (ConcreteEntityTypeMapping) mapper.mapping(ComplexEntity.class);
+    public void testPrimitiveTypes() {
+        final List<JavaType> types =
+            ImmutableList.of(construct(boolean.class), construct(byte.class), construct(char.class),
+                construct(short.class), construct(int.class), construct(long.class),
+                construct(float.class), construct(double.class));
 
-        System.out.println(mapping);
-    }
-
-    @Data
-    public static class BuilderTypeCasting {
-        private final Integer field;
-
-        @ConstructorProperties({"field"})
-        public BuilderTypeCasting(final int field) {
-            this.field = field;
+        for (final JavaType t : types) {
+            final TypeMapping m = mapper.mapping(t);
+            assertTrue(m instanceof PrimitiveTypeMapping);
+            final PrimitiveTypeMapping p = (PrimitiveTypeMapping) m;
+            assertEquals(t, p.getType());
         }
     }
 
     @Test
-    public void testBuilderTypeCasting() {
+    public void testBoxedPrimitiveTypes() {
+        final List<JavaType> types =
+            ImmutableList.of(construct(Boolean.class), construct(Byte.class),
+                construct(Character.class), construct(Short.class), construct(Integer.class),
+                construct(Long.class), construct(Float.class), construct(Double.class));
+
+        for (final JavaType t : types) {
+            final TypeMapping m = mapper.mapping(t);
+            assertTrue(m instanceof BoxedPrimitiveTypeMapping);
+            final BoxedPrimitiveTypeMapping p = (BoxedPrimitiveTypeMapping) m;
+            assertEquals(t, p.getType());
+        }
+    }
+
+    public static class FieldGetterTest {
+        private final int foo;
+
+        @ConstructorProperties({"foo"})
+        public FieldGetterTest(final int field) {
+            this.foo = field;
+        }
+
+        @FieldGetter("foo")
+        public int getTheThing() {
+            return foo;
+        }
+    }
+
+    @Test
+    public void testFieldGetter() {
         final ConcreteEntityTypeMapping mapping =
-            (ConcreteEntityTypeMapping) mapper.mapping(BuilderTypeCasting.class);
+            (ConcreteEntityTypeMapping) mapper.mapping(FieldGetterTest.class);
 
-        List<? extends FieldMapping> fields = mapping.getBinding().fields();
+        FieldMapping field = mapping.getBinding().fields().get(0);
 
-        System.out.println(mapping);
+        assertEquals(42, field.reader().read(new FieldGetterTest(42)));
     }
 
     @Data
@@ -79,56 +111,5 @@ public class EntityMapperTest {
         public EntityCreatorTest(@Property("string") final String string) {
             this.string = string;
         }
-    }
-
-    @Data
-    public static class OtherEntity {
-        private final int field;
-    }
-
-    public static class OtherForeignEntity {
-        private final int field;
-
-        public OtherForeignEntity(final int field) {
-            this.field = field;
-        }
-    }
-
-    @Data
-    public static class ComplexEntity {
-        @Bytes
-        private final OtherEntity bytes;
-
-        @Bytes(foreign = true)
-        private final OtherForeignEntity bytesForeign;
-
-        private final boolean primitiveBoolean;
-        private final Boolean boxedBoolean;
-
-        private final byte primitiveByte;
-        private final Byte boxedByte;
-
-        private final char primitiveChar;
-        private final Character boxedCharacter;
-
-        private final short primitiveShort;
-        private final Short boxedShort;
-
-        private final int primitiveInt;
-        private final Integer boxedInt;
-
-        private final long primitiveLong;
-        private final Long boxedLong;
-
-        private final float primitiveFloat;
-        private final Float boxedFloat;
-
-        private final double primitiveDouble;
-        private final Double boxedDouble;
-
-        private final byte[] byteArray;
-
-        private final OtherEntity[] otherEntityArray;
-        private final OtherEntity[][] otherEntityArrayArray;
     }
 }

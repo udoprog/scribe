@@ -48,7 +48,7 @@ public class StaticMethodCreatorMethod implements CreatorMethod {
                     String.format("@%s method must return (%s): %s", creator, type, method));
             }
 
-            final List<CreatorField> fields = resolver.setupCreatorFields(method);
+            final List<CreatorField> fields = resolver.setupCreatorFields(type, method);
             return Optional.of(new StaticMethodCreatorMethod(fields, method));
         };
     }

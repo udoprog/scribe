@@ -6,7 +6,7 @@ import eu.toolchain.ogt.creatormethod.CreatorField;
 
 import java.util.Optional;
 
-public interface PropertyNameDetector {
+public interface FieldNameDetector {
     Optional<String> detect(
         final EntityResolver resolver, final JavaType type, final CreatorField field
     );

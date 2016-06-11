@@ -14,19 +14,17 @@ public class JacksonAnnotationsModule implements Module {
     @Override
     public <T> EntityMapperBuilder<T> register(EntityMapperBuilder<T> builder) {
         return builder
-            .registerCreatorMethod(ConstructorCreatorMethod.forAnnotation(JsonCreator.class))
-            .registerCreatorMethod(StaticMethodCreatorMethod.forAnnotation(JsonCreator.class))
-            .registerSubTypes(JacksonEntitySubTypesResolver::detect)
-            .registerValueType(EntityValueTypeMapping.forAnnotation(JsonCreator.class))
-            .registerPropertyNameDetector((resolver, type, field) -> {
-                return field
-                    .annotations()
-                    .getAnnotation(JsonProperty.class)
-                    .map(JsonProperty::value);
-            })
-            .registerNameDetector((resolver, type) -> {
-                return ofNullable(type.getRawClass().getAnnotation(JsonTypeName.class)).map(
-                    JsonTypeName::value);
-            });
+            .creatorMethodDetector(ConstructorCreatorMethod.forAnnotation(JsonCreator.class))
+            .creatorMethodDetector(StaticMethodCreatorMethod.forAnnotation(JsonCreator.class))
+            .subTypesDetector(JacksonEntitySubTypesResolver::detect)
+            .valueTypeDetector(EntityValueTypeMapping.forAnnotation(JsonCreator.class))
+            .fieldReaderDetector()
+            .fieldNameDetector((resolver, type, field) -> field
+                .getAnnotations()
+                .getAnnotation(JsonProperty.class)
+                .map(JsonProperty::value))
+            .typeNameDetector(
+                (resolver, type) -> ofNullable(type.getRawClass().getAnnotation(JsonTypeName.class))
+                    .map(JsonTypeName::value));
     }
 }

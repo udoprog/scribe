@@ -49,12 +49,12 @@ public class GetterFieldReader implements FieldReader {
         final JavaType type, final String fieldName, final Optional<JavaType> knownType
     ) {
         final String getterName =
-            knownType.map(returnType -> PrimitiveType.detect(returnType).flatMap(primitive -> {
+            knownType.map(returnType -> PrimitiveType.detect(returnType).map(primitive -> {
                 if (primitive == PrimitiveType.BOOLEAN) {
-                    return Optional.of("is" + LOWER_TO_UPPER.convert(fieldName));
+                    return "is" + LOWER_TO_UPPER.convert(fieldName);
                 }
 
-                return Optional.empty();
+                return "get" + LOWER_TO_UPPER.convert(fieldName);
             }).orElseGet(() -> "get" + LOWER_TO_UPPER.convert(fieldName))).orElseGet(() -> {
                 final List<String> names =
                     ImmutableList.of("is" + LOWER_TO_UPPER.convert(fieldName),

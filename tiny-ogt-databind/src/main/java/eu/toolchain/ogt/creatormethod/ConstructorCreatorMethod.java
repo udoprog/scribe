@@ -44,7 +44,7 @@ public class ConstructorCreatorMethod implements CreatorMethod {
 
             final Constructor<?> constructor = constructors.get(0);
 
-            final List<CreatorField> fields = resolver.setupCreatorFields(constructor);
+            final List<CreatorField> fields = resolver.setupCreatorFields(type, constructor);
             return Optional.of(new ConstructorCreatorMethod(fields, constructor));
         };
     }

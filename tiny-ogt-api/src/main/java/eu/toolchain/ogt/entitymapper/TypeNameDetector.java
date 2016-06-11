@@ -5,6 +5,6 @@ import eu.toolchain.ogt.JavaType;
 
 import java.util.Optional;
 
-public interface NameDetector {
+public interface TypeNameDetector {
     Optional<String> detect(final EntityResolver resolver, final JavaType type);
 }

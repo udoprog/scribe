@@ -29,27 +29,27 @@ public class DefaultModule implements Module {
     @Override
     public <T> EntityMapperBuilder<T> register(EntityMapperBuilder<T> builder) {
         builder
-            .registerTypeInterceptor(BytesAnnotationTypeInterceptor::intercept)
-            .registerTypeInterceptor(PrimitiveTypeInterceptor::intercept)
-            .registerTypeInterceptor(BoxedPrimitiveTypeInterceptor::intercept)
-            .registerTypeInterceptor(
+            .typeInterceptor(BytesAnnotationTypeInterceptor::intercept)
+            .typeInterceptor(PrimitiveTypeInterceptor::intercept)
+            .typeInterceptor(BoxedPrimitiveTypeInterceptor::intercept)
+            .typeInterceptor(
                 (resolver, type, annotations) -> resolver.detectValueType(type))
-            .registerTypeInterceptor(RawInterceptor.of(byte[].class, type -> BYTE_ARRAY_MAPPING))
-            .registerTypeInterceptor(
+            .typeInterceptor(RawInterceptor.of(byte[].class, type -> BYTE_ARRAY_MAPPING))
+            .typeInterceptor(
                 GenericInterceptor.of(List.class, 1, (type, m) -> new ListTypeMapping(type, m[0])))
-            .registerTypeInterceptor(GenericInterceptor.of(Map.class, 2,
+            .typeInterceptor(GenericInterceptor.of(Map.class, 2,
                 (type, m) -> new MapTypeMapping(type, m[0], m[1])))
-            .registerTypeInterceptor(GenericInterceptor.of(Map.class, 1,
+            .typeInterceptor(GenericInterceptor.of(Map.class, 1,
                 (type, m) -> new OptionalTypeMapping(type, m[0])))
-            .registerTypeInterceptor(RawInterceptor.of(String.class, type -> STRING_MAPPING))
-            .registerTypeInterceptor(RawInterceptor.of(Date.class, type -> DATE_MAPPING))
-            .registerTypeInterceptor(ObjectArrayInterceptor::intercept);
+            .typeInterceptor(RawInterceptor.of(String.class, type -> STRING_MAPPING))
+            .typeInterceptor(RawInterceptor.of(Date.class, type -> DATE_MAPPING))
+            .typeInterceptor(ObjectArrayInterceptor::intercept);
 
         builder
-            .registerCreatorMethod(ConstructorPropertiesCreatorMethod::detect)
-            .registerFieldReader(GetterFieldReader::detect)
-            .registerBinding(ConstructorEntityBinding::detect)
-            .registerBinding(BuilderEntityBinding::detect);
+            .creatorMethodDetector(ConstructorPropertiesCreatorMethod::detect)
+            .fieldReaderDetector(GetterFieldReader::detect)
+            .bindingDetector(ConstructorEntityBinding::detect)
+            .bindingDetector(BuilderEntityBinding::detect);
 
         return builder;
     }

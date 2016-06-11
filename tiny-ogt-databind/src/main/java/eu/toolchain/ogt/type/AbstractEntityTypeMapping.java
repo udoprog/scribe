@@ -1,10 +1,11 @@
 package eu.toolchain.ogt.type;
 
+import com.google.common.base.Joiner;
 import eu.toolchain.ogt.Context;
 import eu.toolchain.ogt.EntityDecoder;
+import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.TypeDecoder;
 import eu.toolchain.ogt.TypeEncoder;
-import eu.toolchain.ogt.JavaType;
 import lombok.Data;
 
 import java.util.Map;
@@ -12,6 +13,8 @@ import java.util.Optional;
 
 @Data
 public class AbstractEntityTypeMapping implements EntityTypeMapping {
+    public static final Joiner FIELD_JOINER = Joiner.on(", ");
+
     private final JavaType type;
     private final Optional<String> typeName;
     private final Map<String, EntityTypeMapping> subTypes;
@@ -48,5 +51,10 @@ public class AbstractEntityTypeMapping implements EntityTypeMapping {
         }
 
         return sub.encode(encoder, path, value);
+    }
+
+    @Override
+    public String toString() {
+        return type + "(subTypes=" + subTypes + ")";
     }
 }

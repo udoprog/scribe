@@ -25,15 +25,11 @@ public interface EntityResolver {
 
     Optional<EntityBinding> detectBinding(JavaType type);
 
-    List<CreatorField> setupCreatorFields(Executable executable);
-
-    CreatorField setupCreatorField(
-        Annotations annotations, Optional<JavaType> fieldType, Optional<String> fieldName
-    );
+    List<CreatorField> setupCreatorFields(JavaType type, Executable executable);
 
     Optional<TypeMapping> detectValueType(JavaType type);
 
-    Optional<String> detectPropertyName(JavaType type, CreatorField field);
+    Optional<String> detectFieldName(JavaType type, CreatorField field);
 
     Optional<String> detectName(JavaType type);
 

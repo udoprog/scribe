@@ -2,7 +2,6 @@ package eu.toolchain.ogt.binding;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
@@ -14,7 +13,6 @@ import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -31,7 +29,6 @@ import java.util.Optional;
 public class BuilderEntityBinding implements ReadFieldsEntityBinding {
     public static final Converter<String, String> LOWER_TO_UPPER =
         CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
-    public static final Joiner FIELD_JOINER = Joiner.on(", ");
 
     private final List<BuilderFieldMapping> fields;
     private final Method newInstance;
@@ -80,12 +77,7 @@ public class BuilderEntityBinding implements ReadFieldsEntityBinding {
         }
     }
 
-    @Override
-    public String toString() {
-        return FIELD_JOINER.join(fields);
-    }
-
-    @RequiredArgsConstructor
+    @Data
     public static class BuilderFieldMapping implements FieldMapping {
         private final String name;
         private final TypeMapping mapping;
@@ -104,11 +96,6 @@ public class BuilderEntityBinding implements ReadFieldsEntityBinding {
 
         public FieldReader reader() {
             return reader;
-        }
-
-        @Override
-        public String toString() {
-            return name + "=" + mapping;
         }
     }
 
@@ -171,8 +158,9 @@ public class BuilderEntityBinding implements ReadFieldsEntityBinding {
             final CreatorField f =
                 new CreatorField(annotations, Optional.empty(), Optional.empty());
 
+            final String fieldName = resolver.detectFieldName(type, f).orElseGet(field::getName);
             final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
-            fields.add(new BuilderFieldMapping(field.getName(), m, reader, setter));
+            fields.add(new BuilderFieldMapping(fieldName, m, reader, setter));
         }
 
         final Method builderBuild;

@@ -2,7 +2,6 @@ package eu.toolchain.ogt.binding;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import eu.toolchain.ogt.Annotations;
 import eu.toolchain.ogt.Context;
@@ -15,7 +14,6 @@ import eu.toolchain.ogt.creatormethod.InstanceBuilder;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import eu.toolchain.ogt.type.TypeMapping;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +28,6 @@ import java.util.Optional;
 public class ConstructorEntityBinding implements ReadFieldsEntityBinding {
     public static final Converter<String, String> LOWER_TO_UPPER =
         CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
-    public static final Joiner FIELD_JOINER = Joiner.on(", ");
 
     private final List<FieldMapping> fields;
     private final InstanceBuilder instanceBuilder;
@@ -62,11 +59,6 @@ public class ConstructorEntityBinding implements ReadFieldsEntityBinding {
         }
     }
 
-    @Override
-    public String toString() {
-        return FIELD_JOINER.join(fields);
-    }
-
     public static Optional<EntityBinding> detect(
         final EntityResolver resolver, final JavaType type
     ) {
@@ -74,22 +66,22 @@ public class ConstructorEntityBinding implements ReadFieldsEntityBinding {
             final ImmutableList.Builder<FieldMapping> fields = ImmutableList.builder();
 
             for (final CreatorField field : creator.fields()) {
-                final String fieldName = field
-                    .name()
-                    .orElseGet(() -> resolver
-                        .detectPropertyName(type, field)
+                final String fieldGetter = resolver
+                    .detectFieldName(type, field)
+                    .orElseGet(() -> field
+                        .getName()
                         .orElseThrow(() -> new IllegalArgumentException(
                             "Cannot detect property name for field: " + field.toString())));
 
                 final FieldReader reader = resolver
-                    .detectFieldReader(type, fieldName, field.type())
+                    .detectFieldReader(type, fieldGetter, field.getType())
                     .orElseThrow(() -> new IllegalArgumentException(
-                        "Can't figure out how to read " + type + " field (" + fieldName + ")"));
+                        "Can't figure out how to read " + type + " field (" + fieldGetter + ")"));
 
-                final Annotations annotations = field.annotations().merge(reader.annotations());
+                final Annotations annotations = field.getAnnotations().merge(reader.annotations());
                 final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
 
-                fields.add(new ConstructorEntityFieldMapping(fieldName, m, reader));
+                fields.add(new ConstructorEntityFieldMapping(fieldGetter, m, reader));
             }
 
             return Optional.of(
@@ -97,7 +89,7 @@ public class ConstructorEntityBinding implements ReadFieldsEntityBinding {
         });
     }
 
-    @RequiredArgsConstructor
+    @Data
     public static class ConstructorEntityFieldMapping implements FieldMapping {
         private final String name;
         private final TypeMapping mapping;
@@ -115,11 +107,6 @@ public class ConstructorEntityBinding implements ReadFieldsEntityBinding {
 
         public FieldReader reader() {
             return reader;
-        }
-
-        @Override
-        public String toString() {
-            return name + "=" + mapping;
         }
     }
 }

@@ -7,11 +7,11 @@ import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
 import eu.toolchain.ogt.entitymapper.BindingDetector;
 import eu.toolchain.ogt.entitymapper.CreatorMethodDetector;
+import eu.toolchain.ogt.entitymapper.FieldNameDetector;
 import eu.toolchain.ogt.entitymapper.FieldReaderDetector;
-import eu.toolchain.ogt.entitymapper.NameDetector;
-import eu.toolchain.ogt.entitymapper.PropertyNameDetector;
 import eu.toolchain.ogt.entitymapper.SubTypesDetector;
 import eu.toolchain.ogt.entitymapper.TypeInterceptor;
+import eu.toolchain.ogt.entitymapper.TypeNameDetector;
 import eu.toolchain.ogt.entitymapper.ValueTypeDetector;
 import eu.toolchain.ogt.fieldreader.FieldReader;
 import eu.toolchain.ogt.subtype.EntitySubTypesProvider;
@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class EntityMapper implements EntityResolver {
@@ -39,8 +40,8 @@ public class EntityMapper implements EntityResolver {
     private final List<BindingDetector> bindings;
     private final List<SubTypesDetector> subTypeDetectors;
     private final List<ValueTypeDetector> valueTypeDetectors;
-    private final List<PropertyNameDetector> propertyNameDetectors;
-    private final List<NameDetector> nameDetectors;
+    private final List<FieldNameDetector> fieldNameDetectors;
+    private final List<TypeNameDetector> typeNameDetectors;
     private final List<TypeInterceptor> typeInterceptors;
 
     private final ConcurrentMap<EntityKey, TypeMapping> cache = new ConcurrentHashMap<>();
@@ -115,44 +116,45 @@ public class EntityMapper implements EntityResolver {
 
     @Override
     public Optional<CreatorMethod> detectCreatorMethod(JavaType type) {
-        return firstMatch(creatorMethods, c -> c.detect(this, type));
+        return firstMatch(creatorMethods.stream(), c -> c.detect(this, type));
     }
 
     @Override
     public Optional<FieldReader> detectFieldReader(
         final JavaType type, final String fieldName, final Optional<JavaType> knownType
     ) {
-        return firstMatch(fieldReaders, c -> c.detect(type, fieldName, knownType));
+        return firstMatch(fieldReaders.stream(), c -> c.detect(type, fieldName, knownType));
     }
 
     @Override
     public Optional<EntityBinding> detectBinding(JavaType type) {
-        return firstMatch(bindings, d -> d.detect(this, type));
+        return firstMatch(bindings.stream(), d -> d.detect(this, type));
     }
 
     public Map<String, EntityTypeMapping> resolveSubTypes(final JavaType type) {
-        return firstMatch(subTypeDetectors, d -> d.detect(this, type))
+        return firstMatch(subTypeDetectors.stream(), d -> d.detect(this, type))
             .map(EntitySubTypesProvider::subtypes)
             .orElseGet(ImmutableMap::of);
     }
 
     @Override
     public Optional<TypeMapping> detectValueType(final JavaType type) {
-        return firstMatch(valueTypeDetectors, d -> d.detect(this, type));
+        return firstMatch(valueTypeDetectors.stream(), d -> d.detect(this, type));
     }
 
     @Override
-    public Optional<String> detectPropertyName(JavaType type, CreatorField field) {
-        return firstMatch(propertyNameDetectors, d -> d.detect(this, type, field));
+    public Optional<String> detectFieldName(JavaType type, CreatorField field) {
+        return firstMatch(Stream.concat(fieldNameDetectors.stream(), fieldNameDetectors.stream()),
+            d -> d.detect(this, type, field));
     }
 
     @Override
     public Optional<String> detectName(JavaType type) {
-        return firstMatch(nameDetectors, d -> d.detect(this, type));
+        return firstMatch(typeNameDetectors.stream(), d -> d.detect(this, type));
     }
 
     @Override
-    public List<CreatorField> setupCreatorFields(final Executable executable) {
+    public List<CreatorField> setupCreatorFields(final JavaType type, final Executable executable) {
         final ImmutableList.Builder<CreatorField> fields = ImmutableList.builder();
 
         int index = 0;
@@ -162,18 +164,10 @@ public class EntityMapper implements EntityResolver {
                 JavaType.construct(executable.getGenericParameterTypes()[index++]);
             final Annotations annotations = Annotations.of(p.getAnnotations());
 
-            fields.add(setupCreatorField(annotations, Optional.of(fieldType), Optional.empty()));
+            fields.add(new CreatorField(annotations, Optional.of(fieldType), Optional.empty()));
         }
 
         return fields.build();
-    }
-
-    @Override
-    public CreatorField setupCreatorField(
-        final Annotations annotations, final Optional<JavaType> fieldType,
-        final Optional<String> fieldName
-    ) {
-        return new CreatorField(annotations, fieldType, fieldName);
     }
 
     @Override
@@ -201,13 +195,8 @@ public class EntityMapper implements EntityResolver {
         return defaultBuilder().register(new NativeAnnotationsModule());
     }
 
-    private <T, O> Optional<O> firstMatch(List<T> alternatives, Function<T, Optional<O>> map) {
-        return alternatives
-            .stream()
-            .map(map)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
+    private <T, O> Optional<O> firstMatch(Stream<T> alternatives, Function<T, Optional<O>> map) {
+        return alternatives.map(map).filter(Optional::isPresent).map(Optional::get).findFirst();
     }
 
     private <O> TypeEncoding<Object, O> encodingFor(
@@ -273,77 +262,75 @@ public class EntityMapper implements EntityResolver {
     }
 
     public static class Builder implements EntityMapperBuilder<EntityMapper> {
-        private List<FieldReaderDetector> fieldReaders = ImmutableList.of();
-        private List<CreatorMethodDetector> creatorMethods = ImmutableList.of();
-        private List<BindingDetector> bindings = ImmutableList.of();
-        private List<SubTypesDetector> subTypesDetectors = ImmutableList.of();
-        private List<ValueTypeDetector> valueTypeDetectors = ImmutableList.of();
-        private List<PropertyNameDetector> propertyNameDetectors = ImmutableList.of();
-        private List<NameDetector> nameDetectors = ImmutableList.of();
-        private List<TypeInterceptor> typeInterceptors = ImmutableList.of();
+        private ImmutableList.Builder<FieldReaderDetector> fieldReaders = ImmutableList.builder();
+        private ImmutableList.Builder<CreatorMethodDetector> creatorMethods =
+            ImmutableList.builder();
+        private ImmutableList.Builder<BindingDetector> bindings = ImmutableList.builder();
+        private ImmutableList.Builder<SubTypesDetector> subTypesDetectors = ImmutableList.builder();
+        private ImmutableList.Builder<ValueTypeDetector> valueTypeDetectors =
+            ImmutableList.builder();
+        private ImmutableList.Builder<FieldNameDetector> fieldNameDetectors =
+            ImmutableList.builder();
+        private ImmutableList.Builder<TypeNameDetector> typeNameDetectors = ImmutableList.builder();
+        private ImmutableList.Builder<TypeInterceptor> typeInterceptors = ImmutableList.builder();
 
         @Override
-        public Builder registerFieldReader(FieldReaderDetector fieldReader) {
-            this.fieldReaders = copyAndAdd(fieldReaders, fieldReader);
+        public Builder fieldReaderDetector(FieldReaderDetector fieldReader) {
+            this.fieldReaders.add(fieldReader);
             return this;
         }
 
         @Override
-        public Builder registerCreatorMethod(CreatorMethodDetector creatorMethod) {
-            this.creatorMethods = copyAndAdd(creatorMethods, creatorMethod);
+        public Builder creatorMethodDetector(CreatorMethodDetector creatorMethod) {
+            this.creatorMethods.add(creatorMethod);
             return this;
         }
 
         @Override
-        public Builder registerBinding(BindingDetector binding) {
-            this.bindings = copyAndAdd(bindings, binding);
+        public Builder bindingDetector(BindingDetector binding) {
+            this.bindings.add(binding);
             return this;
         }
 
-        public Builder registerSubTypes(SubTypesDetector subTypeDetector) {
-            this.subTypesDetectors = copyAndAdd(subTypesDetectors, subTypeDetector);
-            return this;
-        }
-
-        @Override
-        public Builder registerValueType(ValueTypeDetector valueTypeDetector) {
-            this.valueTypeDetectors = copyAndAdd(valueTypeDetectors, valueTypeDetector);
+        public Builder subTypesDetector(SubTypesDetector subTypeDetector) {
+            this.subTypesDetectors.add(subTypeDetector);
             return this;
         }
 
         @Override
-        public Builder registerPropertyNameDetector(PropertyNameDetector propertyNameDetector) {
-            this.propertyNameDetectors = copyAndAdd(propertyNameDetectors, propertyNameDetector);
+        public Builder valueTypeDetector(ValueTypeDetector valueTypeDetector) {
+            this.valueTypeDetectors.add(valueTypeDetector);
             return this;
         }
 
         @Override
-        public Builder registerNameDetector(NameDetector nameDetector) {
-            this.nameDetectors = copyAndAdd(nameDetectors, nameDetector);
+        public Builder fieldNameDetector(FieldNameDetector fieldNameDetector) {
+            this.fieldNameDetectors.add(fieldNameDetector);
             return this;
         }
 
         @Override
-        public Builder registerTypeInterceptor(
-            TypeInterceptor typeInterceptor
-        ) {
-            this.typeInterceptors = copyAndAdd(typeInterceptors, typeInterceptor);
+        public Builder typeNameDetector(TypeNameDetector typeNameDetector) {
+            this.typeNameDetectors.add(typeNameDetector);
+            return this;
+        }
+
+        @Override
+        public Builder typeInterceptor(TypeInterceptor typeInterceptor) {
+            this.typeInterceptors.add(typeInterceptor);
             return this;
         }
 
         @Override
         public EntityMapper build() {
-            return new EntityMapper(fieldReaders, creatorMethods, bindings, subTypesDetectors,
-                valueTypeDetectors, propertyNameDetectors, nameDetectors, typeInterceptors);
+            return new EntityMapper(fieldReaders.build(), creatorMethods.build(), bindings.build(),
+                subTypesDetectors.build(), valueTypeDetectors.build(), fieldNameDetectors.build(),
+                typeNameDetectors.build(), typeInterceptors.build());
         }
 
         @Override
         public EntityMapperBuilder<EntityMapper> register(final Module module) {
             return module.register(this);
-        }
-
-        private <T> List<T> copyAndAdd(List<T> original, T addition) {
-            return ImmutableList.<T>builder().addAll(original).add(addition).build();
         }
     }
 }

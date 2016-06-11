@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,11 +53,21 @@ public class ConstructorPropertiesCreatorMethod implements CreatorMethod {
 
         final ImmutableList.Builder<CreatorField> fields = ImmutableList.builder();
 
-        for (final String name : properties.value()) {
-            final Annotations annotations = resolver.detectFieldAnnotations(type, name);
+        final Type[] parameterTypes = constructor.getGenericParameterTypes();
 
+        if (parameterTypes.length != properties.value().length) {
+            throw new IllegalStateException(String.format(
+                "The number of parameters for constructor %s, does not match provided by @%s",
+                constructor, ConstructorProperties.class.getSimpleName()));
+        }
+
+        int index = 0;
+
+        for (final String name : properties.value()) {
+            final JavaType parameterType = JavaType.construct(parameterTypes[index++]);
+            final Annotations annotations = resolver.detectFieldAnnotations(type, name);
             fields.add(
-                resolver.setupCreatorField(annotations, Optional.empty(), Optional.of(name)));
+                new CreatorField(annotations, Optional.of(parameterType), Optional.of(name)));
         }
 
         return Optional.of(new ConstructorPropertiesCreatorMethod(fields.build(), constructor));
