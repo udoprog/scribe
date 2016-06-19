@@ -1,179 +1,145 @@
 package eu.toolchain.ogt;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@Data
-@RequiredArgsConstructor
-@EqualsAndHashCode
-public class JavaType {
-    public static final Joiner PARAMETER_JOINER = Joiner.on(", ");
+public interface JavaType {
+    Class asClass();
 
-    public static final Map<Class<?>, Class<?>> PRIMITIVE_BUILTINS = new HashMap<>();
-
-    static {
-        PRIMITIVE_BUILTINS.put(boolean.class, Boolean.class);
-        PRIMITIVE_BUILTINS.put(byte.class, Byte.class);
-        PRIMITIVE_BUILTINS.put(char.class, Character.class);
-        PRIMITIVE_BUILTINS.put(short.class, Short.class);
-        PRIMITIVE_BUILTINS.put(int.class, Integer.class);
-        PRIMITIVE_BUILTINS.put(long.class, Long.class);
-        PRIMITIVE_BUILTINS.put(float.class, Float.class);
-        PRIMITIVE_BUILTINS.put(double.class, Double.class);
-        PRIMITIVE_BUILTINS.put(void.class, Void.class);
+    static JavaType of(final TypeReference<?> reference) {
+        return of(reference.getType(), Optional.empty());
     }
 
-    public static final Set<Class<?>> PRIMITIVES = ImmutableSet.<Class<?>>builder()
-        .addAll(PRIMITIVE_BUILTINS.keySet())
-        .addAll(PRIMITIVE_BUILTINS.values())
-        .build();
-
-    private final Class<?> raw;
-    private final List<JavaType> parameters;
-
-    public JavaType(Class<?> raw) {
-        this(raw, ImmutableList.of());
+    static JavaType of(final Type type) {
+        return of(type, Optional.empty());
     }
 
-    public int getParameterCount() {
-        return parameters.size();
-    }
-
-    public JavaType getContainedType(int index) {
-        return Objects.requireNonNull(parameters.get(index));
-    }
-
-    public JavaType boxed() {
-        final Class<?> box = box(raw);
-        return new JavaType(box, parameters);
-    }
-
-    public boolean isPrimitive() {
-        return PRIMITIVES.contains(raw);
-    }
-
-    public boolean isVoid() {
-        return raw == void.class || raw == Void.TYPE;
-    }
-
-    public Class<?> getRawClass() {
-        if (raw instanceof Class) {
-            return (Class<?>) raw;
+    static JavaType of(final Type type, final Optional<ParameterizedType> parent) {
+        if (type instanceof java.lang.Class<?>) {
+            return new Class((java.lang.Class<?>) type, parent);
         }
 
-        throw new IllegalStateException("Type is not a class");
+        if (type instanceof java.lang.reflect.ParameterizedType) {
+            final java.lang.reflect.ParameterizedType pt =
+                (java.lang.reflect.ParameterizedType) type;
+            return new ParameterizedType(pt, parent);
+        }
+
+        if (type instanceof java.lang.reflect.TypeVariable<?>) {
+            final ParameterizedType p = parent.orElseThrow(() -> new IllegalArgumentException(
+                "Parent is required for type variables (" + type + ")"));
+            return new TypeVariable((java.lang.reflect.TypeVariable<?>) type, p);
+        }
+
+        throw new IllegalStateException("Unsupported type: " + type);
     }
 
-    public boolean isParameterized() {
-        return !parameters.isEmpty();
+    @Data
+    class TypeVariable implements JavaType {
+        private final java.lang.reflect.TypeVariable<?> type;
+        private final ParameterizedType parent;
+
+        @Override
+        public Class asClass() {
+            return parent.resolve(type).asClass();
+        }
     }
 
-    public static JavaType construct(final Type type) {
-        if (type instanceof GenericArrayType) {
-            final GenericArrayType g = (GenericArrayType) type;
-            final JavaType component;
+    @Data
+    class Class implements JavaType {
+        private final java.lang.Class<?> type;
+        private final Optional<ParameterizedType> parent;
+
+        @Override
+        public Class asClass() {
+            return this;
+        }
+
+        public List<JavaType.TypeVariable> getTypeParameters() {
+            return parent
+                .map(p -> Arrays
+                    .stream(type.getTypeParameters())
+                    .map(v -> new TypeVariable(v, p))
+                    .collect(Collectors.toList()))
+                .orElseGet(Collections::emptyList);
+        }
+
+        public Optional<JavaType> getTypeParameter(final int index) {
+            final java.lang.reflect.TypeVariable<?>[] variables = type.getTypeParameters();
+
+            if (index >= variables.length) {
+                return Optional.empty();
+            }
+
+            return parent.map(p -> new TypeVariable(variables[index], p));
+        }
+
+        public Optional<Field> getField(final String field) {
+            final java.lang.reflect.Field f;
 
             try {
-                component = construct(g.getGenericComponentType());
-            } catch (final Exception e) {
-                throw new IllegalArgumentException("Failed to construct generic type: " + type, e);
+                f = type.getDeclaredField(field);
+            } catch (NoSuchFieldException e) {
+                return Optional.empty();
             }
 
-            final Class<?> arrayType = Array.newInstance(component.getRawClass(), 0).getClass();
-            return construct(arrayType);
+            return Optional.of(new Field(f, parent));
         }
 
-        if (type instanceof WildcardType) {
-            final WildcardType w = (WildcardType) type;
-
-            try {
-                return construct(w.getUpperBounds()[0]);
-            } catch (final Exception e) {
-                throw new IllegalArgumentException("Failed to construct wildcard type: " + type, e);
-            }
+        public Stream<Field> getFields() {
+            return Arrays.stream(type.getDeclaredFields()).map(f -> new Field(f, parent));
         }
-
-        if (type instanceof TypeVariable) {
-            final TypeVariable<?> v = (TypeVariable<?>) type;
-
-            if (v.getBounds().length > 1) {
-                throw new IllegalArgumentException(
-                    "TypeVariable with more than one bound is not supported: " + type);
-            }
-
-            try {
-                return construct(v.getBounds()[0]);
-            } catch (final Exception e) {
-                throw new IllegalArgumentException("Failed to construct type variable: " + type, e);
-            }
-        }
-
-        if (type instanceof ParameterizedType) {
-            final ParameterizedType p = (ParameterizedType) type;
-            final List<JavaType> parameters;
-
-            try {
-                parameters = ImmutableList.copyOf(
-                    Arrays.stream(p.getActualTypeArguments()).map(JavaType::construct).iterator());
-            } catch (final Exception e) {
-                throw new IllegalArgumentException(
-                    "Failed to construct parameters from type: " + type, e);
-            }
-
-            final Type raw = p.getRawType();
-
-            if (!(raw instanceof Class)) {
-                throw new IllegalArgumentException(
-                    "Raw type for parameterized not supported: " + type);
-            }
-
-            return new JavaType((Class<?>) raw, parameters);
-        }
-
-        if (!(type instanceof Class)) {
-            throw new IllegalArgumentException("Type not supported: " + type);
-        }
-
-        return new JavaType((Class<?>) type);
     }
 
-    public static JavaType of(Class<?> raw, JavaType... parameters) {
-        return new JavaType(raw, ImmutableList.copyOf(parameters));
-    }
+    @Data
+    class Field implements JavaType {
+        private final java.lang.reflect.Field type;
+        private final Optional<ParameterizedType> parent;
 
-    @Override
-    public String toString() {
-        if (parameters.isEmpty()) {
-            return raw.getCanonicalName();
+        @Override
+        public Class asClass() {
+            return getFieldType().asClass();
         }
 
-        return raw.getCanonicalName() + "<" + PARAMETER_JOINER.join(parameters) + ">";
+        public JavaType getFieldType() {
+            return of(type.getGenericType(), parent);
+        }
     }
 
-    static Class<?> box(final Class<?> input) {
-        return PRIMITIVE_BUILTINS.getOrDefault(input, input);
-    }
+    @Data
+    class ParameterizedType implements JavaType {
+        private final java.lang.reflect.ParameterizedType type;
+        private final Optional<ParameterizedType> parent;
 
-    public boolean isAbstract() {
-        return (raw.getModifiers() & Modifier.INTERFACE) != 0 ||
-            (raw.getModifiers() & Modifier.ABSTRACT) != 0;
+        @Override
+        public Class asClass() {
+            return of(type.getRawType(), Optional.of(this)).asClass();
+        }
+
+        public JavaType resolve(final java.lang.reflect.TypeVariable<?> variable) {
+            int index = 0;
+
+            for (final java.lang.reflect.TypeVariable<?> v : ((java.lang.Class<?>) type
+                .getRawType())
+                .getTypeParameters()) {
+
+                if (variable.equals(v)) {
+                    return of(type.getActualTypeArguments()[index], Optional.of(this));
+                }
+
+                index++;
+            }
+
+            final ParameterizedType p = parent.orElseThrow(
+                () -> new IllegalStateException("Unable to resolve variable: " + variable));
+            return p.resolve(variable);
+        }
     }
 }

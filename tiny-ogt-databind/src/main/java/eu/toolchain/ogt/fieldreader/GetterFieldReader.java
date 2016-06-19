@@ -2,15 +2,17 @@ package eu.toolchain.ogt.fieldreader;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
-import com.google.common.collect.ImmutableList;
 import eu.toolchain.ogt.Annotations;
-import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.PrimitiveType;
+import eu.toolchain.ogt.Match;
+import eu.toolchain.ogt.Methods;
+import eu.toolchain.ogt.Priority;
+import eu.toolchain.ogt.Reflection;
 import lombok.Data;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.lang.reflect.Type;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Data
 public class GetterFieldReader implements FieldReader {
@@ -19,7 +21,7 @@ public class GetterFieldReader implements FieldReader {
 
     private final Method getter;
     private final Annotations annotations;
-    private final JavaType fieldType;
+    private final Type fieldType;
 
     @Override
     public Object read(Object instance) {
@@ -36,74 +38,43 @@ public class GetterFieldReader implements FieldReader {
     }
 
     @Override
-    public JavaType fieldType() {
+    public Type fieldType() {
         return fieldType;
     }
 
-    @Override
-    public String toString() {
-        return "GetterFieldReader(" + getter.toString() + ")";
+    static boolean isBoolean(final Type type) {
+        return type == Boolean.TYPE || type == Boolean.class;
     }
 
-    public static Optional<FieldReader> detect(
-        final JavaType type, final String fieldName, final Optional<JavaType> knownType
+    public static Stream<Match<FieldReader>> detect(
+        final Type type, final String fieldName, final Optional<Type> knownType
     ) {
-        final String getterName =
-            knownType.map(returnType -> PrimitiveType.detect(returnType).map(primitive -> {
-                if (primitive == PrimitiveType.BOOLEAN) {
+        return Reflection.asClass(type).flatMap(c -> {
+            final Methods methods = Methods.of(c.getDeclaredMethods());
+
+            final String getterName = knownType.map(returnType -> {
+                if (isBoolean(returnType)) {
                     return "is" + LOWER_TO_UPPER.convert(fieldName);
                 }
 
                 return "get" + LOWER_TO_UPPER.convert(fieldName);
-            }).orElseGet(() -> "get" + LOWER_TO_UPPER.convert(fieldName))).orElseGet(() -> {
-                final List<String> names =
-                    ImmutableList.of("is" + LOWER_TO_UPPER.convert(fieldName),
-                        "get" + LOWER_TO_UPPER.convert(fieldName));
+            }).orElseGet(() -> "get" + LOWER_TO_UPPER.convert(fieldName));
 
-                return names
-                    .stream()
-                    .filter(g -> {
-                        final Method m;
+            return methods.getMethods(getterName).map(getter -> {
+                final Type returnType = getter.getGenericReturnType();
+                final Annotations annotations = Annotations.of(getter.getAnnotations());
 
-                        try {
-                            m = type.getRaw().getMethod(g);
-                        } catch (final NoSuchMethodException e) {
-                            return false;
-                        }
+                knownType.ifPresent(expected -> {
+                    if (!expected.equals(returnType)) {
+                        throw new IllegalArgumentException(
+                            "Getter " + getter + " return incompatible return value (" +
+                                returnType +
+                                "), expected (" + expected + ")");
+                    }
+                });
 
-                        // ignore methods returning void
-                        return !JavaType.construct(m.getGenericReturnType()).isVoid();
-                    })
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(
-                        String.format("Could not find accessor for field %s in type %s, tried: %s",
-                            fieldName, type, names)));
+                return new GetterFieldReader(getter, annotations, returnType);
             });
-
-        final Method getter;
-
-        try {
-            getter = type.getRawClass().getMethod(getterName);
-        } catch (final NoSuchMethodException e) {
-            return Optional.empty();
-        } catch (final Exception e) {
-            throw new IllegalArgumentException(
-                "Could not access getter for field (" + fieldName + "), expected " + type + "#" +
-                    getterName + "()", e);
-        }
-
-        final JavaType fieldType = JavaType.construct(getter.getGenericReturnType());
-
-        knownType.ifPresent(expected -> {
-            if (!expected.equals(fieldType)) {
-                throw new IllegalArgumentException(
-                    "Getter " + getter + " return incompatible return value (" + fieldType +
-                        "), expected (" + expected + ")");
-            }
-        });
-
-        final Annotations annotations = Annotations.of(getter.getAnnotations());
-
-        return Optional.of(new GetterFieldReader(getter, annotations, fieldType));
+        }).map(Match.withPriority(Priority.LOW));
     }
 }

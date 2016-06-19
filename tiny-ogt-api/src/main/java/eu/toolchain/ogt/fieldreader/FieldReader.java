@@ -1,7 +1,8 @@
 package eu.toolchain.ogt.fieldreader;
 
 import eu.toolchain.ogt.Annotations;
-import eu.toolchain.ogt.JavaType;
+
+import java.lang.reflect.Type;
 
 /**
  * Read the value of individual fields.
@@ -11,5 +12,5 @@ public interface FieldReader {
 
     Annotations annotations();
 
-    JavaType fieldType();
+    Type fieldType();
 }

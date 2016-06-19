@@ -1,9 +1,9 @@
 package eu.toolchain.ogt.creatormethod;
 
-import com.google.common.collect.ImmutableList;
-import eu.toolchain.ogt.Annotations;
+import eu.toolchain.ogt.EntityField;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
+import eu.toolchain.ogt.Match;
+import eu.toolchain.ogt.Priority;
 import eu.toolchain.ogt.Reflection;
 import lombok.RequiredArgsConstructor;
 
@@ -11,65 +11,56 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static eu.toolchain.ogt.Reflection.findByAnnotation;
 
 @RequiredArgsConstructor
 public class ConstructorPropertiesCreatorMethod implements CreatorMethod {
-    private final List<CreatorField> fields;
+    private final List<EntityField> fields;
     private final Constructor<?> constructor;
 
     @Override
-    public List<CreatorField> fields() {
+    public List<EntityField> fields() {
         return fields;
     }
 
     @Override
     public InstanceBuilder instanceBuilder() {
-        return arguments -> constructor.newInstance(arguments.toArray());
+        return arguments -> {
+            try {
+                return constructor.newInstance(arguments.toArray());
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
-    public static Optional<CreatorMethod> detect(
-        final EntityResolver resolver, final JavaType type
+    public static Stream<Match<CreatorMethod>> detect(
+        final EntityResolver resolver, final Type type
     ) {
-        final List<Constructor<?>> constructors = ImmutableList.copyOf(Reflection
-            .findAnnotatedConstructors(type, ConstructorProperties.class)
+        return findByAnnotation(type, ConstructorProperties.class, Class::getDeclaredConstructors)
             .filter(Reflection::isPublic)
-            .iterator());
+            .map(c -> {
+                final ConstructorProperties properties =
+                    c.getAnnotation(ConstructorProperties.class);
 
-        if (constructors.isEmpty()) {
-            return Optional.empty();
-        }
+                final List<EntityField> fields = resolver.detectExecutableFields(c);
 
-        if (constructors.size() > 1) {
-            throw new IllegalStateException(
-                String.format("Type must only have one public constructor with @%s, found: %s",
-                    ConstructorProperties.class.getSimpleName(), constructors));
-        }
+                if (properties.value().length != fields.size()) {
+                    throw new IllegalStateException(String.format(
+                        "The number of parameters for constructor %s, does not match provided by " +
+                            "@%s", c, ConstructorProperties.class.getSimpleName()));
+                }
 
-        final Constructor<?> constructor = constructors.get(0);
+                final List<EntityField> named = fields
+                    .stream()
+                    .map(e -> e.withName(properties.value()[e.getIndex()]))
+                    .collect(Collectors.toList());
 
-        final ConstructorProperties properties =
-            constructor.getAnnotation(ConstructorProperties.class);
-
-        final ImmutableList.Builder<CreatorField> fields = ImmutableList.builder();
-
-        final Type[] parameterTypes = constructor.getGenericParameterTypes();
-
-        if (parameterTypes.length != properties.value().length) {
-            throw new IllegalStateException(String.format(
-                "The number of parameters for constructor %s, does not match provided by @%s",
-                constructor, ConstructorProperties.class.getSimpleName()));
-        }
-
-        int index = 0;
-
-        for (final String name : properties.value()) {
-            final JavaType parameterType = JavaType.construct(parameterTypes[index++]);
-            final Annotations annotations = resolver.detectFieldAnnotations(type, name);
-            fields.add(
-                new CreatorField(annotations, Optional.of(parameterType), Optional.of(name)));
-        }
-
-        return Optional.of(new ConstructorPropertiesCreatorMethod(fields.build(), constructor));
+                return new ConstructorPropertiesCreatorMethod(named, c);
+            })
+            .map(Match.withPriority(Priority.HIGH));
     }
 }

@@ -66,8 +66,7 @@ public class Basic {
                     EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
                     jsonFactory);
 
-                final JacksonTypeEncoding<Object> foo =
-                    ogt.encodingFor(JavaType.construct(instance.type));
+                final JacksonTypeEncoding<Object> foo = ogt.encodingForType(instance.type);
                 foo.encodeAsString(instance.instance);
 
                 benchmark = () -> foo.encodeAsString(i);

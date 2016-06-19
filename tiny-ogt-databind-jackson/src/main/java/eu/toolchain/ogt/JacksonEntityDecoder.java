@@ -1,6 +1,6 @@
 package eu.toolchain.ogt;
 
-import eu.toolchain.ogt.binding.FieldMapping;
+import eu.toolchain.ogt.entitybinding.EntityFieldDecoder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
@@ -9,7 +9,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JacksonEntityDecoder implements EntityDecoder<JsonNode> {
     private final Map<String, JsonNode> value;
-    private final JacksonTypeDecoder decoder;
 
     @Override
     public Optional<String> decodeType() {
@@ -24,9 +23,11 @@ public class JacksonEntityDecoder implements EntityDecoder<JsonNode> {
     }
 
     @Override
-    public Optional<Object> decodeField(FieldMapping field, Context path) {
+    public Optional<Object> decodeField(
+        final EntityFieldDecoder<JsonNode, Object> entityFieldEncoder, final Context path
+    ) {
         return Optional
-            .ofNullable(value.get(field.name()))
-            .map(n -> field.type().decode(decoder, path, n));
+            .ofNullable(value.get(entityFieldEncoder.getName()))
+            .map(n -> entityFieldEncoder.decode(path, n));
     }
 }

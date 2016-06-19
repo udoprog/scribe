@@ -1,6 +1,8 @@
 package eu.toolchain.ogt.creatormethod;
 
-import com.google.common.collect.ImmutableList;
+import eu.toolchain.ogt.EntityField;
+import eu.toolchain.ogt.Match;
+import eu.toolchain.ogt.Priority;
 import eu.toolchain.ogt.Reflection;
 import eu.toolchain.ogt.entitymapper.CreatorMethodDetector;
 import lombok.RequiredArgsConstructor;
@@ -8,44 +10,36 @@ import lombok.RequiredArgsConstructor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public class ConstructorCreatorMethod implements CreatorMethod {
-    private final List<CreatorField> fields;
+    private final List<EntityField> fields;
     private final Constructor<?> constructor;
 
     @Override
-    public List<CreatorField> fields() {
+    public List<EntityField> fields() {
         return fields;
     }
 
     @Override
     public InstanceBuilder instanceBuilder() {
-        return arguments -> constructor.newInstance(arguments.toArray());
+        return arguments -> {
+            try {
+                return constructor.newInstance(arguments.toArray());
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
     public static CreatorMethodDetector forAnnotation(final Class<? extends Annotation> creator) {
-        return (resolver, type) -> {
-            final List<Constructor<?>> constructors = ImmutableList.copyOf(Reflection
-                .findAnnotatedConstructors(type, creator)
-                .filter(Reflection::isPublic)
-                .iterator());
-
-            if (constructors.isEmpty()) {
-                return Optional.empty();
-            }
-
-            if (constructors.size() > 1) {
-                throw new IllegalStateException(
-                    String.format("Type must only have one public constructor with @%s, found: %s",
-                        creator.getSimpleName(), constructors));
-            }
-
-            final Constructor<?> constructor = constructors.get(0);
-
-            final List<CreatorField> fields = resolver.setupCreatorFields(type, constructor);
-            return Optional.of(new ConstructorCreatorMethod(fields, constructor));
-        };
+        return (resolver, type) -> Reflection
+            .findByAnnotation(type, creator, Class::getDeclaredConstructors)
+            .filter(Reflection::isPublic)
+            .map(c -> {
+                final List<EntityField> fields = resolver.detectExecutableFields(c);
+                return new ConstructorCreatorMethod(fields, c);
+            })
+            .map(Match.withPriority(Priority.HIGH));
     }
 }

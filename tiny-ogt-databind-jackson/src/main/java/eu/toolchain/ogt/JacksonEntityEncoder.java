@@ -1,21 +1,22 @@
 package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableMap;
-import eu.toolchain.ogt.binding.FieldMapping;
+import eu.toolchain.ogt.entitybinding.EntityFieldEncoder;
+import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
-
+@RequiredArgsConstructor
 public class JacksonEntityEncoder implements EntityEncoder<JsonNode> {
     final ImmutableMap.Builder<String, JsonNode> object = ImmutableMap.builder();
 
     @Override
-    public void setField(FieldMapping field, Context path, Object value) throws IOException {
-        final JsonNode v = field.type().encode(new JacksonTypeEncoder(), path, value);
-        object.put(field.name(), v);
+    public void setField(
+        EntityFieldEncoder<JsonNode, Object> field, Context path, Object value
+    ) {
+        object.put(field.getName(), field.encode(path, value));
     }
 
     @Override
-    public void setType(String type) throws IOException {
+    public void setType(String type) {
         object.put("type", new JsonNode.StringJsonNode(type));
     }
 

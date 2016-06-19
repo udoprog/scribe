@@ -1,11 +1,13 @@
 package eu.toolchain.ogt.entitymapper;
 
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
-import eu.toolchain.ogt.subtype.EntitySubTypesProvider;
+import eu.toolchain.ogt.Match;
+import eu.toolchain.ogt.typemapping.EntityTypeMapping;
 
-import java.util.Optional;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.stream.Stream;
 
 public interface SubTypesDetector {
-    Optional<EntitySubTypesProvider> detect(final EntityResolver resolver, final JavaType type);
+    Stream<Match<List<EntityTypeMapping>>> detect(EntityResolver resolver, Type type);
 }

@@ -7,6 +7,7 @@ import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.JacksonAnnotationsModule;
 import eu.toolchain.ogt.JacksonEntityMapper;
 import eu.toolchain.ogt.JacksonTypeEncoding;
+import eu.toolchain.ogt.TypeReference;
 import lombok.Data;
 import lombok.experimental.Builder;
 import org.junit.Before;
@@ -34,11 +35,12 @@ public class JacksonTest {
 
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
+    private JacksonEntityMapper mapper;
     private JacksonTypeEncoding<Foo> foo;
 
     @Before
     public void setup() throws Exception {
-        final JacksonEntityMapper mapper = new JacksonEntityMapper(
+        mapper = new JacksonEntityMapper(
             EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
             JSON_FACTORY);
 
@@ -49,6 +51,28 @@ public class JacksonTest {
     public void testEncode() throws Exception {
         final String encoded = this.foo.encodeAsString(FOO);
         assertEquals(FOO, this.foo.decodeFromString(encoded));
+    }
+
+    @Data
+    public static class TestGeneric<T> {
+        private final List<T> list;
+    }
+
+    /**
+     * Type variable T is unknown. Mapping should be impossible.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testGenericFail() throws Exception {
+        mapper.encodingFor(TestGeneric.class);
+    }
+
+    @Test
+    public void testGenericTypeReference() throws Exception {
+        final JacksonTypeEncoding<TestGeneric<String>> encoding =
+            mapper.encodingFor(new TypeReference<TestGeneric<String>>() {
+            });
+
+        System.out.println(encoding);
     }
 
     @Data

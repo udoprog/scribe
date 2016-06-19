@@ -1,37 +1,33 @@
 package eu.toolchain.ogt;
 
-import eu.toolchain.ogt.binding.EntityBinding;
-import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
+import eu.toolchain.ogt.entitybinding.EntityBinding;
 import eu.toolchain.ogt.fieldreader.FieldReader;
-import eu.toolchain.ogt.type.TypeMapping;
+import eu.toolchain.ogt.typemapping.TypeMapping;
 
 import java.lang.reflect.Executable;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
 public interface EntityResolver {
-    TypeMapping mapping(Class<?> input);
+    TypeMapping mapping(Type type);
 
-    TypeMapping mapping(JavaType type);
+    TypeMapping mapping(Type type, Annotations annotations);
 
-    TypeMapping mapping(JavaType type, Annotations annotations);
-
-    Optional<CreatorMethod> detectCreatorMethod(JavaType type);
+    Optional<CreatorMethod> detectCreatorMethod(Type type);
 
     Optional<FieldReader> detectFieldReader(
-        JavaType type, String fieldName, Optional<JavaType> knownType
+        Type type, String fieldName, Optional<Type> knownType
     );
 
-    Optional<EntityBinding> detectBinding(JavaType type);
+    Optional<EntityBinding> detectBinding(Type type);
 
-    List<CreatorField> setupCreatorFields(JavaType type, Executable executable);
+    Optional<TypeMapping> detectValueType(Type type);
 
-    Optional<TypeMapping> detectValueType(JavaType type);
+    Optional<String> detectFieldName(Type type, Annotations annotations);
 
-    Optional<String> detectFieldName(JavaType type, CreatorField field);
-
-    Optional<String> detectName(JavaType type);
+    Optional<String> detectName(Type type);
 
     <T> TypeEncodingProvider<T> providerFor(final EncodingFactory<T> factory);
 
@@ -42,5 +38,7 @@ public interface EntityResolver {
      * @param name The name of the field to detect annotations for.
      * @return Annotations for the given field.
      */
-    Annotations detectFieldAnnotations(JavaType type, String name);
+    Annotations detectFieldAnnotations(Type type, String name);
+
+    List<EntityField> detectExecutableFields(Executable executable);
 }

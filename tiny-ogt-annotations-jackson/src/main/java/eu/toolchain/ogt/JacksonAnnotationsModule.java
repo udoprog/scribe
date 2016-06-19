@@ -1,14 +1,16 @@
 package eu.toolchain.ogt;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonValue;
 import eu.toolchain.ogt.creatormethod.ConstructorCreatorMethod;
 import eu.toolchain.ogt.creatormethod.StaticMethodCreatorMethod;
-import eu.toolchain.ogt.subtype.JacksonEntitySubTypesResolver;
-import eu.toolchain.ogt.type.EntityValueTypeMapping;
-
-import static java.util.Optional.ofNullable;
+import eu.toolchain.ogt.fieldreader.AnnotatedFieldReader;
+import eu.toolchain.ogt.subtype.AnnotationSubTypesResolver;
+import eu.toolchain.ogt.typemapping.EntityValueTypeMapping;
 
 public class JacksonAnnotationsModule implements Module {
     @Override
@@ -16,15 +18,18 @@ public class JacksonAnnotationsModule implements Module {
         return builder
             .creatorMethodDetector(ConstructorCreatorMethod.forAnnotation(JsonCreator.class))
             .creatorMethodDetector(StaticMethodCreatorMethod.forAnnotation(JsonCreator.class))
-            .subTypesDetector(JacksonEntitySubTypesResolver::detect)
-            .valueTypeDetector(EntityValueTypeMapping.forAnnotation(JsonCreator.class))
-            .fieldReaderDetector()
-            .fieldNameDetector((resolver, type, field) -> field
-                .getAnnotations()
+            .subTypesDetector(
+                AnnotationSubTypesResolver.forAnnotation(JsonSubTypes.class, JsonSubTypes::value,
+                    JsonSubTypes.Type::value))
+            .valueTypeDetector(EntityValueTypeMapping.forAnnotation(JsonValue.class))
+            .fieldReaderDetector(AnnotatedFieldReader.of(JsonGetter.class, JsonGetter::value))
+            .fieldNameDetector((resolver, type, annotations) -> annotations
                 .getAnnotation(JsonProperty.class)
-                .map(JsonProperty::value))
-            .typeNameDetector(
-                (resolver, type) -> ofNullable(type.getRawClass().getAnnotation(JsonTypeName.class))
-                    .map(JsonTypeName::value));
+                .map(JsonProperty::value)
+                .map(Match.withPriority(Priority.HIGH)))
+            .typeNameDetector((resolver, type) -> Reflection
+                .getAnnotation(type, JsonTypeName.class)
+                .map(JsonTypeName::value)
+                .map(Match.withPriority(Priority.HIGH)));
     }
 }
