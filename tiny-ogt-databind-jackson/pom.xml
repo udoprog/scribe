@@ -51,13 +51,20 @@
 
     <dependency>
       <groupId>eu.toolchain.ogt</groupId>
-      <artifactId>tiny-ogt-databind</artifactId>
+      <artifactId>tiny-ogt-databind-test</artifactId>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.6.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

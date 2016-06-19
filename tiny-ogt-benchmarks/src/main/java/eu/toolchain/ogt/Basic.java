@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
+import eu.toolchain.ogt.jackson.JacksonEntityMapper;
+import eu.toolchain.ogt.jackson.JacksonEncoding;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -66,8 +68,7 @@ public class Basic {
                     EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
                     jsonFactory);
 
-                final JacksonTypeEncoding<Object> foo =
-                    ogt.encodingFor(JavaType.construct(instance.type));
+                final JacksonEncoding<Object> foo = ogt.encodingForType(instance.type);
                 foo.encodeAsString(instance.instance);
 
                 benchmark = () -> foo.encodeAsString(i);

@@ -1,24 +1,43 @@
 package eu.toolchain.ogt;
 
+import eu.toolchain.ogt.type.JavaType;
 import lombok.Data;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
+import java.util.Arrays;
 
 public interface TypeMatcher {
-    boolean matches(final Type type);
+    static TypeMatcher isPrimitive(Class<?> primitiveType) {
+        final JavaType primitive = JavaType.of(primitiveType);
+
+        if (!primitive.isPrimitive()) {
+            throw new IllegalArgumentException("Not a primitive type: " + primitive);
+        }
+
+        final JavaType expect = JavaType.PRIMITIVES_TO_BOXED.getOrDefault(primitive, primitive);
+        return type -> JavaType.PRIMITIVES_TO_BOXED.getOrDefault(type, type).equals(expect);
+    }
+
+    static TypeMatcher isPrimitive() {
+        return JavaType::isPrimitive;
+    }
+
+    boolean matches(final JavaType type);
+
+    static TypeMatcher isArray() {
+        return type -> type.getType().isArray();
+    }
+
+    static TypeMatcher inPackage(final String packageName) {
+        return new InPackage(packageName);
+    }
 
     static TypeMatcher any() {
         return new Any();
     }
 
-    static TypeMatcher upper(final TypeMatcher... matchers) {
-        return new Upper(matchers);
-    }
-
-    static TypeMatcher lower(final TypeMatcher... matchers) {
-        return new Lower(matchers);
+    static TypeMatcher anyOf(final TypeMatcher... matchers) {
+        return type -> Arrays.stream(matchers).filter(m -> m.matches(type)).findFirst().isPresent();
     }
 
     static TypeMatcher exact(final Class<?> base) {
@@ -31,7 +50,7 @@ public interface TypeMatcher {
     }
 
     static TypeMatcher instance(final Class<?> base) {
-        return type -> type instanceof Class<?> && base.isAssignableFrom((Class<?>) type);
+        return type -> base.isAssignableFrom(type.getType());
     }
 
     static TypeMatcher parameterized(final Class<?> base, final TypeMatcher... matchers) {
@@ -45,44 +64,20 @@ public interface TypeMatcher {
     }
 
     @Data
+    class InPackage implements TypeMatcher {
+        private final String packageName;
+
+        @Override
+        public boolean matches(final JavaType type) {
+            return type.getType().getPackage().getName().startsWith(packageName + ".");
+        }
+    }
+
+    @Data
     class Any implements TypeMatcher {
         @Override
-        public boolean matches(final Type type) {
+        public boolean matches(final JavaType type) {
             return true;
-        }
-    }
-
-    @Data
-    class Upper implements TypeMatcher {
-        private final TypeMatcher[] matchers;
-
-        @Override
-        public boolean matches(final Type type) {
-            if (type instanceof WildcardType) {
-                final WildcardType wt = (WildcardType) type;
-
-                return wt.getUpperBounds().length == matchers.length &&
-                    matchers[0].matches(wt.getUpperBounds()[0]);
-            }
-
-            return false;
-        }
-    }
-
-    @Data
-    class Lower implements TypeMatcher {
-        private final TypeMatcher[] matchers;
-
-        @Override
-        public boolean matches(final Type type) {
-            if (type instanceof WildcardType) {
-                final WildcardType wt = (WildcardType) type;
-
-                return wt.getLowerBounds().length == matchers.length &&
-                    matchers[0].matches(wt.getLowerBounds()[0]);
-            }
-
-            return false;
         }
     }
 
@@ -91,33 +86,26 @@ public interface TypeMatcher {
         private final Type base;
 
         @Override
-        public boolean matches(final Type type) {
-            return base.equals(type);
+        public boolean matches(final JavaType type) {
+            return base.equals(type.getType());
         }
     }
 
     @Data
     class Parameterized implements TypeMatcher {
-        private final Type base;
+        private final Class<?> base;
         private final TypeMatcher[] matchers;
 
         @Override
-        public boolean matches(final Type type) {
-            if (!(type instanceof ParameterizedType)) {
+        public boolean matches(final JavaType type) {
+            if (!type.getType().equals(base)) {
                 return false;
             }
 
-            final ParameterizedType pt = (ParameterizedType) type;
-            final Type raw = pt.getRawType();
+            int index = 0;
 
-            if (!base.equals(raw)) {
-                return false;
-            }
-
-            final Type[] types = pt.getActualTypeArguments();
-
-            for (int i = 0; i < matchers.length; i++) {
-                if (!matchers[i].matches(types[i])) {
+            for (final JavaType j : type.getTypeParameters()) {
+                if (!matchers[index++].matches(j)) {
                     return false;
                 }
             }

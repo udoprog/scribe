@@ -1,7 +1,7 @@
 package eu.toolchain.ogt.fieldreader;
 
 import eu.toolchain.ogt.Annotations;
-import eu.toolchain.ogt.JavaType;
+import eu.toolchain.ogt.type.JavaType;
 
 /**
  * Read the value of individual fields.

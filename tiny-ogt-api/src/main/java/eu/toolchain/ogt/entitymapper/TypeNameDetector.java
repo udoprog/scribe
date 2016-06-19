@@ -1,10 +1,11 @@
 package eu.toolchain.ogt.entitymapper;
 
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
+import eu.toolchain.ogt.type.JavaType;
+import eu.toolchain.ogt.Match;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface TypeNameDetector {
-    Optional<String> detect(final EntityResolver resolver, final JavaType type);
+    Stream<Match<String>> detect(EntityResolver resolver, JavaType type);
 }

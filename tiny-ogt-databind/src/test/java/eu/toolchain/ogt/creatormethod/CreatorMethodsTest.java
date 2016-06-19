@@ -2,16 +2,15 @@ package eu.toolchain.ogt.creatormethod;
 
 import eu.toolchain.ogt.EntityMapper;
 import eu.toolchain.ogt.EntityResolver;
-import eu.toolchain.ogt.JavaType;
 import eu.toolchain.ogt.annotations.EntityCreator;
 import eu.toolchain.ogt.annotations.Property;
-import eu.toolchain.ogt.type.TypeMapping;
+import eu.toolchain.ogt.type.JavaType;
+import eu.toolchain.ogt.typemapping.TypeMapping;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
 
-import static eu.toolchain.ogt.JavaType.construct;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 public class CreatorMethodsTest {
-    private static final JavaType STRING = construct(String.class);
+    private static final JavaType STRING = JavaType.of(String.class);
 
     private EntityResolver resolver;
     private TypeMapping string;
@@ -40,7 +39,7 @@ public class CreatorMethodsTest {
 
     @Test
     public void testBadEntity() {
-        Optional<CreatorMethod> method = resolver.detectCreatorMethod(construct(BadEntity.class));
+        Optional<CreatorMethod> method = resolver.detectCreatorMethod(JavaType.of(BadEntity.class));
         assertFalse(method.isPresent());
     }
 
@@ -54,7 +53,8 @@ public class CreatorMethodsTest {
 
     @Test
     public void testConstructor() {
-        Optional<CreatorMethod> method = resolver.detectCreatorMethod(construct(Constructor.class));
+        Optional<CreatorMethod> method =
+            resolver.detectCreatorMethod(JavaType.of(Constructor.class));
 
         assertTrue(method.isPresent());
         final CreatorMethod creator = method.get();
@@ -76,7 +76,7 @@ public class CreatorMethodsTest {
     @Test
     public void testStaticMethod() {
         Optional<CreatorMethod> method =
-            resolver.detectCreatorMethod(construct(StaticMethod.class));
+            resolver.detectCreatorMethod(JavaType.of(StaticMethod.class));
 
         assertTrue(method.isPresent());
         final CreatorMethod creator = method.get();

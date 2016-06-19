@@ -3,5 +3,5 @@ package eu.toolchain.ogt.creatormethod;
 import java.util.List;
 
 public interface InstanceBuilder {
-    Object newInstance(List<Object> arguments) throws Exception;
+    Object newInstance(List<Object> arguments);
 }

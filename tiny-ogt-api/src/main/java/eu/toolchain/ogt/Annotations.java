@@ -1,11 +1,13 @@
 package eu.toolchain.ogt;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Data
 public class Annotations {
@@ -19,16 +21,19 @@ public class Annotations {
             .isPresent();
     }
 
-    public <T extends Annotation> Optional<T> getAnnotation(final Class<T> annotation) {
+    public <T extends Annotation> Stream<T> getAnnotation(final Class<T> annotation) {
         return annotations
             .stream()
             .filter(a -> annotation.isAssignableFrom(a.getClass()))
-            .map(annotation::cast)
-            .findFirst();
+            .map(annotation::cast);
     }
 
     public static Annotations of(final Annotation... annotations) {
         return new Annotations(ImmutableList.copyOf(annotations));
+    }
+
+    public static Annotations of(final Stream<Annotation> annotations) {
+        return new Annotations(annotations.collect(Collectors.toList()));
     }
 
     public static Annotations empty() {
@@ -36,11 +41,11 @@ public class Annotations {
     }
 
     public Annotations merge(final Annotations a) {
-        final ImmutableList.Builder<Annotation> annotations = ImmutableList.builder();
+        final ImmutableSet.Builder<Annotation> annotations = ImmutableSet.builder();
 
         annotations.addAll(this.annotations);
         annotations.addAll(a.annotations);
 
-        return new Annotations(annotations.build());
+        return new Annotations(ImmutableList.copyOf(annotations.build()));
     }
 }

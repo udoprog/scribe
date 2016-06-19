@@ -25,7 +25,9 @@
     <module>tiny-ogt-databind</module>
     <module>tiny-ogt-processor</module>
     <module>tiny-ogt-annotations-jackson</module>
+    <module>tiny-ogt-databind-test</module>
     <module>tiny-ogt-databind-jackson</module>
+    <module>tiny-ogt-databind-typesafe</module>
     <module>tiny-ogt-benchmarks</module>
   </modules>
 
@@ -68,6 +70,12 @@
       <dependency>
         <groupId>eu.toolchain.ogt</groupId>
         <artifactId>tiny-ogt-databind</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>eu.toolchain.ogt</groupId>
+        <artifactId>tiny-ogt-databind-test</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -133,6 +141,128 @@
   </distributionManagement>
 
   <profiles>
+    <profile>
+      <id>integration-tests</id>
+
+      <activation>
+        <property>
+          <name>environment</name>
+          <value>test</value>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.19.1</version>
+            <configuration>
+              <parallel>methods</parallel>
+              <threadCount>10</threadCount>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>checkstyle</id>
+
+      <activation>
+        <property>
+          <name>environment</name>
+          <value>test</value>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>2.13</version>
+            <configuration>
+              <configLocation>checkstyle.xml</configLocation>
+              <consoleOutput>true</consoleOutput>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+              <maxAllowedViolations>0</maxAllowedViolations>
+              <propertyExpansion>basedir=${user.dir}</propertyExpansion>
+            </configuration>
+            <executions>
+              <execution>
+                <id>validate-checkstyle</id>
+
+                <phase>validate</phase>
+
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <configuration>
+                  <failOnViolation>true</failOnViolation>
+                  <failsOnError>true</failsOnError>
+                </configuration>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>6.13</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>findbugs</id>
+
+      <activation>
+        <property>
+          <name>environment</name>
+          <value>test</value>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>3.0.3</version>
+            <configuration>
+              <failOnError>true</failOnError>
+              <effort>Max</effort>
+              <threshold>High</threshold>
+              <xmlOutput>true</xmlOutput>
+            </configuration>
+            <executions>
+              <execution>
+                <id>compile-findbugs-check</id>
+
+                <phase>compile</phase>
+
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>release</id>
       <build>

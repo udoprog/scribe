@@ -1,18 +1,16 @@
 package eu.toolchain.ogt;
 
-import eu.toolchain.ogt.binding.EntityBinding;
-import eu.toolchain.ogt.creatormethod.CreatorField;
 import eu.toolchain.ogt.creatormethod.CreatorMethod;
+import eu.toolchain.ogt.entitybinding.EntityBinding;
 import eu.toolchain.ogt.fieldreader.FieldReader;
-import eu.toolchain.ogt.type.TypeMapping;
+import eu.toolchain.ogt.type.ExecutableType;
+import eu.toolchain.ogt.type.JavaType;
+import eu.toolchain.ogt.typemapping.TypeMapping;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.Optional;
 
 public interface EntityResolver {
-    TypeMapping mapping(Class<?> input);
-
     TypeMapping mapping(JavaType type);
 
     TypeMapping mapping(JavaType type, Annotations annotations);
@@ -25,11 +23,9 @@ public interface EntityResolver {
 
     Optional<EntityBinding> detectBinding(JavaType type);
 
-    List<CreatorField> setupCreatorFields(JavaType type, Executable executable);
-
     Optional<TypeMapping> detectValueType(JavaType type);
 
-    Optional<String> detectFieldName(JavaType type, CreatorField field);
+    Optional<String> detectFieldName(JavaType type, Annotations annotations);
 
     Optional<String> detectName(JavaType type);
 
@@ -43,4 +39,6 @@ public interface EntityResolver {
      * @return Annotations for the given field.
      */
     Annotations detectFieldAnnotations(JavaType type, String name);
+
+    List<EntityField> detectExecutableFields(ExecutableType executable);
 }
