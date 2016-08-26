@@ -28,12 +28,6 @@ formats.
 
 Only support immutable types.
 
-Never decode a field as `null` or
-[default primitive values][default-values]. Look at
-[Optional Support](#optional-support) if you want optional values and
-fields. Various representations of `null` are treated equally to the
-value being absent as much as possible.
-
 Make use of Java 8 features to make things more concise. Scribe requires
 that you run an up-to-date Java version.
 
@@ -44,7 +38,25 @@ early as possible.
 Shallow stack traces. The instances you use in production have as little
 indirection as possible to improve performance and troubleshooting.
 
+Never decode a value as `null` or
+[default primitive values][default-values]. Look at
+[Optional Support](#optional-support) if you want optional values and
+fields.  Any represenation of `null` is treated equally to the value being
+absent.
+With Scribe, the simple constructor is prefectly safe. No need to check
+all arguments with `requireNonNull`. primitive types won't be assigned
+an ambigiuous default value.
+
+* [Why `null` is problematic with Jackson][jackson-null-test]
+* [Why Optional is problematic with Jackson][jackson-optional-test]
+* [How to implement this behaviour with Jackson][jackson-constructor-test]
+* [Why `null` is problematic with Gson][gson-null-test]
+
 [default-values]: http://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html
+[jackson-null-test]: /examples/src/test/java/eu/toolchain/scribe/Jackson1NullExplainedTest.java
+[jackson-optional-test]: /examples/src/test/java/eu/toolchain/scribe/Jackson2OptionalExplainedTest.java
+[jackson-constructor-test]: /examples/src/test/java/eu/toolchain/scribe/Jackson3ConstructorExplainedTest.java
+[gson-null-test]: /examples/src/test/java/eu/toolchain/scribe/GsonNullExplainedTest.java
 
 # Usage
 
