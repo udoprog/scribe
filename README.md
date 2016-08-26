@@ -1,5 +1,7 @@
 # Scribe
 
+[![Build Status](https://travis-ci.org/udoprog/scribe.svg?branch=master)](https://travis-ci.org/udoprog/scribe)
+
 Scribe is a databinding library.
 
 Many encoding libraries implement the idea of databinding, but they are
