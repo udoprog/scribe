@@ -1,0 +1,8 @@
+.*
+target/
+/checkstyle-cache
+/release.properties
+*.iml
+*.versionsBackup
+*.releaseBackup
+!.gitignore
