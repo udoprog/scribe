@@ -6,3 +6,4 @@ target/
 *.versionsBackup
 *.releaseBackup
 !.gitignore
+!.travis.yml
