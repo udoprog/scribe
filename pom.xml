@@ -31,6 +31,7 @@
     <module>databind-guava</module>
     <module>databind-typesafe</module>
     <module>benchmarks</module>
+    <module>examples</module>
   </modules>
 
   <licenses>
@@ -91,24 +92,6 @@
         <groupId>eu.toolchain.scribe</groupId>
         <artifactId>scribe-annotations-jackson</artifactId>
         <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
