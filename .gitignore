@@ -7,3 +7,4 @@ target/
 *.releaseBackup
 !.gitignore
 !.travis.yml
+!.editorconfig
