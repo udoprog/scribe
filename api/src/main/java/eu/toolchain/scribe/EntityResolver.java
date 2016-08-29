@@ -158,6 +158,15 @@ public interface EntityResolver {
   List<EntityField> detectExecutableFields(ExecutableType executable);
 
   /**
+   * Detect all available field flags.
+   *
+   * @param type Type of the field.
+   * @param annotations Annotations associated with the field.
+   * @return
+   */
+  Flags detectFieldFlags(JavaType type, Annotations annotations);
+
+  /**
    * Get a value for the type of option, if present.
    *
    * @param option Class of option to get.
@@ -183,4 +192,13 @@ public interface EntityResolver {
    * @return A new resolver with the new options added to it.
    */
   EntityResolver withOptions(Option... options);
+
+  /**
+   * Detect immediate annotations for the given field.
+   *
+   * @param type Type to detect immediate annotations on its fields.
+   * @param fieldName name of field to look for.
+   * @return Annotations associated with the immediate field.
+   */
+  Annotations detectImmediateAnnotations(JavaType type, String fieldName);
 }

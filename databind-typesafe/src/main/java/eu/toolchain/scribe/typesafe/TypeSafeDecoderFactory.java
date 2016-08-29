@@ -8,6 +8,7 @@ import eu.toolchain.scribe.DecoderFactory;
 import eu.toolchain.scribe.DecoderRegistry;
 import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.typesafe.encoding.BooleanDecoder;
 import eu.toolchain.scribe.typesafe.encoding.ListDecoder;
@@ -38,7 +39,7 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
       }
 
       final Decoder<ConfigValue, Object> value =
-          resolver.mapping(second).newDecoderImmediate(resolver, factory);
+          resolver.mapping(second).newDecoderImmediate(resolver, Flags.empty(), factory);
       return new MapDecoder<>(value);
     });
 
@@ -46,7 +47,7 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
       final JavaType first = type.getTypeParameter(0).get();
 
       final Decoder<ConfigValue, Object> value =
-          resolver.mapping(first).newDecoderImmediate(resolver, factory);
+          resolver.mapping(first).newDecoderImmediate(resolver, Flags.empty(), factory);
 
       return new ListDecoder<>(value);
     });
@@ -65,7 +66,7 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
 
   @Override
   public <O> Stream<Decoder<ConfigValue, O>> newDecoder(
-      final EntityResolver resolver, final JavaType type
+      final EntityResolver resolver, final Flags flags, final JavaType type
   ) {
     return decoders.newDecoder(resolver, type, this);
   }

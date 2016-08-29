@@ -19,21 +19,21 @@ public class ValueTypeMapping implements TypeMapping {
 
   @Override
   public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
   ) {
     return encodeValue.newEncoder(resolver, factory);
   }
 
   @Override
   public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final StreamEncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
   ) {
     return encodeValue.newStreamEncoder(resolver, factory);
   }
 
   @Override
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final DecoderFactory<Target> factory
   ) {
     return decodeValue.newDecoder(resolver, factory);
   }

@@ -8,6 +8,7 @@ import eu.toolchain.scribe.DecoderFactory;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -61,7 +62,7 @@ public class OptionalTypeMapping<T> implements TypeMapping {
 
   @Override
   public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
   ) {
     final Function<Encoder<Target, Source>, OptionalEncoder<Target, Source>> encoder;
 
@@ -90,12 +91,12 @@ public class OptionalTypeMapping<T> implements TypeMapping {
       };
     }
 
-    return component.<Target, Source>newEncoder(resolver, factory).map(encoder);
+    return component.<Target, Source>newEncoder(resolver, flags, factory).map(encoder);
   }
 
   @Override
   public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final StreamEncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
   ) {
     final Function<StreamEncoder<Target, Source>, OptionalStreamEncoder<Target, Source>> encoder;
 
@@ -128,15 +129,15 @@ public class OptionalTypeMapping<T> implements TypeMapping {
       };
     }
 
-    return component.<Target, Source>newStreamEncoder(resolver, factory).map(encoder);
+    return component.<Target, Source>newStreamEncoder(resolver, flags, factory).map(encoder);
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final DecoderFactory<Target> factory
   ) {
-    return component.<Target, Source>newDecoder(resolver, factory).map(parent -> {
+    return component.<Target, Source>newDecoder(resolver, flags, factory).map(parent -> {
       return (Decoder<Target, Source>) new OptionalDecoder<>(parent);
     });
   }

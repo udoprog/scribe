@@ -3,6 +3,7 @@ package eu.toolchain.scribe.entitymapping;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.fieldreader.FieldReader;
 import eu.toolchain.scribe.typemapping.TypeMapping;
@@ -14,6 +15,7 @@ class BuilderEntityFieldDecoder<Target> implements EntityFieldDecoder<Target, Ob
   private final FieldReader reader;
   private final TypeMapping mapping;
   private final JavaType.Method setter;
+  private final Flags flags;
   private final Decoder<Target, Object> parent;
 
   @Override

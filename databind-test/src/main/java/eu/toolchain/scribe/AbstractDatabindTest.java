@@ -9,7 +9,9 @@ import eu.toolchain.scribe.annotations.EntityValue;
 import lombok.Data;
 import lombok.experimental.Builder;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +25,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public abstract class AbstractDatabindTest {
-  private static final TypeReference<Optional<String>> OPTIONAL_STRING =
-      new TypeReference<Optional<String>>() {
-      };
-
-  private static final TypeReference<List<String>> STRING_LIST = new TypeReference<List<String>>() {
-  };
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 
   private static final TypeReference<Map<String, Optional<String>>> OPTIONAL_STRING_MAP =
       new TypeReference<Map<String, Optional<String>>>() {

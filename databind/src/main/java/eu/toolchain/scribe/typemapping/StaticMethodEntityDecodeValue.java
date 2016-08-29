@@ -4,6 +4,7 @@ import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.DecoderFactory;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -28,7 +29,7 @@ public class StaticMethodEntityDecodeValue implements DecodeValue {
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
     return target
-        .newDecoder(resolver, factory)
+        .newDecoder(resolver, Flags.empty(), factory)
         .map(parent -> (Decoder<Target, Source>) (path, instance) -> {
           final Object value = parent.decode(path, instance);
 

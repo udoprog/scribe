@@ -8,6 +8,7 @@ import eu.toolchain.scribe.EntityDecoder;
 import eu.toolchain.scribe.EntityEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.EntityStreamEncoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -109,9 +110,9 @@ public class BuilderEntityMapping implements EntityMapping {
               "Method build() missing on type (" + returnType + ")"));
 
       if (!builderBuild.getReturnType().equals(type)) {
-        throw new IllegalArgumentException(builderBuild +
-            " returns (" + builderBuild.getReturnType() +
-            ") instead forAnnotation expected (" + type + ")");
+        throw new IllegalArgumentException(
+            builderBuild + " returns (" + builderBuild.getReturnType() +
+                ") instead forAnnotation expected (" + type + ")");
       }
 
       type.getFields().filter(f -> !f.isStatic()).forEach(field -> {
@@ -120,17 +121,14 @@ public class BuilderEntityMapping implements EntityMapping {
         final FieldReader reader = resolver
             .detectFieldReader(type, field.getName(), propertyType)
             .orElseThrow(() -> new IllegalArgumentException(
-                "Can't figure out how to read (" + type + ") field (" +
-                    field.getName() +
-                    ")"));
+                "Can't figure out how to read (" + type + ") field (" + field.getName() + ")"));
 
         final JavaType.Method setter = returnType
             .getMethod(field.getName(), propertyType)
             .findFirst()
-            .orElseThrow(
-                () -> new IllegalArgumentException("Builder does not have method " + returnType +
-                    "#" +
-                    field.getName() + "(" + propertyType + ")"));
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Builder does not have method " + returnType + "#" + field.getName() + "(" +
+                    propertyType + ")"));
 
         final Annotations annotations =
             reader.annotations().merge(Annotations.of(field.getAnnotationStream()));
@@ -139,7 +137,8 @@ public class BuilderEntityMapping implements EntityMapping {
             resolver.detectFieldName(type, annotations).orElseGet(field::getName);
 
         final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
-        fields.add(new BuilderEntityFieldMapping(fieldName, m, reader, setter));
+        final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
+        fields.add(new BuilderEntityFieldMapping(fieldName, m, reader, setter, flags));
       });
 
       return new BuilderEntityMapping(Collections.unmodifiableList(fields), newInstance,

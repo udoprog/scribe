@@ -2,16 +2,21 @@ package eu.toolchain.scribe.typemapping;
 
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.entitymapping.EntityFieldEncoder;
+import lombok.Data;
 
 import java.util.function.Consumer;
-
-import lombok.Data;
 
 @Data
 public class TypeEntityFieldEncoder<Target> implements EntityFieldEncoder<Target, String> {
   private final String name;
   private final Encoder<Target, String> encoder;
+
+  @Override
+  public Flags getFlags() {
+    return Flags.empty();
+  }
 
   @Override
   public String getName() {

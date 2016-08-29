@@ -4,6 +4,7 @@ import eu.toolchain.scribe.entitymapper.CreatorMethodDetector;
 import eu.toolchain.scribe.entitymapper.DecodeValueDetector;
 import eu.toolchain.scribe.entitymapper.EncodeValueDetector;
 import eu.toolchain.scribe.entitymapper.EntityMappingDetector;
+import eu.toolchain.scribe.entitymapper.FieldFlagDetector;
 import eu.toolchain.scribe.entitymapper.FieldNameDetector;
 import eu.toolchain.scribe.entitymapper.FieldReaderDetector;
 import eu.toolchain.scribe.entitymapper.SubTypesDetector;
@@ -29,6 +30,8 @@ public interface EntityMapperBuilder<T> {
   EntityMapperBuilder<T> decodeValueDetector(DecodeValueDetector encodeValueDetector);
 
   EntityMapperBuilder<T> fieldNameDetector(FieldNameDetector fieldNameDetector);
+
+  EntityMapperBuilder<T> fieldFlagDetector(FieldFlagDetector fieldFlagDetector);
 
   EntityMapperBuilder<T> typeNameDetector(TypeNameDetector typeNameDetector);
 

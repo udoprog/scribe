@@ -4,6 +4,7 @@ import eu.toolchain.scribe.AccessibleType;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.DecoderFactory;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -27,7 +28,7 @@ public class ConstructorEntityDecodeValue implements DecodeValue {
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
-    return source.<Target, Object>newDecoder(resolver, factory).map(
+    return source.<Target, Object>newDecoder(resolver, Flags.empty(), factory).map(
         parent -> (Decoder<Target, Source>) (path, instance) -> parent
             .decode(path, instance)
             .map(value -> {

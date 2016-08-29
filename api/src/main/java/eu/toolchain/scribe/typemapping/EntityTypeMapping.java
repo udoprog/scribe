@@ -8,6 +8,7 @@ import eu.toolchain.scribe.EntityDecoder;
 import eu.toolchain.scribe.EntityEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.EntityStreamEncoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
 
@@ -21,7 +22,7 @@ public interface EntityTypeMapping extends TypeMapping {
   @SuppressWarnings("unchecked")
   @Override
   default <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
   ) {
     return Optional.of((Encoder<Target, Source>) newEntityTypeEncoder(resolver, factory));
   }
@@ -29,7 +30,7 @@ public interface EntityTypeMapping extends TypeMapping {
   @SuppressWarnings("unchecked")
   @Override
   default <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final StreamEncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
   ) {
     return Optional.of(
         (StreamEncoder<Target, Source>) newEntityTypeStreamEncoder(resolver, factory));
@@ -38,7 +39,7 @@ public interface EntityTypeMapping extends TypeMapping {
   @SuppressWarnings("unchecked")
   @Override
   default <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory
+      EntityResolver resolver, final Flags flags, DecoderFactory<Target> factory
   ) {
     return Optional.of((Decoder<Target, Source>) newEntityTypeDecoder(resolver, factory));
   }

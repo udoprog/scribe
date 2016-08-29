@@ -8,6 +8,7 @@ import eu.toolchain.scribe.EntityEncoder;
 import eu.toolchain.scribe.EntityField;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.EntityStreamEncoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -109,10 +110,20 @@ public class DefaultEntityMapping implements EntityMapping {
             .orElseThrow(() -> new IllegalArgumentException(
                 "Can't figure out how to read " + type + " field (" + fieldName + ")"));
 
-        final Annotations annotations = field.getAnnotations().merge(reader.annotations());
-        final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
+        final Annotations base = field.getAnnotations().merge(reader.annotations());
 
-        fields.add(new DefaultEntityFieldMapping(fieldName, m, reader));
+        final Annotations annotations;
+
+        if (!field.isImmediate()) {
+          annotations = base.merge(resolver.detectImmediateAnnotations(type, fieldName));
+        } else {
+          annotations = base;
+        }
+
+        final TypeMapping m = resolver.mapping(reader.fieldType(), annotations);
+        final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
+
+        fields.add(new DefaultEntityFieldMapping(fieldName, m, reader, flags));
       }
 
       return Stream.of(new DefaultEntityMapping(Collections.unmodifiableList(fields), creator));

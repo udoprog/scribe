@@ -6,6 +6,7 @@ import eu.toolchain.scribe.EncoderFactory;
 import eu.toolchain.scribe.EncoderRegistry;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.typesafe.encoding.BooleanEncoder;
 import eu.toolchain.scribe.typesafe.encoding.ListEncoder;
@@ -37,7 +38,7 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue> {
       }
 
       final Encoder<ConfigValue, Object> value =
-          resolver.mapping(second).newEncoderImmediate(resolver, factory);
+          resolver.mapping(second).newEncoderImmediate(resolver, Flags.empty(), factory);
       return new MapEncoder<>(value);
     });
 
@@ -45,7 +46,7 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue> {
       final JavaType first = type.getTypeParameter(0).get();
 
       final Encoder<ConfigValue, Object> value =
-          resolver.mapping(first).newEncoderImmediate(resolver, factory);
+          resolver.mapping(first).newEncoderImmediate(resolver, Flags.empty(), factory);
 
       return new ListEncoder<>(value);
     });
@@ -62,7 +63,7 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue> {
 
   @Override
   public <O> Stream<Encoder<ConfigValue, O>> newEncoder(
-      final EntityResolver resolver, final JavaType type
+      final EntityResolver resolver, final Flags flags, final JavaType type
   ) {
     return encoders.newEncoder(resolver, type, this);
   }

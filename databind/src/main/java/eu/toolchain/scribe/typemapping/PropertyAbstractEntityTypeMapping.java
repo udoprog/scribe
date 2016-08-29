@@ -9,6 +9,7 @@ import eu.toolchain.scribe.EntityDecoder;
 import eu.toolchain.scribe.EntityEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.EntityStreamEncoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
@@ -53,10 +54,11 @@ public class PropertyAbstractEntityTypeMapping implements EntityTypeMapping {
 
     final String fieldName = getTypeFieldName(resolver);
 
-    final Encoder<Target, String> encoder = factory.<String>newEncoder(resolver, STRING)
-        .findFirst()
-        .orElseThrow(
-            () -> new IllegalStateException("Could not find an encoder for the type field"));
+    final Encoder<Target, String> encoder =
+        factory.<String>newEncoder(resolver, Flags.empty(), STRING)
+            .findFirst()
+            .orElseThrow(
+                () -> new IllegalStateException("Could not find an encoder for the type field"));
 
     return new AbstractEntityEncoder<>(byType, factory,
         new TypeEntityFieldEncoder<>(fieldName, encoder));
@@ -83,10 +85,11 @@ public class PropertyAbstractEntityTypeMapping implements EntityTypeMapping {
 
     final String fieldName = getTypeFieldName(resolver);
 
-    final StreamEncoder<Target, String> encoder = factory.<String>newStreamEncoder(resolver, STRING)
-        .findFirst()
-        .orElseThrow(
-            () -> new IllegalStateException("Could not find an encoder for the type field"));
+    final StreamEncoder<Target, String> encoder =
+        factory.<String>newStreamEncoder(resolver, Flags.empty(), STRING)
+            .findFirst()
+            .orElseThrow(
+                () -> new IllegalStateException("Could not find an encoder for the type field"));
 
     return new AbstractEntityStreamEncoder<>(byType, factory,
         new TypeEntityFieldStreamEncoder<>(fieldName, encoder));
@@ -109,10 +112,11 @@ public class PropertyAbstractEntityTypeMapping implements EntityTypeMapping {
 
     final String fieldName = getTypeFieldName(resolver);
 
-    final Decoder<Target, String> encoder = factory.<String>newDecoder(resolver, STRING)
-        .findFirst()
-        .orElseThrow(
-            () -> new IllegalStateException("Could not find an encoder for the type field"));
+    final Decoder<Target, String> encoder =
+        factory.<String>newDecoder(resolver, Flags.empty(), STRING)
+            .findFirst()
+            .orElseThrow(
+                () -> new IllegalStateException("Could not find an encoder for the type field"));
 
     return new AbstractEntityDecoder<>(byName, factory,
         new TypeEntityFieldDecoder<>(fieldName, encoder));

@@ -2,13 +2,13 @@ package eu.toolchain.scribe.entitymapping;
 
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.fieldreader.FieldReader;
 import eu.toolchain.scribe.typemapping.TypeMapping;
+import lombok.Data;
 
 import java.util.function.Consumer;
-
-import lombok.Data;
 
 @Data
 class BuilderEntityFieldEncoder<Target> implements EntityFieldEncoder<Target, Object> {
@@ -16,6 +16,7 @@ class BuilderEntityFieldEncoder<Target> implements EntityFieldEncoder<Target, Ob
   private final FieldReader reader;
   private final TypeMapping mapping;
   private final JavaType.Method setter;
+  private final Flags flags;
   private final Encoder<Target, Object> parent;
 
   @Override

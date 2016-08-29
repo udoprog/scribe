@@ -13,10 +13,10 @@ public class EncodedTypeMapping implements TypeMapping {
 
   @Override
   public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
   ) {
     final List<Encoder<Target, Source>> results =
-        factory.<Source>newEncoder(resolver, type).collect(Collectors.toList());
+        factory.<Source>newEncoder(resolver, flags, type).collect(Collectors.toList());
 
     if (results.size() > 1) {
       throw new IllegalArgumentException(
@@ -28,10 +28,10 @@ public class EncodedTypeMapping implements TypeMapping {
 
   @Override
   public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final StreamEncoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
   ) {
     final List<StreamEncoder<Target, Source>> results =
-        factory.<Source>newStreamEncoder(resolver, type).collect(Collectors.toList());
+        factory.<Source>newStreamEncoder(resolver, flags, type).collect(Collectors.toList());
 
     if (results.size() > 1) {
       throw new IllegalArgumentException(
@@ -43,10 +43,10 @@ public class EncodedTypeMapping implements TypeMapping {
 
   @Override
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+      final EntityResolver resolver, final Flags flags, final DecoderFactory<Target> factory
   ) {
     final List<Decoder<Target, Source>> results =
-        factory.<Source>newDecoder(resolver, type).collect(Collectors.toList());
+        factory.<Source>newDecoder(resolver, flags, type).collect(Collectors.toList());
 
     if (results.size() > 1) {
       throw new IllegalArgumentException(

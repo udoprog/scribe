@@ -3,12 +3,14 @@ package eu.toolchain.scribe.entitymapping;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
+import eu.toolchain.scribe.Flags;
 import lombok.Data;
 
 @Data
 public class DefaultEntityFieldDecoder<Target> implements EntityFieldDecoder<Target, Object> {
-  private final Decoder<Target, Object> parent;
   private final String name;
+  private final Flags flags;
+  private final Decoder<Target, Object> parent;
 
   @Override
   public Decoded<Object> decode(final Context path, final Target instance) {

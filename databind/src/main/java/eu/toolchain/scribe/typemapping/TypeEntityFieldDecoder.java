@@ -3,6 +3,7 @@ package eu.toolchain.scribe.typemapping;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.entitymapping.EntityFieldDecoder;
 import lombok.Data;
 
@@ -10,6 +11,11 @@ import lombok.Data;
 public class TypeEntityFieldDecoder<Target> implements EntityFieldDecoder<Target, String> {
   private final String name;
   private final Decoder<Target, String> decoder;
+
+  @Override
+  public Flags getFlags() {
+    return Flags.empty();
+  }
 
   @Override
   public String getName() {

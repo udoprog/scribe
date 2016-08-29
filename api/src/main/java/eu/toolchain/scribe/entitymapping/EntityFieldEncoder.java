@@ -4,7 +4,7 @@ import eu.toolchain.scribe.Context;
 
 import java.util.function.Consumer;
 
-public interface EntityFieldEncoder<Target, Source> {
+public interface EntityFieldEncoder<Target, Source> extends EntityFieldDescriptor {
   String getName();
 
   Target encode(Context path, Source instance);

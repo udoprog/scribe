@@ -3,6 +3,7 @@ package eu.toolchain.scribe.entitymapping;
 import eu.toolchain.scribe.DecoderFactory;
 import eu.toolchain.scribe.EncoderFactory;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.StreamEncoderFactory;
 import eu.toolchain.scribe.fieldreader.FieldReader;
@@ -17,14 +18,16 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   private final TypeMapping mapping;
   private final FieldReader reader;
   private final JavaType.Method setter;
+  private final Flags flags;
 
   @Override
   public <Target> Optional<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
       final EntityResolver resolver, final EncoderFactory<Target> factory
   ) {
     return mapping
-        .newEncoder(resolver, factory)
-        .map(parent -> new BuilderEntityFieldEncoder<>(name, reader, mapping, setter, parent));
+        .newEncoder(resolver, flags, factory)
+        .map(parent -> new BuilderEntityFieldEncoder<>(name, reader, mapping, setter, flags,
+            parent));
   }
 
   @Override
@@ -32,7 +35,7 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     return mapping
-        .newStreamEncoder(resolver, factory)
+        .newStreamEncoder(resolver, flags, factory)
         .map(
             parent -> new BuilderEntityFieldStreamEncoder<>(name, reader, mapping, setter, parent));
   }
@@ -42,7 +45,8 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
     return mapping
-        .newDecoder(resolver, factory)
-        .map(parent -> new BuilderEntityFieldDecoder<>(name, reader, mapping, setter, parent));
+        .newDecoder(resolver, flags, factory)
+        .map(parent -> new BuilderEntityFieldDecoder<>(name, reader, mapping, setter, flags,
+            parent));
   }
 }

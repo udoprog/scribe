@@ -24,9 +24,8 @@ public class DefaultEntityDecoder<Target> implements EntityDecoder<Target, Objec
     final List<Object> arguments = new ArrayList<>();
 
     for (final EntityFieldDecoder<Target, Object> m : fields) {
-      arguments.add(decoder
-          .decodeField(m, path.push(m.getName()))
-          .orElseThrow(() -> path.error("missing required field")));
+      final Context p = path.push(m.getName());
+      arguments.add(decoder.decodeField(m, p).orElseThrow(() -> p.error("missing required field")));
     }
 
     try {

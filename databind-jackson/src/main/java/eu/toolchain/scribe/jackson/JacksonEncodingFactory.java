@@ -12,6 +12,7 @@ import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
@@ -71,7 +72,7 @@ public class JacksonEncodingFactory
       }
 
       final StreamEncoder<JsonGenerator, Object> value =
-          resolver.mapping(second).newStreamEncoderImmediate(resolver, factory);
+          resolver.mapping(second).newStreamEncoderImmediate(resolver, Flags.empty(), factory);
       return new MapStreamEncoder<>(value);
     });
 
@@ -79,7 +80,7 @@ public class JacksonEncodingFactory
       final JavaType first = type.getTypeParameter(0).get();
 
       final StreamEncoder<JsonGenerator, Object> value =
-          resolver.mapping(first).newStreamEncoderImmediate(resolver, factory);
+          resolver.mapping(first).newStreamEncoderImmediate(resolver, Flags.empty(), factory);
 
       return new ListStreamEncoder<>(value);
     });
@@ -114,7 +115,7 @@ public class JacksonEncodingFactory
       }
 
       final Encoder<JsonNode, Object> value =
-          resolver.mapping(second).newEncoderImmediate(resolver, factory);
+          resolver.mapping(second).newEncoderImmediate(resolver, Flags.empty(), factory);
       return new MapEncoder<>(value);
     });
 
@@ -122,7 +123,7 @@ public class JacksonEncodingFactory
       final JavaType first = type.getTypeParameter(0).get();
 
       final Encoder<JsonNode, Object> value =
-          resolver.mapping(first).newEncoderImmediate(resolver, factory);
+          resolver.mapping(first).newEncoderImmediate(resolver, Flags.empty(), factory);
 
       return new ListEncoder<>(value);
     });
@@ -150,7 +151,7 @@ public class JacksonEncodingFactory
       }
 
       final Decoder<JsonNode, Object> value =
-          resolver.mapping(second).newDecoderImmediate(resolver, factory);
+          resolver.mapping(second).newDecoderImmediate(resolver, Flags.empty(), factory);
       return new MapDecoder<>(value);
     });
 
@@ -158,7 +159,7 @@ public class JacksonEncodingFactory
       final JavaType first = type.getTypeParameter(0).get();
 
       final Decoder<JsonNode, Object> value =
-          resolver.mapping(first).newDecoderImmediate(resolver, factory);
+          resolver.mapping(first).newDecoderImmediate(resolver, Flags.empty(), factory);
 
       return new ListDecoder<>(value);
     });
@@ -177,21 +178,21 @@ public class JacksonEncodingFactory
 
   @Override
   public <Source> Stream<Encoder<JsonNode, Source>> newEncoder(
-      final EntityResolver resolver, final JavaType type
+      final EntityResolver resolver, final Flags flags, final JavaType type
   ) {
     return encoders.newEncoder(resolver, type, this);
   }
 
   @Override
   public <Source> Stream<StreamEncoder<JsonGenerator, Source>> newStreamEncoder(
-      final EntityResolver resolver, final JavaType type
+      final EntityResolver resolver, final Flags flags, final JavaType type
   ) {
     return streamRegistry.newStreamEncoder(resolver, type, this);
   }
 
   @Override
   public <Source> Stream<Decoder<JsonNode, Source>> newDecoder(
-      final EntityResolver resolver, final JavaType type
+      final EntityResolver resolver, final Flags flags, final JavaType type
   ) {
     return decoders.newDecoder(resolver, type, this);
   }

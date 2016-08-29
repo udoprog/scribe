@@ -5,6 +5,7 @@ import eu.toolchain.scribe.entitymapper.CreatorMethodDetector;
 import eu.toolchain.scribe.entitymapper.DecodeValueDetector;
 import eu.toolchain.scribe.entitymapper.EncodeValueDetector;
 import eu.toolchain.scribe.entitymapper.EntityMappingDetector;
+import eu.toolchain.scribe.entitymapper.FieldFlagDetector;
 import eu.toolchain.scribe.entitymapper.FieldNameDetector;
 import eu.toolchain.scribe.entitymapper.FieldReaderDetector;
 import eu.toolchain.scribe.entitymapper.SubType;
@@ -56,6 +57,7 @@ public class EntityMapper implements EntityResolver {
   private final List<EncodeValueDetector> encodeValueDetectors;
   private final List<DecodeValueDetector> decodeValueDetectors;
   private final List<FieldNameDetector> fieldNameDetectors;
+  private final List<FieldFlagDetector> fieldFlagDetectors;
   private final List<TypeNameDetector> typeNameDetectors;
   private final Map<Class<? extends Option>, Option> options;
 
@@ -73,7 +75,7 @@ public class EntityMapper implements EntityResolver {
       @Override
       public StreamEncoder<Target, Object> newStreamEncoder(Type type) {
         return mapping(JavaType.of(type))
-            .newStreamEncoder(EntityMapper.this, factory)
+            .newStreamEncoder(EntityMapper.this, Flags.empty(), factory)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Unable to resolve encoding for type (" + type + ")"));
       }
@@ -105,7 +107,7 @@ public class EntityMapper implements EntityResolver {
       @Override
       public Encoder<Target, Object> newEncoder(Type type) {
         return mapping(JavaType.of(type))
-            .newEncoder(EntityMapper.this, factory)
+            .newEncoder(EntityMapper.this, Flags.empty(), factory)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Unable to resolve encoding for type (" + type + ")"));
       }
@@ -135,7 +137,7 @@ public class EntityMapper implements EntityResolver {
       @Override
       public Decoder<Target, Object> newDecoder(Type type) {
         return mapping(JavaType.of(type))
-            .newDecoder(EntityMapper.this, factory)
+            .newDecoder(EntityMapper.this, Flags.empty(), factory)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Unable to resolve encoding for type (" + type + ")"));
       }
@@ -270,10 +272,18 @@ public class EntityMapper implements EntityResolver {
       final JavaType type = p.getParameterType();
       final Optional<String> name = detectFieldName(type, annotations);
 
-      fields.add(new EntityField(i, annotations, type, name));
+      fields.add(new EntityField(false, i, annotations, type, name));
     }
 
     return fields;
+  }
+
+  @Override
+  public Flags detectFieldFlags(final JavaType type, final Annotations annotations) {
+    return Flags.copyOf(fieldFlagDetectors
+        .stream()
+        .flatMap(d -> d.detect(this, type, annotations))
+        .collect(Collectors.toList()));
   }
 
   /**
@@ -305,6 +315,14 @@ public class EntityMapper implements EntityResolver {
     final Builder builder = toBuilder();
     Arrays.stream(options).forEach(builder::option);
     return builder.build();
+  }
+
+  @Override
+  public Annotations detectImmediateAnnotations(final JavaType type, final String fieldName) {
+    return type
+        .getField(fieldName)
+        .map(f -> Annotations.of(f.getAnnotationStream()))
+        .orElseGet(Annotations::empty);
   }
 
   private TypeMapping resolveAliasing(final JavaType type, final Annotations annotations) {
@@ -450,8 +468,8 @@ public class EntityMapper implements EntityResolver {
         new ArrayList<>(fieldReaderDetectors), new ArrayList<>(creatorMethodDetectors),
         new ArrayList<>(entityMappingDetectors), new ArrayList<>(subTypesDetectors),
         new ArrayList<>(encodeValueDetectors), new ArrayList<>(decodeValueDetectors),
-        new ArrayList<>(fieldNameDetectors), new ArrayList<>(typeNameDetectors),
-        new HashSet<>(options.values()));
+        new ArrayList<>(fieldNameDetectors), new ArrayList<>(fieldFlagDetectors),
+        new ArrayList<>(typeNameDetectors), new HashSet<>(options.values()));
   }
 
   public static EntityMapperBuilder<EntityMapper> builder() {
@@ -477,6 +495,7 @@ public class EntityMapper implements EntityResolver {
     private final ArrayList<EncodeValueDetector> encodeValueDetectors;
     private final ArrayList<DecodeValueDetector> decodeValueDetectors;
     private final ArrayList<FieldNameDetector> fieldNameDetectors;
+    private final ArrayList<FieldFlagDetector> fieldFlagDetectors;
     private final ArrayList<TypeNameDetector> typeNameDetectors;
     private final HashSet<Option> options;
 
@@ -490,6 +509,7 @@ public class EntityMapper implements EntityResolver {
       encodeValueDetectors = new ArrayList<>();
       decodeValueDetectors = new ArrayList<>();
       fieldNameDetectors = new ArrayList<>();
+      fieldFlagDetectors = new ArrayList<>();
       typeNameDetectors = new ArrayList<>();
       options = new HashSet<>();
     }
@@ -548,6 +568,12 @@ public class EntityMapper implements EntityResolver {
     }
 
     @Override
+    public Builder fieldFlagDetector(FieldFlagDetector fieldFlagDetector) {
+      this.fieldFlagDetectors.add(fieldFlagDetector);
+      return this;
+    }
+
+    @Override
     public Builder typeNameDetector(TypeNameDetector typeNameDetector) {
       this.typeNameDetectors.add(typeNameDetector);
       return this;
@@ -573,6 +599,7 @@ public class EntityMapper implements EntityResolver {
           Collections.unmodifiableList(new ArrayList<>(encodeValueDetectors)),
           Collections.unmodifiableList(new ArrayList<>(decodeValueDetectors)),
           Collections.unmodifiableList(new ArrayList<>(fieldNameDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(fieldFlagDetectors)),
           Collections.unmodifiableList(new ArrayList<>(typeNameDetectors)),
           Collections.unmodifiableMap(options));
     }

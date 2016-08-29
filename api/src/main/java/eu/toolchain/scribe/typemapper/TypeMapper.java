@@ -10,6 +10,7 @@ import eu.toolchain.scribe.typemapping.TypeMapping;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+@FunctionalInterface
 public interface TypeMapper {
   Stream<Match<TypeMapping>> map(
       final EntityResolver resolver, final JavaType type

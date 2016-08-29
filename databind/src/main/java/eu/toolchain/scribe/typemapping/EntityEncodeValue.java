@@ -4,6 +4,7 @@ import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
 import eu.toolchain.scribe.EntityResolver;
+import eu.toolchain.scribe.Flags;
 import eu.toolchain.scribe.JavaType;
 import eu.toolchain.scribe.Match;
 import eu.toolchain.scribe.MatchPriority;
@@ -27,7 +28,7 @@ public class EntityEncodeValue implements EncodeValue {
   public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
       final EntityResolver resolver, final EncoderFactory<Target> factory
   ) {
-    return targetMapping.<Target, Source>newEncoder(resolver, factory).map(
+    return targetMapping.<Target, Source>newEncoder(resolver, Flags.empty(), factory).map(
         parent -> new Encoder<Target, Source>() {
           @Override
           public Target encode(final Context path, final Source instance) {
@@ -54,7 +55,7 @@ public class EntityEncodeValue implements EncodeValue {
   public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
-    return targetMapping.<Target, Source>newStreamEncoder(resolver, factory).map(
+    return targetMapping.<Target, Source>newStreamEncoder(resolver, Flags.empty(), factory).map(
         parent -> new StreamEncoder<Target, Source>() {
           @Override
           public void streamEncode(
