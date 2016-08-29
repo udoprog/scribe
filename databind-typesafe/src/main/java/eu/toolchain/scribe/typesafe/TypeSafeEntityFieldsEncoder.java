@@ -2,13 +2,15 @@ package eu.toolchain.scribe.typesafe;
 
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
+
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.entitymapping.EntityFieldEncoder;
-import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigValue> {
@@ -18,7 +20,8 @@ public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigVa
   public <Source> void encodeField(
       EntityFieldEncoder<ConfigValue, Source> field, Context path, Source value
   ) {
-    object.put(field.getName(), field.encode(path, value));
+    field.encodeOptionally(path.push(field.getName()), value,
+        target -> object.put(field.getName(), target));
   }
 
   @Override

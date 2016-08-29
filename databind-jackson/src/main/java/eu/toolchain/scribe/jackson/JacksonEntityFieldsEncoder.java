@@ -16,7 +16,8 @@ public class JacksonEntityFieldsEncoder implements EntityFieldsEncoder<JsonNode>
   public <Source> void encodeField(
       EntityFieldEncoder<JsonNode, Source> field, Context path, Source value
   ) {
-    object.put(field.getName(), field.encode(path, value));
+    field.encodeOptionally(path.push(field.getName()), value,
+        target -> object.put(field.getName(), target));
   }
 
   @Override
