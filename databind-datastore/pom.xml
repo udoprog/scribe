@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>eu.toolchain.scribe</groupId>
+    <artifactId>scribe-parent</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+
+  <artifactId>scribe-databind-datastore</artifactId>
+  <packaging>jar</packaging>
+
+  <name>The Java Scribe (Datastore Databinding)</name>
+
+  <description>
+    The Java Scribe (Datastore Databinding)
+  </description>
+
+  <properties>
+    <datastore.version>1.0.1</datastore.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.toolchain.scribe</groupId>
+      <artifactId>scribe-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>eu.toolchain.scribe</groupId>
+      <artifactId>scribe-databind-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>java-hamcrest</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.cloud.datastore</groupId>
+      <artifactId>datastore-v1-protos</artifactId>
+      <version>${datastore.version}</version>
+    </dependency>
+  </dependencies>
+</project>

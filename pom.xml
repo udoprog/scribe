@@ -30,6 +30,7 @@
     <module>databind-jackson</module>
     <module>databind-guava</module>
     <module>databind-typesafe</module>
+    <module>databind-datastore</module>
     <module>benchmarks</module>
   </modules>
 
