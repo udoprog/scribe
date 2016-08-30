@@ -1,43 +1,122 @@
 package eu.toolchain.scribe;
 
-import eu.toolchain.scribe.entitymapper.CreatorMethodDetector;
-import eu.toolchain.scribe.entitymapper.DecodeValueDetector;
-import eu.toolchain.scribe.entitymapper.EncodeValueDetector;
-import eu.toolchain.scribe.entitymapper.EntityMappingDetector;
-import eu.toolchain.scribe.entitymapper.FieldFlagDetector;
-import eu.toolchain.scribe.entitymapper.FieldNameDetector;
-import eu.toolchain.scribe.entitymapper.FieldReaderDetector;
-import eu.toolchain.scribe.entitymapper.SubTypesDetector;
-import eu.toolchain.scribe.entitymapper.TypeAliasDetector;
-import eu.toolchain.scribe.entitymapper.TypeNameDetector;
-import eu.toolchain.scribe.typemapper.TypeMapper;
+import eu.toolchain.scribe.detector.ClassEncodingDetector;
+import eu.toolchain.scribe.detector.DecodeValueDetector;
+import eu.toolchain.scribe.detector.EncodeValueDetector;
+import eu.toolchain.scribe.detector.FieldNameDetector;
+import eu.toolchain.scribe.detector.FieldReaderDetector;
+import eu.toolchain.scribe.detector.FlagDetector;
+import eu.toolchain.scribe.detector.InstanceBuilderDetector;
+import eu.toolchain.scribe.detector.MappingDetector;
+import eu.toolchain.scribe.detector.SubTypesDetector;
+import eu.toolchain.scribe.detector.TypeAliasDetector;
+import eu.toolchain.scribe.detector.TypeNameDetector;
 
-public interface EntityMapperBuilder<T> {
-  EntityMapperBuilder<T> typeAliasDetector(TypeAliasDetector typeAliasDetector);
+public interface EntityMapperBuilder {
+  /**
+   * Install a type alias detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder typeAlias(TypeAliasDetector detector);
 
-  EntityMapperBuilder<T> typeMapper(TypeMapper typeMapper);
+  /**
+   * Install a mapping detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder mapping(MappingDetector detector);
 
-  EntityMapperBuilder<T> fieldReaderDetector(FieldReaderDetector fieldReader);
+  /**
+   * Install a field reader detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder fieldReader(FieldReaderDetector detector);
 
-  EntityMapperBuilder<T> creatorMethodDetector(CreatorMethodDetector creatorMethod);
+  /**
+   * Install an instance builder detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder instanceBuilder(InstanceBuilderDetector detector);
 
-  EntityMapperBuilder<T> entityMappingDetector(EntityMappingDetector binding);
+  /**
+   * Install an class encoding detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder classEncoding(ClassEncodingDetector detector);
 
-  EntityMapperBuilder<T> subTypesDetector(SubTypesDetector subTypeDetector);
+  /**
+   * Install an sub types detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder subTypes(SubTypesDetector detector);
 
-  EntityMapperBuilder<T> encodeValueDetector(EncodeValueDetector encodeValueDetector);
+  /**
+   * Install an encode value detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder encodeValue(EncodeValueDetector detector);
 
-  EntityMapperBuilder<T> decodeValueDetector(DecodeValueDetector encodeValueDetector);
+  /**
+   * Install a decode value detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder decodeValue(DecodeValueDetector detector);
 
-  EntityMapperBuilder<T> fieldNameDetector(FieldNameDetector fieldNameDetector);
+  /**
+   * Install a field name detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder fieldName(FieldNameDetector detector);
 
-  EntityMapperBuilder<T> fieldFlagDetector(FieldFlagDetector fieldFlagDetector);
+  /**
+   * Install a flag detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder flag(FlagDetector detector);
 
-  EntityMapperBuilder<T> typeNameDetector(TypeNameDetector typeNameDetector);
+  /**
+   * Install a type name detector.
+   *
+   * @param detector Detector to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder typeName(TypeNameDetector detector);
 
-  EntityMapperBuilder<T> register(Module module);
+  /**
+   * Install a module.
+   * <p>
+   * A module is a set of commands to run against this builder.
+   *
+   * @param module Module to install.
+   * @return This builder.
+   */
+  EntityMapperBuilder install(Module module);
 
-  EntityMapperBuilder<T> option(Option option);
-
-  T build();
+  /**
+   * Set an option.
+   *
+   * @param option Option to set.
+   * @return This builder.
+   * @see eu.toolchain.scribe.EntityResolver#getOption(Class)
+   */
+  EntityMapperBuilder option(Option option);
 }

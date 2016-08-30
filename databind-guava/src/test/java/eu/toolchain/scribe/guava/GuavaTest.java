@@ -1,11 +1,12 @@
 package eu.toolchain.scribe.guava;
 
 import com.google.common.base.Optional;
+import eu.toolchain.scribe.ConcreteClassMapping;
+import eu.toolchain.scribe.DefaultEntityFieldMapping;
 import eu.toolchain.scribe.EntityMapper;
-import eu.toolchain.scribe.JavaType;
-import eu.toolchain.scribe.entitymapping.DefaultEntityFieldMapping;
-import eu.toolchain.scribe.typemapping.ConcreteEntityTypeMapping;
-import eu.toolchain.scribe.typemapping.OptionalTypeMapping;
+import eu.toolchain.scribe.MethodClassEncoding;
+import eu.toolchain.scribe.OptionalMapping;
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class GuavaTest {
-  private EntityMapper m = EntityMapper.defaultBuilder().register(new GuavaModule()).build();
+  private EntityMapper m = EntityMapper.defaultBuilder().install(new GuavaModule()).build();
 
   @Data
   static class GuavaOptional {
@@ -22,12 +23,12 @@ public class GuavaTest {
 
   @Test
   public void testGuavaOptional() {
-    final ConcreteEntityTypeMapping mapping =
-        (ConcreteEntityTypeMapping) m.mapping(JavaType.of(GuavaOptional.class));
+    final ConcreteClassMapping mapping =
+        (ConcreteClassMapping) m.mapping(JavaType.of(GuavaOptional.class));
 
-    final DefaultEntityFieldMapping field =
-        (DefaultEntityFieldMapping) mapping.getMapping().fields().get(0);
+    final MethodClassEncoding encoding = (MethodClassEncoding) mapping.getDeferred();
+    final DefaultEntityFieldMapping field = encoding.getFields().get(0);
 
-    assertThat(field.getMapping(), instanceOf(OptionalTypeMapping.class));
+    assertThat(field.getMapping(), instanceOf(OptionalMapping.class));
   }
 }

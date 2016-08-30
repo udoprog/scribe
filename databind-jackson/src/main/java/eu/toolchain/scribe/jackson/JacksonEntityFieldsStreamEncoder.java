@@ -3,7 +3,7 @@ package eu.toolchain.scribe.jackson;
 import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldsStreamEncoder;
-import eu.toolchain.scribe.entitymapping.EntityFieldStreamEncoder;
+import eu.toolchain.scribe.EntityFieldStreamEncoder;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;

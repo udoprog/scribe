@@ -25,8 +25,8 @@ import static org.hamcrest.Matchers.is;
 public class DatastoreTest {
   private final DatastoreEntityMapper mapper = new DatastoreEntityMapper(EntityMapper
       .defaultBuilder()
-      .register(new DatastoreModule())
-      .register(new NativeAnnotationsModule())
+      .install(new DatastoreModule())
+      .install(new NativeAnnotationsModule())
       .build());
 
   private final Key key =

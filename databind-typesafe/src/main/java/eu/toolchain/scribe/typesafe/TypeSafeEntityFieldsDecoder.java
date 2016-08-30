@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigValue;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.EntityFieldsDecoder;
-import eu.toolchain.scribe.entitymapping.EntityFieldDecoder;
+import eu.toolchain.scribe.EntityFieldDecoder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;

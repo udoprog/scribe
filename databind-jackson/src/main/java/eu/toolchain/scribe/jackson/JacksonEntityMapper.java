@@ -21,6 +21,10 @@ public class JacksonEntityMapper {
   private final TypeStreamEncoderProvider<JsonGenerator> streamEncoderProvider;
   private final TypeDecoderProvider<JsonNode> decoderProvider;
 
+  public JacksonEntityMapper(final EntityResolver resolver) {
+    this(resolver, new JsonFactory());
+  }
+
   public JacksonEntityMapper(final EntityResolver resolver, final JsonFactory factory) {
     this.resolver = resolver;
     this.factory = factory;

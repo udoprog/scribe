@@ -1,5 +1,7 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.reflection.Annotations;
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.util.Optional;
@@ -8,7 +10,7 @@ import java.util.Optional;
 public class EntityField {
   /**
    * If this field is immediate or not.
-   *
+   * <p>
    * Immediate fields are declared immediately on the class.
    */
   private final boolean immediate;

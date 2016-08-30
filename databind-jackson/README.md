@@ -10,11 +10,12 @@ Jackson, see [scribe-annotations-jackson](/annotations-jackson).
 You can setup the library like the following.
 
 ```java
-final JsonFactory json = new JsonFactory();
+final EntityResolver resolver = EntityMapper
+    .defaultBuilder()
+    .install(new JacksonAnnotationsModule())
+    .build();
 
-final JacksonEntityMapper mapper = new JacksonEntityMapper(
-    EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
-    json);
+final JacksonEntityMapper mapper = new JacksonEntityMapper(resolver);
 ```
 
 Type initialization has to happen before serialization.

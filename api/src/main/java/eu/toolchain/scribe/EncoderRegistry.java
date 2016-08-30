@@ -1,5 +1,6 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.util.ArrayList;

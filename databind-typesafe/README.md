@@ -10,8 +10,12 @@ Scribe.
 You can setup the library like the following.
 
 ```java
-final TypeSafeEntityMapper mapper = new TypeSafeEntityMapper(
-    EntityMapper.defaultBuilder().register(new NativeAnnotationsModule()).build());
+final EntityResolver resolver = EntityMapper
+    .defaultBuilder()
+    .install(new NativeAnnotationsModule())
+    .build();
+
+final TypeSafeEntityMapper mapper = new TypeSafeEntityMapper(resolver);
 ```
 
 Type initialization has to happen before serialization.

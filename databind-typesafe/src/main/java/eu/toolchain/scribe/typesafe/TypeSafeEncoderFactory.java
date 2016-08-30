@@ -7,7 +7,7 @@ import eu.toolchain.scribe.EncoderRegistry;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.JavaType;
+import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.typesafe.encoding.BooleanEncoder;
 import eu.toolchain.scribe.typesafe.encoding.ListEncoder;
 import eu.toolchain.scribe.typesafe.encoding.MapEncoder;

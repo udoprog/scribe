@@ -8,7 +8,7 @@ The annotations module is installed like the following.
 ```java
 final EntityMapper m =  EntityMapper
     .defaultBuilder()
-    .register(new DatastoreAnnotationsModule())
+    .install(new DatastoreAnnotationsModule())
     .build();
 ```
 

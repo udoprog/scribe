@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigValueFactory;
 
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldsEncoder;
-import eu.toolchain.scribe.entitymapping.EntityFieldEncoder;
+import eu.toolchain.scribe.EntityFieldEncoder;
 
 import java.util.HashMap;
 import java.util.Map;

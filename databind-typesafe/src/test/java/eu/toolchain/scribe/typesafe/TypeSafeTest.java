@@ -10,7 +10,7 @@ import org.junit.internal.AssumptionViolatedException;
 
 public class TypeSafeTest extends AbstractDatabindTest {
   private TypeSafeEntityMapper mapper = new TypeSafeEntityMapper(
-      EntityMapper.defaultBuilder().register(new NativeAnnotationsModule()).build());
+      EntityMapper.defaultBuilder().install(new NativeAnnotationsModule()).build());
 
   @Override
   protected <S> StringEncoding<S> encodingFor(

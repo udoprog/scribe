@@ -1,5 +1,6 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.lang.reflect.Type;
@@ -68,9 +69,9 @@ public interface TypeMatcher {
 
   static TypeMatcher type(final Class<?> base, final TypeMatcher... parameters) {
     if (base.getTypeParameters().length != parameters.length) {
-      throw new IllegalArgumentException("Number of type arguments for class " + base + " (" +
-          base.getTypeParameters().length + ") is not the expected (" +
-          parameters.length + ")");
+      throw new IllegalArgumentException(
+          "Number of type arguments for class " + base + " (" + base.getTypeParameters().length +
+              ") is not the expected (" + parameters.length + ")");
     }
 
     return new Parameterized(base, parameters);

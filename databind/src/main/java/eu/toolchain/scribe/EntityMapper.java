@@ -1,27 +1,19 @@
 package eu.toolchain.scribe;
 
-import eu.toolchain.scribe.creatormethod.CreatorMethod;
-import eu.toolchain.scribe.entitymapper.CreatorMethodDetector;
-import eu.toolchain.scribe.entitymapper.DecodeValueDetector;
-import eu.toolchain.scribe.entitymapper.EncodeValueDetector;
-import eu.toolchain.scribe.entitymapper.EntityMappingDetector;
-import eu.toolchain.scribe.entitymapper.FieldFlagDetector;
-import eu.toolchain.scribe.entitymapper.FieldNameDetector;
-import eu.toolchain.scribe.entitymapper.FieldReaderDetector;
-import eu.toolchain.scribe.entitymapper.SubType;
-import eu.toolchain.scribe.entitymapper.SubTypesDetector;
-import eu.toolchain.scribe.entitymapper.TypeAliasDetector;
-import eu.toolchain.scribe.entitymapper.TypeNameDetector;
-import eu.toolchain.scribe.entitymapping.EntityMapping;
-import eu.toolchain.scribe.fieldreader.FieldReader;
-import eu.toolchain.scribe.typealias.TypeAlias;
-import eu.toolchain.scribe.typemapper.TypeMapper;
-import eu.toolchain.scribe.typemapping.ConcreteEntityTypeMapping;
-import eu.toolchain.scribe.typemapping.DecodeValue;
-import eu.toolchain.scribe.typemapping.EncodeValue;
-import eu.toolchain.scribe.typemapping.EntityTypeMapping;
-import eu.toolchain.scribe.typemapping.PropertyAbstractEntityTypeMapping;
-import eu.toolchain.scribe.typemapping.TypeMapping;
+import eu.toolchain.scribe.detector.ClassEncodingDetector;
+import eu.toolchain.scribe.detector.DecodeValueDetector;
+import eu.toolchain.scribe.detector.EncodeValueDetector;
+import eu.toolchain.scribe.detector.FieldNameDetector;
+import eu.toolchain.scribe.detector.FieldReaderDetector;
+import eu.toolchain.scribe.detector.FlagDetector;
+import eu.toolchain.scribe.detector.InstanceBuilderDetector;
+import eu.toolchain.scribe.detector.MappingDetector;
+import eu.toolchain.scribe.detector.Match;
+import eu.toolchain.scribe.detector.SubTypesDetector;
+import eu.toolchain.scribe.detector.TypeAliasDetector;
+import eu.toolchain.scribe.detector.TypeNameDetector;
+import eu.toolchain.scribe.reflection.Annotations;
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +22,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -45,23 +36,20 @@ import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class EntityMapper implements EntityResolver {
-  private static final Comparator<Match<?>> BY_SCORE_COMPARATOR =
-      (a, b) -> Integer.compare(b.getPriority().ordinal(), a.getPriority().ordinal());
-
   private final List<TypeAliasDetector> typeAliasDetectors;
-  private final List<TypeMapper> typeMapperDetectors;
+  private final List<MappingDetector> mappingDetectors;
   private final List<FieldReaderDetector> fieldReaderDetectors;
-  private final List<CreatorMethodDetector> creatorMethodDetectors;
-  private final List<EntityMappingDetector> entityMappingDetectors;
+  private final List<InstanceBuilderDetector> instanceBuilderDetectors;
+  private final List<ClassEncodingDetector> classEncodingDetectors;
   private final List<SubTypesDetector> subTypesDetectors;
   private final List<EncodeValueDetector> encodeValueDetectors;
   private final List<DecodeValueDetector> decodeValueDetectors;
   private final List<FieldNameDetector> fieldNameDetectors;
-  private final List<FieldFlagDetector> fieldFlagDetectors;
+  private final List<FlagDetector> flagDetectors;
   private final List<TypeNameDetector> typeNameDetectors;
   private final Map<Class<? extends Option>, Option> options;
 
-  private final ConcurrentMap<EntityKey, TypeMapping> cache = new ConcurrentHashMap<>();
+  private final ConcurrentMap<EntityKey, Mapping> cache = new ConcurrentHashMap<>();
   private final Object resolverLock = new Object();
 
   /**
@@ -160,23 +148,23 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public TypeMapping mapping(final JavaType type, final Annotations annotations) {
+  public Mapping mapping(final JavaType type, final Annotations annotations) {
     final EntityKey key = new EntityKey(type, annotations);
 
-    final TypeMapping mapping = cache.get(key);
+    final Mapping mapping = cache.get(key);
 
     if (mapping != null) {
       return mapping;
     }
 
     synchronized (resolverLock) {
-      final TypeMapping candidate = cache.get(key);
+      final Mapping candidate = cache.get(key);
 
       if (candidate != null) {
         return candidate;
       }
 
-      final TypeMapping newMapping = resolveAliasing(type, annotations);
+      final Mapping newMapping = resolveAliasing(type, annotations);
 
       cache.put(key, newMapping);
       newMapping.initialize(this);
@@ -188,7 +176,7 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public TypeMapping mapping(final JavaType type) {
+  public Mapping mapping(final JavaType type) {
     return mapping(type, Annotations.empty());
   }
 
@@ -196,8 +184,8 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<? extends CreatorMethod> detectCreatorMethod(JavaType type) {
-    return firstPriorityMatch(creatorMethodDetectors.stream(), c -> c.detect(this, type));
+  public Optional<InstanceBuilder> detectInstanceBuilder(JavaType type) {
+    return Match.bestUniqueMatch(instanceBuilderDetectors.stream(), c -> c.detect(this, type));
   }
 
   /**
@@ -207,7 +195,7 @@ public class EntityMapper implements EntityResolver {
   public Optional<FieldReader> detectFieldReader(
       final JavaType type, final String fieldName, final JavaType fieldType
   ) {
-    return firstPriorityMatch(fieldReaderDetectors.stream(),
+    return Match.bestUniqueMatch(fieldReaderDetectors.stream(),
         c -> c.detect(type, fieldName, fieldType));
   }
 
@@ -215,13 +203,14 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<EntityMapping> detectEntityMapping(JavaType type) {
-    return firstPriorityMatch(entityMappingDetectors.stream(), d -> d.detect(this, type));
+  public Optional<ClassEncoding> detectEntityMapping(JavaType type) {
+    return Match.bestUniqueMatch(classEncodingDetectors.stream(), d -> d.detect(this, type));
   }
 
   public List<SubType> resolveSubTypes(final JavaType type) {
-    return firstPriorityMatch(subTypesDetectors.stream(), d -> d.detect(this, type)).orElseGet(
-        Collections::emptyList);
+    return Match
+        .bestUniqueMatch(subTypesDetectors.stream(), d -> d.detect(this, type))
+        .orElseGet(Collections::emptyList);
   }
 
   /**
@@ -229,7 +218,7 @@ public class EntityMapper implements EntityResolver {
    */
   @Override
   public Optional<EncodeValue> detectEncodeValue(final JavaType type) {
-    return firstPriorityMatch(encodeValueDetectors.stream(), d -> d.detect(this, type));
+    return Match.bestUniqueMatch(encodeValueDetectors.stream(), d -> d.detect(this, type));
   }
 
   /**
@@ -237,7 +226,8 @@ public class EntityMapper implements EntityResolver {
    */
   @Override
   public Optional<DecodeValue> detectDecodeValue(final JavaType type, final JavaType fieldType) {
-    return firstPriorityMatch(decodeValueDetectors.stream(), d -> d.detect(this, type, fieldType));
+    return Match.bestUniqueMatch(decodeValueDetectors.stream(),
+        d -> d.detect(this, type, fieldType));
   }
 
   /**
@@ -245,7 +235,8 @@ public class EntityMapper implements EntityResolver {
    */
   @Override
   public Optional<String> detectFieldName(JavaType type, Annotations annotations) {
-    return firstPriorityMatch(fieldNameDetectors.stream(), d -> d.detect(this, type, annotations));
+    return Match.bestUniqueMatch(fieldNameDetectors.stream(),
+        d -> d.detect(this, type, annotations));
   }
 
   /**
@@ -253,7 +244,7 @@ public class EntityMapper implements EntityResolver {
    */
   @Override
   public Optional<String> detectTypeName(JavaType type) {
-    return firstPriorityMatch(typeNameDetectors.stream(), d -> d.detect(this, type));
+    return Match.bestUniqueMatch(typeNameDetectors.stream(), d -> d.detect(this, type));
   }
 
   /**
@@ -280,7 +271,7 @@ public class EntityMapper implements EntityResolver {
 
   @Override
   public Flags detectFieldFlags(final JavaType type, final Annotations annotations) {
-    return Flags.copyOf(fieldFlagDetectors
+    return Flags.copyOf(flagDetectors
         .stream()
         .flatMap(d -> d.detect(this, type, annotations))
         .collect(Collectors.toList()));
@@ -325,7 +316,7 @@ public class EntityMapper implements EntityResolver {
         .orElseGet(Annotations::empty);
   }
 
-  private TypeMapping resolveAliasing(final JavaType type, final Annotations annotations) {
+  private Mapping resolveAliasing(final JavaType type, final Annotations annotations) {
     final List<TypeAlias> aliasing = resolveTypeAliases(type, annotations);
 
     if (aliasing.isEmpty()) {
@@ -335,12 +326,12 @@ public class EntityMapper implements EntityResolver {
     }
   }
 
-  private TypeMapping applyTypeAliases(final List<TypeAlias> aliasing) {
+  private Mapping applyTypeAliases(final List<TypeAlias> aliasing) {
     final TypeAlias lastAlias = aliasing.get(aliasing.size() - 1);
 
     final ListIterator<TypeAlias> it = aliasing.listIterator(aliasing.size());
 
-    TypeMapping lastMapping = resolveTypeMapping(lastAlias.getFromType());
+    Mapping lastMapping = resolveTypeMapping(lastAlias.getFromType());
 
     while (it.hasPrevious()) {
       lastMapping = it.previous().apply(lastMapping);
@@ -349,9 +340,10 @@ public class EntityMapper implements EntityResolver {
     return lastMapping;
   }
 
-  private TypeMapping resolveTypeMapping(final JavaType sourceType) {
-    return firstPriorityMatch(typeMapperDetectors.stream(), m -> m.map(this, sourceType)).orElseGet(
-        () -> resolveBean(sourceType));
+  private Mapping resolveTypeMapping(final JavaType sourceType) {
+    return Match
+        .bestUniqueMatch(mappingDetectors.stream(), m -> m.map(this, sourceType))
+        .orElseGet(() -> resolveBean(sourceType));
   }
 
   private List<TypeAlias> resolveTypeAliases(final JavaType type, final Annotations annotations) {
@@ -365,7 +357,7 @@ public class EntityMapper implements EntityResolver {
     while (true) {
       final JavaType t = current;
       final Optional<TypeAlias> m =
-          firstMatch(typeAliasDetectors.stream(), a -> a.apply(t, annotations));
+          firstMatch(typeAliasDetectors.stream(), a -> a.detect(t, annotations));
 
       if (!m.isPresent()) {
         break;
@@ -403,25 +395,7 @@ public class EntityMapper implements EntityResolver {
     return results.stream().findFirst();
   }
 
-  private <Target, Source> Optional<Source> firstPriorityMatch(
-      Stream<Target> alternatives, Function<Target, Stream<Match<Source>>> map
-  ) {
-    final List<Match<Source>> results = alternatives.flatMap(map).collect(Collectors.toList());
-
-    final List<Match<Source>> sorted = new ArrayList<>(results);
-    Collections.sort(sorted, BY_SCORE_COMPARATOR);
-
-    if (results.size() > 1) {
-      if (sorted.get(0).getPriority() == sorted.get(1).getPriority()) {
-        throw new IllegalArgumentException(
-            "Found multiple matches with the same priority: " + sorted);
-      }
-    }
-
-    return sorted.stream().map(Match::getValue).findFirst();
-  }
-
-  private TypeMapping resolveBean(final JavaType type) {
+  private Mapping resolveBean(final JavaType type) {
     return resolveEncodeValue(type).orElseGet(() -> {
       final Optional<String> typeName = detectTypeName(type);
 
@@ -433,28 +407,28 @@ public class EntityMapper implements EntityResolver {
     });
   }
 
-  private Optional<TypeMapping> resolveEncodeValue(final JavaType type) {
-    return detectEncodeValue(type).<TypeMapping>map(encodeValue -> {
-      final TypeMapping target = encodeValue.getTargetMapping();
+  private Optional<Mapping> resolveEncodeValue(final JavaType type) {
+    return detectEncodeValue(type).<Mapping>map(encodeValue -> {
+      final Mapping target = encodeValue.getTargetMapping();
 
       final DecodeValue decodeValue = detectDecodeValue(type, target.getType()).orElseThrow(
-          () -> new IllegalArgumentException(
-              "Value encoder detected, but no corresponding decoder: " + type));
+          () -> new IllegalArgumentException("Value encoder (" + encodeValue +
+              ") detected, but no corresponding decoder for type (" + type + ")"));
 
-      return new ValueTypeMapping(encodeValue, decodeValue);
+      return new ValueMapping(encodeValue, decodeValue);
     });
   }
 
-  private EntityTypeMapping doAbstract(
+  private ClassMapping doAbstract(
       final JavaType type, final Optional<String> typeName
   ) {
     final List<SubType> subTypes = resolveSubTypes(type);
 
-    return new PropertyAbstractEntityTypeMapping(type, typeName, subTypes, Optional.empty());
+    return new AbstractClassMapping(type, typeName, subTypes, Optional.empty());
   }
 
-  private EntityTypeMapping doConcrete(final JavaType type, final Optional<String> typeName) {
-    return new ConcreteEntityTypeMapping(type, typeName);
+  private ClassMapping doConcrete(final JavaType type, final Optional<String> typeName) {
+    return new ConcreteClassMapping(type, typeName);
   }
 
   @Data
@@ -464,118 +438,118 @@ public class EntityMapper implements EntityResolver {
   }
 
   public Builder toBuilder() {
-    return new Builder(new ArrayList<>(typeAliasDetectors), new ArrayList<>(typeMapperDetectors),
-        new ArrayList<>(fieldReaderDetectors), new ArrayList<>(creatorMethodDetectors),
-        new ArrayList<>(entityMappingDetectors), new ArrayList<>(subTypesDetectors),
+    return new Builder(new ArrayList<>(typeAliasDetectors), new ArrayList<>(mappingDetectors),
+        new ArrayList<>(fieldReaderDetectors), new ArrayList<>(instanceBuilderDetectors),
+        new ArrayList<>(classEncodingDetectors), new ArrayList<>(subTypesDetectors),
         new ArrayList<>(encodeValueDetectors), new ArrayList<>(decodeValueDetectors),
-        new ArrayList<>(fieldNameDetectors), new ArrayList<>(fieldFlagDetectors),
+        new ArrayList<>(fieldNameDetectors), new ArrayList<>(flagDetectors),
         new ArrayList<>(typeNameDetectors), new HashSet<>(options.values()));
   }
 
-  public static EntityMapperBuilder<EntityMapper> builder() {
+  public static Builder builder() {
     return new Builder();
   }
 
-  public static EntityMapperBuilder<EntityMapper> defaultBuilder() {
-    return builder().register(new DefaultModule());
+  public static Builder defaultBuilder() {
+    return builder().install(new DefaultModule());
   }
 
-  public static EntityMapperBuilder<EntityMapper> nativeBuilder() {
-    return defaultBuilder().register(new NativeAnnotationsModule());
+  public static Builder nativeBuilder() {
+    return defaultBuilder().install(new NativeAnnotationsModule());
   }
 
   @AllArgsConstructor
-  public static class Builder implements EntityMapperBuilder<EntityMapper> {
+  public static class Builder implements EntityMapperBuilder {
     private final ArrayList<TypeAliasDetector> typeAliasDetectors;
-    private final ArrayList<TypeMapper> typeMapperDetectors;
+    private final ArrayList<MappingDetector> mappingDetectors;
     private final ArrayList<FieldReaderDetector> fieldReaderDetectors;
-    private final ArrayList<CreatorMethodDetector> creatorMethodDetectors;
-    private final ArrayList<EntityMappingDetector> entityMappingDetectors;
+    private final ArrayList<InstanceBuilderDetector> instanceBuilderDetectors;
+    private final ArrayList<ClassEncodingDetector> classEncodingDetectors;
     private final ArrayList<SubTypesDetector> subTypesDetectors;
     private final ArrayList<EncodeValueDetector> encodeValueDetectors;
     private final ArrayList<DecodeValueDetector> decodeValueDetectors;
     private final ArrayList<FieldNameDetector> fieldNameDetectors;
-    private final ArrayList<FieldFlagDetector> fieldFlagDetectors;
+    private final ArrayList<FlagDetector> flagDetectors;
     private final ArrayList<TypeNameDetector> typeNameDetectors;
     private final HashSet<Option> options;
 
     public Builder() {
       typeAliasDetectors = new ArrayList<>();
-      typeMapperDetectors = new ArrayList<>();
+      mappingDetectors = new ArrayList<>();
       fieldReaderDetectors = new ArrayList<>();
-      creatorMethodDetectors = new ArrayList<>();
-      entityMappingDetectors = new ArrayList<>();
+      instanceBuilderDetectors = new ArrayList<>();
+      classEncodingDetectors = new ArrayList<>();
       subTypesDetectors = new ArrayList<>();
       encodeValueDetectors = new ArrayList<>();
       decodeValueDetectors = new ArrayList<>();
       fieldNameDetectors = new ArrayList<>();
-      fieldFlagDetectors = new ArrayList<>();
+      flagDetectors = new ArrayList<>();
       typeNameDetectors = new ArrayList<>();
       options = new HashSet<>();
     }
 
     @Override
-    public Builder typeAliasDetector(TypeAliasDetector typeAliasDetector) {
-      this.typeAliasDetectors.add(typeAliasDetector);
+    public Builder typeAlias(TypeAliasDetector detector) {
+      this.typeAliasDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder typeMapper(TypeMapper typeMapper) {
-      this.typeMapperDetectors.add(typeMapper);
+    public Builder mapping(MappingDetector detector) {
+      this.mappingDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder fieldReaderDetector(FieldReaderDetector fieldReader) {
-      this.fieldReaderDetectors.add(fieldReader);
+    public Builder fieldReader(FieldReaderDetector detector) {
+      this.fieldReaderDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder creatorMethodDetector(CreatorMethodDetector creatorMethod) {
-      this.creatorMethodDetectors.add(creatorMethod);
+    public Builder instanceBuilder(InstanceBuilderDetector detector) {
+      this.instanceBuilderDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder entityMappingDetector(EntityMappingDetector binding) {
-      this.entityMappingDetectors.add(binding);
+    public Builder classEncoding(ClassEncodingDetector detector) {
+      this.classEncodingDetectors.add(detector);
       return this;
     }
 
-    public Builder subTypesDetector(SubTypesDetector subTypeDetector) {
-      this.subTypesDetectors.add(subTypeDetector);
-      return this;
-    }
-
-    @Override
-    public Builder encodeValueDetector(EncodeValueDetector encodeValueDetector) {
-      this.encodeValueDetectors.add(encodeValueDetector);
+    public Builder subTypes(SubTypesDetector detector) {
+      this.subTypesDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder decodeValueDetector(DecodeValueDetector decodeValueDetector) {
-      this.decodeValueDetectors.add(decodeValueDetector);
+    public Builder encodeValue(EncodeValueDetector detector) {
+      this.encodeValueDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder fieldNameDetector(FieldNameDetector fieldNameDetector) {
-      this.fieldNameDetectors.add(fieldNameDetector);
+    public Builder decodeValue(DecodeValueDetector detector) {
+      this.decodeValueDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder fieldFlagDetector(FieldFlagDetector fieldFlagDetector) {
-      this.fieldFlagDetectors.add(fieldFlagDetector);
+    public Builder fieldName(FieldNameDetector detector) {
+      this.fieldNameDetectors.add(detector);
       return this;
     }
 
     @Override
-    public Builder typeNameDetector(TypeNameDetector typeNameDetector) {
-      this.typeNameDetectors.add(typeNameDetector);
+    public Builder flag(FlagDetector detector) {
+      this.flagDetectors.add(detector);
+      return this;
+    }
+
+    @Override
+    public Builder typeName(TypeNameDetector detector) {
+      this.typeNameDetectors.add(detector);
       return this;
     }
 
@@ -586,27 +560,27 @@ public class EntityMapper implements EntityResolver {
     }
 
     @Override
+    public Builder install(final Module module) {
+      module.register(this);
+      return this;
+    }
+
     public EntityMapper build() {
       final Map<Class<? extends Option>, Option> options =
-          this.options.stream().collect(Collectors.toMap(o -> o.getClass(), Function.identity()));
+          this.options.stream().collect(Collectors.toMap(Option::getClass, Function.identity()));
 
       return new EntityMapper(Collections.unmodifiableList(new ArrayList<>(typeAliasDetectors)),
-          Collections.unmodifiableList(new ArrayList<>(typeMapperDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(mappingDetectors)),
           Collections.unmodifiableList(new ArrayList<>(fieldReaderDetectors)),
-          Collections.unmodifiableList(new ArrayList<>(creatorMethodDetectors)),
-          Collections.unmodifiableList(new ArrayList<>(entityMappingDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(instanceBuilderDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(classEncodingDetectors)),
           Collections.unmodifiableList(new ArrayList<>(subTypesDetectors)),
           Collections.unmodifiableList(new ArrayList<>(encodeValueDetectors)),
           Collections.unmodifiableList(new ArrayList<>(decodeValueDetectors)),
           Collections.unmodifiableList(new ArrayList<>(fieldNameDetectors)),
-          Collections.unmodifiableList(new ArrayList<>(fieldFlagDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(flagDetectors)),
           Collections.unmodifiableList(new ArrayList<>(typeNameDetectors)),
           Collections.unmodifiableMap(options));
-    }
-
-    @Override
-    public EntityMapperBuilder<EntityMapper> register(final Module module) {
-      return module.register(this);
     }
   }
 }

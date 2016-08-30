@@ -6,41 +6,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
-import eu.toolchain.scribe.creatormethod.ConstructorCreatorMethod;
-import eu.toolchain.scribe.creatormethod.StaticMethodCreatorMethod;
-import eu.toolchain.scribe.fieldreader.AnnotatedFieldReader;
-import eu.toolchain.scribe.subtype.AnnotationSubTypesResolver;
-import eu.toolchain.scribe.typemapping.EntityEncodeValue;
+import eu.toolchain.scribe.detector.Match;
+import eu.toolchain.scribe.detector.MatchPriority;
+import eu.toolchain.scribe.reflection.JavaType;
 
 import java.util.Optional;
 
 public class JacksonAnnotationsModule implements Module {
   @Override
-  public <T> EntityMapperBuilder<T> register(EntityMapperBuilder<T> builder) {
+  public void register(EntityMapperBuilder builder) {
     builder
-        .creatorMethodDetector(ConstructorCreatorMethod.forAnnotation(JsonCreator.class))
-        .creatorMethodDetector(StaticMethodCreatorMethod.forAnnotation(JsonCreator.class));
+        .instanceBuilder(ConstructorInstanceBuilder.forAnnotation(JsonCreator.class))
+        .instanceBuilder(StaticMethodInstanceBuilder.forAnnotation(JsonCreator.class));
 
-    builder.subTypesDetector(
+    builder.subTypes(
         AnnotationSubTypesResolver.forAnnotation(JsonSubTypes.class, JsonSubTypes::value,
             t -> JavaType.of(t.value()),
             t -> "".equals(t.name()) ? Optional.empty() : Optional.of(t.name())));
 
-    builder.encodeValueDetector(EntityEncodeValue.forAnnotation(JsonValue.class));
+    builder.encodeValue(EntityEncodeValue.forAnnotation(JsonValue.class));
 
-    builder.fieldReaderDetector(
+    builder.fieldReader(
         AnnotatedFieldReader.forAnnotation(JsonGetter.class, JsonGetter::value));
 
-    builder.fieldNameDetector((resolver, type, annotations) -> annotations
+    builder.fieldName((resolver, type, annotations) -> annotations
         .getAnnotation(JsonProperty.class)
         .map(JsonProperty::value)
         .map(Match.withPriority(MatchPriority.HIGH)));
 
-    builder.typeNameDetector((resolver, type) -> type
+    builder.typeName((resolver, type) -> type
         .getAnnotation(JsonTypeName.class)
         .map(JsonTypeName::value)
         .map(Match.withPriority(MatchPriority.HIGH)));
-
-    return builder;
   }
 }

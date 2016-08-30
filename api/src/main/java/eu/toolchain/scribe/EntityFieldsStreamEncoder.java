@@ -1,7 +1,5 @@
 package eu.toolchain.scribe;
 
-import eu.toolchain.scribe.entitymapping.EntityFieldStreamEncoder;
-
 public interface EntityFieldsStreamEncoder<Target> {
   void encodeStart(Target target);
 

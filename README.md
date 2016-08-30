@@ -97,7 +97,7 @@ final JacksonEntityMapper mapper =
     new JacksonEntityMapper(
       EntityMapper
         .defaultBuilder()
-        .register(new JacksonAnnotationsModule())
+        .install(new JacksonAnnotationsModule())
         .build(),
       new JsonFactory());
 
@@ -157,7 +157,7 @@ encoding/decoding. The following is an example of a simple alias for
 ```java
 public class DefaultModule implements Module {
   @Override
-  public <T> EntityMapperBuilder<T> register(EntityMapperBuilder<T> b) {
+  public void register(EntityMapperBuilder b) {
     final Function<Character, String> charToString =
         c -> new String(new char[]{c});
 
@@ -170,8 +170,6 @@ public class DefaultModule implements Module {
         type -> simpleAlias(Character.class, String.class, charToString, stringToChar)
       )
     );
-
-    return b;
   }
 }
 ```

@@ -296,6 +296,21 @@ public abstract class AbstractDatabindTest {
     roundTrip(e, new ByteArray(BYTE_ARRAY));
   }
 
+  @Data
+  public static class Value {
+    private final byte[] value;
+
+    @EntityCreator
+    public Value(final byte[] value) {
+      this.value = value;
+    }
+
+    @EntityValue
+    public byte[] getValue() {
+      return value;
+    }
+  }
+
   @Test
   public void testValue() throws Exception {
     final StringEncoding<Value> e = encodingFor(Value.class);
@@ -326,7 +341,7 @@ public abstract class AbstractDatabindTest {
   }
 
   @Data
-  static class EncodeNullList {
+  public static class EncodeNullList {
     private final List<Optional<String>> field;
   }
 
@@ -409,21 +424,6 @@ public abstract class AbstractDatabindTest {
   protected <E> void roundTrip(final StringEncoding<E> encoding, final E instance) {
     final String encoded = encoding.encodeAsString(instance);
     assertEquals(instance, encoding.decodeFromString(encoded));
-  }
-
-  @Data
-  public static class Value {
-    private final byte[] value;
-
-    @EntityCreator
-    public Value(final byte[] value) {
-      this.value = value;
-    }
-
-    @EntityValue
-    public byte[] getValue() {
-      return value;
-    }
   }
 
   @Data

@@ -6,7 +6,7 @@ import com.google.protobuf.NullValue;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.entitymapping.EntityFieldEncoder;
+import eu.toolchain.scribe.EntityFieldEncoder;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

@@ -14,7 +14,7 @@ import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.JavaType;
+import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.datastore.encoding.BooleanDecoder;
 import eu.toolchain.scribe.datastore.encoding.BooleanEncoder;
 import eu.toolchain.scribe.datastore.encoding.DoubleEncoder;

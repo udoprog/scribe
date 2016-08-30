@@ -2,24 +2,22 @@ package eu.toolchain.scribe.datastore;
 
 import com.google.datastore.v1.Key;
 import com.google.datastore.v1.Value;
-import eu.toolchain.scribe.EncodedTypeMapping;
+import eu.toolchain.scribe.EncodedMapping;
 import eu.toolchain.scribe.EntityMapperBuilder;
 import eu.toolchain.scribe.Module;
 
 import java.util.stream.Stream;
 
 import static eu.toolchain.scribe.TypeMatcher.type;
-import static eu.toolchain.scribe.typemapper.TypeMapper.matchMapper;
+import static eu.toolchain.scribe.detector.MappingDetector.matchMapping;
 
 public class DatastoreModule implements Module {
   @Override
-  public <T> EntityMapperBuilder<T> register(
-      final EntityMapperBuilder<T> builder
-  ) {
-    builder.typeMapper(matchMapper(type(Value.class), EncodedTypeMapping::new));
-    builder.typeMapper(matchMapper(type(Key.class), EncodedTypeMapping::new));
+  public void register(final EntityMapperBuilder builder) {
+    builder.mapping(matchMapping(type(Value.class), EncodedMapping::new));
+    builder.mapping(matchMapping(type(Key.class), EncodedMapping::new));
 
-    builder.fieldFlagDetector((resolver, java, annotations) -> {
+    builder.flag((resolver, java, annotations) -> {
       if (annotations.isAnnotationPresent(EntityKey.class)) {
         return Stream.of(DatastoreFlags.KEY_FIELD);
       }
@@ -27,12 +25,10 @@ public class DatastoreModule implements Module {
       return Stream.of();
     });
 
-    builder.fieldFlagDetector((resolver, java, annotations) -> {
+    builder.flag((resolver, java, annotations) -> {
       return annotations.getAnnotation(ExcludeFromIndexes.class).map(a -> {
         return new DatastoreFlags.ExcludeFromIndexes(a.decode());
       });
     });
-
-    return builder;
   }
 }

@@ -1,5 +1,6 @@
 package eu.toolchain.scribe;
 
+@FunctionalInterface
 public interface Module {
-  <T> EntityMapperBuilder<T> register(final EntityMapperBuilder<T> builder);
+  void register(final EntityMapperBuilder builder);
 }

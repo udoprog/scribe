@@ -2,7 +2,6 @@ package eu.toolchain.scribe;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
@@ -62,11 +61,8 @@ public class Basic {
 
     switch (type) {
       case "scribe":
-        final JsonFactory jsonFactory = new JsonFactory();
-
         final JacksonEntityMapper scribe = new JacksonEntityMapper(
-            EntityMapper.defaultBuilder().register(new JacksonAnnotationsModule()).build(),
-            jsonFactory);
+            EntityMapper.defaultBuilder().install(new JacksonAnnotationsModule()).build());
 
         final JacksonEncoding<Object> foo = scribe.encodingForType(instance.type);
         foo.encodeAsString(instance.instance);

@@ -2,7 +2,7 @@ package eu.toolchain.scribe.jackson;
 
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldsEncoder;
-import eu.toolchain.scribe.entitymapping.EntityFieldEncoder;
+import eu.toolchain.scribe.EntityFieldEncoder;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;

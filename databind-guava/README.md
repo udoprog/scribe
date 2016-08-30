@@ -14,6 +14,6 @@ You can setup the library like the following.
 ```java
 final EntityMapper mapper = EntityMapper
     .defaultBuilder()
-    .register(new GuavaModule())
+    .install(new GuavaModule())
     .build();
 ```

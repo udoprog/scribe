@@ -13,7 +13,7 @@ import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.JavaType;
+import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
 import eu.toolchain.scribe.StreamEncodingRegistry;

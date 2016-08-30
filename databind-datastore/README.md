@@ -6,8 +6,8 @@ This library provides Datastore-based encoding for Scribe.
 You can setup the library like the following.
 
 ```java
-final DatastoreEntityMapper mapper = new DatastoreEntityMapper(
-    EntityMapper.defaultBuilder().build());
+final EntityResolver resolver = EntityMapper.defaultBuilder().build();
+final DatastoreEntityMapper mapper = new DatastoreEntityMapper(resolver);
 ```
 
 Type initialization has to happen before encoding.

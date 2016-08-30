@@ -1,11 +1,7 @@
 package eu.toolchain.scribe;
 
-import eu.toolchain.scribe.creatormethod.CreatorMethod;
-import eu.toolchain.scribe.entitymapping.EntityMapping;
-import eu.toolchain.scribe.fieldreader.FieldReader;
-import eu.toolchain.scribe.typemapping.DecodeValue;
-import eu.toolchain.scribe.typemapping.EncodeValue;
-import eu.toolchain.scribe.typemapping.TypeMapping;
+import eu.toolchain.scribe.reflection.Annotations;
+import eu.toolchain.scribe.reflection.JavaType;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,12 +11,12 @@ import java.util.Optional;
  */
 public interface EntityResolver {
   /**
-   * Create a {@link eu.toolchain.scribe.typemapping.TypeMapping} out of a class.
+   * Create a {@link Mapping} out of a class.
    *
-   * @param cls Class to create {@link eu.toolchain.scribe.typemapping.TypeMapping} from.
-   * @return A {@link eu.toolchain.scribe.typemapping.TypeMapping} created from the given class.
+   * @param cls Class to create {@link Mapping} from.
+   * @return A {@link Mapping} created from the given class.
    */
-  default TypeMapping mapping(Class<?> cls) {
+  default Mapping mapping(Class<?> cls) {
     return mapping(JavaType.of(cls));
   }
 
@@ -33,7 +29,7 @@ public interface EntityResolver {
    * @param type The type to lookup.
    * @return A mapping for the given type.
    */
-  TypeMapping mapping(JavaType type);
+  Mapping mapping(JavaType type);
 
   /**
    * Performed a cached lookup of the given type.
@@ -45,7 +41,7 @@ public interface EntityResolver {
    * @param annotations External annotations associated with the given type.
    * @return A mapping for the given type.
    */
-  TypeMapping mapping(JavaType type, Annotations annotations);
+  Mapping mapping(JavaType type, Annotations annotations);
 
   /**
    * Create an encoder provider for the given factory.
@@ -80,9 +76,9 @@ public interface EntityResolver {
    * Detect a method of creating instances of the given type.
    *
    * @param type Type to create instances of.
-   * @return An optional {@link eu.toolchain.scribe.creatormethod.CreatorMethod}.
+   * @return An optional {@link InstanceBuilder}.
    */
-  Optional<? extends CreatorMethod> detectCreatorMethod(JavaType type);
+  Optional<InstanceBuilder> detectInstanceBuilder(JavaType type);
 
   /**
    * Detect how to read the given field.
@@ -104,7 +100,7 @@ public interface EntityResolver {
    * @param type Entity type to detect mapping for.
    * @return An optional entity mapping for the given type.
    */
-  Optional<EntityMapping> detectEntityMapping(JavaType type);
+  Optional<ClassEncoding> detectEntityMapping(JavaType type);
 
   /**
    * Detect encode-value methods for the given type.

@@ -1,5 +1,6 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.reflection.JavaType;
 import org.junit.Test;
 
 import java.util.List;

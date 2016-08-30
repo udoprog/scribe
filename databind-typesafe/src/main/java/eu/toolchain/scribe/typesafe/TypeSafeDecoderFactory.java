@@ -9,7 +9,7 @@ import eu.toolchain.scribe.DecoderRegistry;
 import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.JavaType;
+import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.typesafe.encoding.BooleanDecoder;
 import eu.toolchain.scribe.typesafe.encoding.ListDecoder;
 import eu.toolchain.scribe.typesafe.encoding.MapDecoder;
