@@ -24,16 +24,8 @@ public class ConstructorEntityDecodeValue implements DecodeValue {
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
-    return targetMapping.<Target, Object>newDecoder(resolver, Flags.empty(), factory).map(
-        parent -> (Decoder<Target, Source>) (path, instance) -> parent
-            .decode(path, instance)
-            .map(value -> {
-              try {
-                return (Source) constructor.newInstance(value);
-              } catch (Exception e) {
-                throw path.error("failed to get value", e);
-              }
-            }));
+    return targetMapping.<Target, Source>newDecoder(resolver, Flags.empty(), factory).map(
+        parent -> new ConstructorEntityDecodeValueDecoder<>(constructor, parent));
   }
 
   public static DecodeValueDetector forAnnotation(final Class<? extends Annotation> annotation) {

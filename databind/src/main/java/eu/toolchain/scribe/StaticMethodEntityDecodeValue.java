@@ -23,17 +23,8 @@ public class StaticMethodEntityDecodeValue implements DecodeValue {
   public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
-    return targetMapping
-        .newDecoder(resolver, Flags.empty(), factory)
-        .map(parent -> (Decoder<Target, Source>) (path, instance) -> {
-          final Object value = parent.decode(path, instance);
-
-          try {
-            return Decoded.of((Source) method.invoke(null, value));
-          } catch (Exception e) {
-            throw path.error("failed to get value", e);
-          }
-        });
+    return targetMapping.<Target, Source>newDecoder(resolver, Flags.empty(), factory).map(
+        parent -> new StaticMethodEntityDecodeValueDecoder<>(parent, method));
   }
 
   public static DecodeValueDetector forAnnotation(

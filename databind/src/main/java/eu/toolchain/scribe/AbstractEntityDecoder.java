@@ -21,7 +21,7 @@ public class AbstractEntityDecoder<Target> implements EntityDecoder<Target, Obje
     final EntityDecoder<Target, Object> sub = byName.get(type);
 
     if (sub == null) {
-      throw new RuntimeException("Sub-type (" + type + ") required, but no such type available");
+      throw path.error("Sub-type (" + type + ") required, but no such type available");
     }
 
     return sub.decode(decoder, path);

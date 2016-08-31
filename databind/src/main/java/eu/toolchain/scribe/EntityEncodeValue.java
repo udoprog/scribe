@@ -22,25 +22,7 @@ public class EntityEncodeValue implements EncodeValue {
       final EntityResolver resolver, final EncoderFactory<Target> factory
   ) {
     return targetMapping.<Target, Source>newEncoder(resolver, Flags.empty(), factory).map(
-        parent -> new Encoder<Target, Source>() {
-          @Override
-          public Target encode(final Context path, final Source instance) {
-            final Source value;
-
-            try {
-              value = (Source) valueMethod.invoke(instance);
-            } catch (Exception e) {
-              throw path.error("failed to get value", e);
-            }
-
-            return parent.encode(path, value);
-          }
-
-          @Override
-          public Target encodeEmpty(final Context path) {
-            return parent.encodeEmpty(path);
-          }
-        });
+        parent -> new EntityEncodeValueEncoder<>(valueMethod, parent));
   }
 
   @SuppressWarnings("unchecked")
@@ -49,27 +31,7 @@ public class EntityEncodeValue implements EncodeValue {
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     return targetMapping.<Target, Source>newStreamEncoder(resolver, Flags.empty(), factory).map(
-        parent -> new StreamEncoder<Target, Source>() {
-          @Override
-          public void streamEncode(
-              final Context path, final Source instance, final Target target
-          ) {
-            final Source value;
-
-            try {
-              value = (Source) valueMethod.invoke(instance);
-            } catch (Exception e) {
-              throw path.error("failed to get value", e);
-            }
-
-            parent.streamEncode(path, value, target);
-          }
-
-          @Override
-          public void streamEncodeEmpty(final Context path, final Target target) {
-            parent.streamEncodeEmpty(path, target);
-          }
-        });
+        parent -> new EntityEncodeValueStreamEncoder<>(valueMethod, parent));
   }
 
   public static EncodeValueDetector forAnnotation(
