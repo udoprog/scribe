@@ -16,7 +16,7 @@ public class TypeSafeEncoding<T> implements StringEncoding<T> {
   private final Encoder<ConfigValue, T> parentEncoder;
   private final Decoder<ConfigValue, T> parentDecoder;
 
-  public boolean isObject() {
+  public boolean isEntity() {
     return parentDecoder instanceof EntityDecoder || parentDecoder instanceof MapDecoder;
   }
 

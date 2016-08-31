@@ -23,7 +23,7 @@ public class TypeSafeTest extends AbstractDatabindTest {
   protected <S> StringEncoding<S> encodingFor(final Class<S> type, final Option... options) {
     final TypeSafeEncoding<S> encoding = mapper.withOptions(options).encodingFor(type);
 
-    if (!encoding.isObject()) {
+    if (!encoding.isEntity()) {
       throw new AssumptionViolatedException(
           "typesafe only supports encoding/decoding to and from objects");
     }
