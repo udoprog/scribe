@@ -3,7 +3,7 @@
 
   <groupId>eu.toolchain.scribe</groupId>
   <artifactId>scribe-parent</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <url>https://github.com/udoprog/scribe</url>
@@ -47,7 +47,7 @@
     <connection>scm:git:git@github.com:udoprog/scribe</connection>
     <developerConnection>scm:git:git@github.com:udoprog/scribe</developerConnection>
     <url>https://github.com/udoprog/scribe</url>
-    <tag>0.2.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
