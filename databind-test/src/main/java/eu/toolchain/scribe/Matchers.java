@@ -5,16 +5,16 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
 public interface Matchers {
-  static Matcher<MappingException> mappingException(final String path) {
-    return new TypeSafeMatcher<MappingException>() {
+  static Matcher<ContextException> contextException(final String path) {
+    return new TypeSafeMatcher<ContextException>() {
       @Override
-      protected boolean matchesSafely(final MappingException item) {
+      protected boolean matchesSafely(final ContextException item) {
         return path.equals(item.getPath().path());
       }
 
       @Override
       public void describeTo(final Description description) {
-        description.appendText("mappingException(" + path + ")");
+        description.appendText("contextException(" + path + ")");
       }
     };
   }

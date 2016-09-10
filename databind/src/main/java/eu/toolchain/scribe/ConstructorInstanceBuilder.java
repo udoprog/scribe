@@ -23,11 +23,11 @@ public class ConstructorInstanceBuilder implements InstanceBuilder {
   private final JavaType.Constructor constructor;
 
   @Override
-  public Object newInstance(final List<Object> arguments) {
+  public Object newInstance(final Context path, final List<Object> arguments) {
     try {
       return constructor.newInstance(arguments.toArray());
     } catch (final Exception e) {
-      throw new RuntimeException(e);
+      throw path.error("failed to create instance using constructor (" + constructor + ")", e);
     }
   }
 

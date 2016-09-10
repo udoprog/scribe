@@ -11,7 +11,7 @@ public class ReadFieldsEntityEncoder<Target, EntityTarget>
   private final EncoderFactory<Target, EntityTarget> factory;
 
   @Override
-  public EntityTarget encode(
+  public EntityTarget encodeEntity(
       final EntityFieldsEncoder<Target, EntityTarget> encoder, final Context path,
       final Object instance, final Runnable callback
   ) {
@@ -23,23 +23,13 @@ public class ReadFieldsEntityEncoder<Target, EntityTarget>
 
       final Context p = path.push(fieldEncoder.getName());
 
-      final Object value;
-
-      try {
-        value = reader.read(instance);
-      } catch (final Exception e) {
-        throw p.error("Failed to read value using " + reader, e);
-      }
+      final Object value = reader.read(p, instance);
 
       if (value == null) {
         throw p.error("Null value read from " + reader);
       }
 
-      try {
-        encoder.encodeField(fieldEncoder, p, value);
-      } catch (Exception e) {
-        throw p.error("Failed to encode field", e);
-      }
+      encoder.encodeField(fieldEncoder, p, value);
     }
 
     return encoder.build();
@@ -47,7 +37,7 @@ public class ReadFieldsEntityEncoder<Target, EntityTarget>
 
   @Override
   public EntityTarget encodeEntity(final Context path, final Object instance) {
-    return encode(factory.newEntityEncoder(), path, instance, EntityEncoder.EMPTY_CALLBACK);
+    return encodeEntity(factory.newEntityEncoder(), path, instance, EntityEncoder.EMPTY_CALLBACK);
   }
 
   @Override

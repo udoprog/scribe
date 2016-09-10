@@ -18,11 +18,11 @@ public class GetterFieldReader implements FieldReader {
   private final JavaType fieldType;
 
   @Override
-  public Object read(Object instance) {
+  public Object read(final Context path, final Object instance) {
     try {
       return getter.invoke(instance);
     } catch (final Exception e) {
-      throw new RuntimeException(e);
+      throw path.error(e);
     }
   }
 

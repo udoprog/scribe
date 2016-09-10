@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.ConverterEncoding;
 import eu.toolchain.scribe.ConverterMapper;
-import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EntityConverterMapper;
@@ -115,12 +114,10 @@ public class JacksonMapper
       public Object decode(String json) {
         final JsonNode node;
 
-        final Decoded<Object> decoded;
-
         try (final JsonParser parser = factory.createParser(json)) {
           node = JsonNode.fromParser(parser);
         } catch (final IOException e) {
-          throw new RuntimeException("Failed to generate", e);
+          throw new RuntimeException("failed to generate node", e);
         }
 
         return decoder
@@ -130,14 +127,16 @@ public class JacksonMapper
 
       @Override
       public String encode(Object instance) {
+        final Context path = Context.ROOT;
+
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
           try (final JsonGenerator generator = factory.createGenerator(out)) {
-            streamEncoder.streamEncode(Context.ROOT, instance, generator);
+            streamEncoder.streamEncode(path, instance, generator);
           }
 
           return new String(out.toByteArray(), StandardCharsets.UTF_8);
-        } catch (final IOException e) {
-          throw new RuntimeException("Failed to generate", e);
+        } catch (final Exception e) {
+          throw path.error("failed to generate json", e);
         }
       }
     };

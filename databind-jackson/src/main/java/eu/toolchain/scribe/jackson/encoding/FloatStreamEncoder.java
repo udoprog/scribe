@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import lombok.Data;
 
-import java.io.IOException;
-
 @Data
 public class FloatStreamEncoder extends AbstractStreamEncoder<Float> {
   @Override
@@ -14,8 +12,8 @@ public class FloatStreamEncoder extends AbstractStreamEncoder<Float> {
   ) {
     try {
       target.writeNumber(instance);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error(e);
     }
   }
 

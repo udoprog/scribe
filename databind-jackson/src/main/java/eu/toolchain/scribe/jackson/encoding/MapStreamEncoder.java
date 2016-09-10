@@ -5,7 +5,6 @@ import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.StreamEncoder;
 import lombok.Data;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Data
@@ -18,8 +17,8 @@ public class MapStreamEncoder<ValueSource> extends AbstractStreamEncoder<Map<Str
   ) {
     try {
       target.writeStartObject();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error("failed to write start of object", e);
     }
 
     for (final Map.Entry<String, ValueSource> entry : instance.entrySet()) {
@@ -28,8 +27,8 @@ public class MapStreamEncoder<ValueSource> extends AbstractStreamEncoder<Map<Str
       value.streamEncodeOptionally(p, entry.getValue(), target, callback -> {
         try {
           target.writeFieldName(entry.getKey());
-        } catch (final IOException e) {
-          throw new RuntimeException(e);
+        } catch (final Exception e) {
+          throw p.error("failed to write field name", e);
         }
 
         callback.run();
@@ -38,8 +37,8 @@ public class MapStreamEncoder<ValueSource> extends AbstractStreamEncoder<Map<Str
 
     try {
       target.writeEndObject();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error("failed to write end of object", e);
     }
   }
 }

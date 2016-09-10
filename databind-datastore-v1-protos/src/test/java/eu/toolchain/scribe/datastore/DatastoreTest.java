@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static eu.toolchain.scribe.Matchers.mappingException;
+import static eu.toolchain.scribe.Matchers.contextException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -224,7 +224,7 @@ public class DatastoreTest {
 
   @Test
   public void testMissingField() {
-    exception.expect(mappingException("field"));
+    exception.expect(contextException("field"));
 
     final ConverterEncoding<MissingField, Value> encoding = mapper.valueEncodingFor(MissingField.class);
     final Value value = Value.newBuilder().setEntityValue(Entity.newBuilder().build()).build();

@@ -12,12 +12,18 @@ public class AbstractEntityDecoder<Target, EntityTarget>
   final TypeEntityFieldDecoder<Target> typeDecoder;
 
   @Override
-  public Object decode(
-      final EntityFieldsDecoder<Target> decoder, final Context path
+  public Object decodeEntity(final Context path, final EntityTarget entity) {
+    final EntityFieldsDecoder<Target> decoder = factory.newEntityDecoder(entity);
+    return decodeEntity(path, entity, decoder);
+  }
+
+  @Override
+  public Object decodeEntity(
+      final Context path, final EntityTarget entity, final EntityFieldsDecoder<Target> decoder
   ) {
     final String type = decoder
         .decodeField(typeDecoder, path.push(typeDecoder.getName()))
-        .orElseThrow(() -> new RuntimeException("No type information available"));
+        .orElseThrow(() -> path.error("No type information available"));
 
     final EntityDecoder<Target, EntityTarget, Object> sub = byName.get(type);
 
@@ -25,12 +31,7 @@ public class AbstractEntityDecoder<Target, EntityTarget>
       throw path.error("Sub-type (" + type + ") required, but no such type available");
     }
 
-    return sub.decode(decoder, path);
-  }
-
-  @Override
-  public Object decodeEntity(final Context path, final EntityTarget entity) {
-    return decode(factory.newEntityDecoder(entity), path);
+    return sub.decodeEntity(path, entity, decoder);
   }
 
   @Override

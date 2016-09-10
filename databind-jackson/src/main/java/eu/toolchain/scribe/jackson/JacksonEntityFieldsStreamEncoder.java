@@ -2,8 +2,8 @@ package eu.toolchain.scribe.jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
-import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import eu.toolchain.scribe.EntityFieldStreamEncoder;
+import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -11,20 +11,20 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JacksonEntityFieldsStreamEncoder implements EntityFieldsStreamEncoder<JsonGenerator> {
   @Override
-  public void encodeStart(final JsonGenerator generator) {
+  public void encodeStart(final Context path, final JsonGenerator generator) {
     try {
       generator.writeStartObject();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error("failed to write start of object", e);
     }
   }
 
   @Override
-  public void encodeEnd(final JsonGenerator generator) {
+  public void encodeEnd(final Context path, final JsonGenerator generator) {
     try {
       generator.writeEndObject();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error("failed to write end of object", e);
     }
   }
 

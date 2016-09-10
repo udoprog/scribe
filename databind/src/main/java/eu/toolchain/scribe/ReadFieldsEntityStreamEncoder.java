@@ -14,7 +14,7 @@ public class ReadFieldsEntityStreamEncoder<Target> implements EntityStreamEncode
       final EntityFieldsStreamEncoder<Target> encoder, final Context path, final Object instance,
       final Target target, final Runnable callback
   ) {
-    encoder.encodeStart(target);
+    encoder.encodeStart(path, target);
 
     callback.run();
 
@@ -24,26 +24,16 @@ public class ReadFieldsEntityStreamEncoder<Target> implements EntityStreamEncode
 
       final Context p = path.push(fieldEncoder.getName());
 
-      final Object value;
-
-      try {
-        value = reader.read(instance);
-      } catch (final Exception e) {
-        throw p.error("failed to read value", e);
-      }
+      final Object value = reader.read(p, instance);
 
       if (value == null) {
         throw p.error("null value read");
       }
 
-      try {
-        encoder.encodeField(fieldEncoder, p, value, target);
-      } catch (Exception e) {
-        throw p.error("failed to encode", e);
-      }
+      encoder.encodeField(fieldEncoder, p, value, target);
     }
 
-    encoder.encodeEnd(target);
+    encoder.encodeEnd(path, target);
   }
 
   @Override

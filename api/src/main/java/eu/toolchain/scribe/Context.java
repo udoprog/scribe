@@ -10,16 +10,16 @@ public interface Context {
 
   Context parent();
 
-  default RuntimeException error(Throwable e) {
-    return new MappingException(this, e);
+  default ContextException error(Throwable e) {
+    return new ContextException(this, e);
   }
 
-  default RuntimeException error(String message) {
-    return new MappingException(this, message);
+  default ContextException error(String message) {
+    return new ContextException(this, message);
   }
 
-  default MappingException error(String message, Throwable e) {
-    return new MappingException(this, message, e);
+  default ContextException error(String message, Throwable e) {
+    return new ContextException(this, message, e);
   }
 
   default String path() {

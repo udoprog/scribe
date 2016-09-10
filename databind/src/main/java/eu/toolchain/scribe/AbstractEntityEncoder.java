@@ -13,17 +13,17 @@ public class AbstractEntityEncoder<Target, EntityTarget>
   private final EntityFieldEncoder<Target, String> typeEncoder;
 
   @Override
-  public EntityTarget encode(
+  public EntityTarget encodeEntity(
       final EntityFieldsEncoder<Target, EntityTarget> encoder, final Context path,
       final Object instance, final Runnable callback
   ) {
     final TypeEntry<Target, EntityTarget> sub = byType.get(JavaType.of(instance.getClass()));
 
     if (sub == null) {
-      throw new RuntimeException("Could not resolve subtype for: " + instance);
+      throw path.error("Could not resolve subtype for (" + instance + ")");
     }
 
-    return sub.getEncoder().encode(encoder, path, instance, () -> {
+    return sub.getEncoder().encodeEntity(encoder, path, instance, () -> {
       callback.run();
       encoder.encodeField(typeEncoder, path.push(typeEncoder.getName()), sub.getType());
     });
@@ -31,7 +31,7 @@ public class AbstractEntityEncoder<Target, EntityTarget>
 
   @Override
   public EntityTarget encodeEntity(final Context path, final Object instance) {
-    return encode(factory.newEntityEncoder(), path, instance, EntityEncoder.EMPTY_CALLBACK);
+    return encodeEntity(factory.newEntityEncoder(), path, instance, EntityEncoder.EMPTY_CALLBACK);
   }
 
   @Override

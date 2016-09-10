@@ -5,7 +5,6 @@ import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.StreamEncoder;
 import lombok.Data;
 
-import java.io.IOException;
 import java.util.List;
 
 @Data
@@ -20,8 +19,8 @@ public class ListStreamEncoder<ElementSource> extends AbstractStreamEncoder<List
 
     try {
       target.writeStartArray();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error(e);
     }
 
     for (final ElementSource value : instance) {
@@ -31,8 +30,8 @@ public class ListStreamEncoder<ElementSource> extends AbstractStreamEncoder<List
 
     try {
       target.writeEndArray();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (final Exception e) {
+      throw path.error(e);
     }
   }
 }

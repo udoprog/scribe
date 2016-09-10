@@ -8,10 +8,10 @@ public interface EntityEncoder<Target, EntityTarget, Source> extends Encoder<Tar
   Runnable EMPTY_CALLBACK = () -> {
   };
 
-  EntityTarget encode(
+  EntityTarget encodeEntity(
       EntityFieldsEncoder<Target, EntityTarget> decoder, Context path, Source instance,
       Runnable callback
   );
 
-  EntityTarget encodeEntity(Context path, Object instance);
+  EntityTarget encodeEntity(Context path, Source instance);
 }

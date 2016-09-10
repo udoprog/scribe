@@ -13,7 +13,7 @@ public interface InstanceBuilder {
    * @param arguments Arguments to build new instance from.
    * @return The new instance.
    */
-  Object newInstance(List<Object> arguments);
+  Object newInstance(Context path, List<Object> arguments);
 
   /**
    * Get the list of fields detected by the creator method.

@@ -7,7 +7,7 @@ import eu.toolchain.scribe.reflection.JavaType;
  * Read the value of individual fields.
  */
 public interface FieldReader {
-  Object read(Object instance);
+  Object read(Context path, Object instance);
 
   Annotations annotations();
 
