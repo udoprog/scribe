@@ -47,9 +47,10 @@ import static eu.toolchain.scribe.TypeMatcher.isPrimitive;
 import static eu.toolchain.scribe.TypeMatcher.type;
 
 @RequiredArgsConstructor
-public class DatastoreEncodingFactory implements EncoderFactory<Value>, DecoderFactory<Value> {
-  private static EncoderRegistry<Value> encoders = new EncoderRegistry<>();
-  private static DecoderRegistry<Value> decoders = new DecoderRegistry<>();
+public class DatastoreEncodingFactory
+    implements EncoderFactory<Value, Entity>, DecoderFactory<Value, Entity> {
+  private static EncoderRegistry<Value, Entity> encoders = new EncoderRegistry<>();
+  private static DecoderRegistry<Value, Entity> decoders = new DecoderRegistry<>();
 
   private final EntityResolver resolver;
 
@@ -144,20 +145,32 @@ public class DatastoreEncodingFactory implements EncoderFactory<Value>, DecoderF
   }
 
   @Override
-  public EntityFieldsEncoder<Value> newEntityEncoder() {
+  public EntityFieldsEncoder<Value, Entity> newEntityEncoder() {
     return new DatastoreEntityFieldsEncoder();
   }
 
   @Override
-  public Decoded<EntityFieldsDecoder<Value>> newEntityDecoder(final Value instance) {
+  public EntityFieldsDecoder<Value> newEntityDecoder(final Entity entity) {
+    return new DatastoreEntityFieldsDecoder(
+        () -> entity.hasKey() ? Decoded.of(Value.newBuilder().setKeyValue(entity.getKey()).build())
+            : Decoded.absent(), entity.getProperties());
+  }
+
+  @Override
+  public Value entityAsValue(final Entity entity) {
+    return Value.newBuilder().setEntityValue(entity).build();
+  }
+
+  @Override
+  public Decoded<Entity> valueAsEntity(final Value instance) {
     switch (instance.getValueTypeCase()) {
       case ENTITY_VALUE:
-        final Entity entity = instance.getEntityValue();
-        return Decoded.of(new DatastoreEntityFieldsDecoder(() -> entity.hasKey() ? Decoded.of(
-            Value.newBuilder().setKeyValue(entity.getKey()).build()) : Decoded.absent(),
-            entity.getProperties()));
-      default:
+        return Decoded.of(instance.getEntityValue());
+      case NULL_VALUE:
         return Decoded.absent();
+      default:
+        throw new IllegalArgumentException(
+            "Expected entity but got " + instance.getValueTypeCase());
     }
   }
 }

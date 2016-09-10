@@ -90,8 +90,8 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public <Target> TypeEncoderProvider<Target> encoderFor(
-      final EncoderFactory<Target> factory
+  public <Target, EntityTarget> TypeEncoderProvider<Target> encoderFor(
+      final EncoderFactory<Target, EntityTarget> factory
   ) {
     return new TypeEncoderProvider<Target>() {
       @Override
@@ -119,8 +119,8 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public <Target> TypeDecoderProvider<Target> decoderFor(
-      final DecoderFactory<Target> factory
+  public <Target, EntityTarget> TypeDecoderProvider<Target> decoderFor(
+      final DecoderFactory<Target, EntityTarget> factory
   ) {
     return new TypeDecoderProvider<Target>() {
       @Override

@@ -7,8 +7,10 @@ import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EntityDecoder;
+import eu.toolchain.scribe.EntityEncoder;
 import eu.toolchain.scribe.StringEncoding;
 import eu.toolchain.scribe.typesafe.encoding.MapDecoder;
+import eu.toolchain.scribe.typesafe.encoding.MapEncoder;
 import lombok.Data;
 
 @Data
@@ -17,7 +19,8 @@ public class TypeSafeEncoding<T> implements StringEncoding<T> {
   private final Decoder<ConfigValue, T> parentDecoder;
 
   public boolean isEntity() {
-    return parentDecoder instanceof EntityDecoder || parentDecoder instanceof MapDecoder;
+    return (parentDecoder instanceof EntityDecoder || parentDecoder instanceof MapDecoder) &&
+        (parentEncoder instanceof EntityEncoder || parentEncoder instanceof MapEncoder);
   }
 
   public ConfigValue encode(Context path, T instance) {

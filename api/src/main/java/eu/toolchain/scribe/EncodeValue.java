@@ -9,8 +9,8 @@ public interface EncodeValue {
 
   Mapping getTargetMapping();
 
-  <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      EntityResolver resolver, EncoderFactory<Target> factory, Flags flags
+  <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory, Flags flags
   );
 
   <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(

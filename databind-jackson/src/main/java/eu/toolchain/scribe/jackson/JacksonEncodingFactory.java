@@ -53,12 +53,14 @@ import static eu.toolchain.scribe.TypeMatcher.type;
 
 @RequiredArgsConstructor
 public class JacksonEncodingFactory
-    implements EncoderFactory<JsonNode>, DecoderFactory<JsonNode>,
-    StreamEncoderFactory<JsonGenerator> {
+    implements EncoderFactory<JsonNode, JsonNode.ObjectJsonNode>, DecoderFactory<JsonNode,
+    JsonNode.ObjectJsonNode>, StreamEncoderFactory<JsonGenerator> {
   private static StreamEncodingRegistry<JsonGenerator> streamRegistry =
       new StreamEncodingRegistry<>();
-  private static EncoderRegistry<JsonNode> encoders = new EncoderRegistry<>();
-  private static DecoderRegistry<JsonNode> decoders = new DecoderRegistry<>();
+  private static EncoderRegistry<JsonNode, JsonNode.ObjectJsonNode> encoders =
+      new EncoderRegistry<>();
+  private static DecoderRegistry<JsonNode, JsonNode.ObjectJsonNode> decoders =
+      new DecoderRegistry<>();
 
   static {
     streamRegistry.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
@@ -169,7 +171,7 @@ public class JacksonEncodingFactory
   }
 
   @Override
-  public EntityFieldsEncoder<JsonNode> newEntityEncoder() {
+  public EntityFieldsEncoder<JsonNode, JsonNode.ObjectJsonNode> newEntityEncoder() {
     return new JacksonEntityFieldsEncoder();
   }
 
@@ -178,18 +180,30 @@ public class JacksonEncodingFactory
     return new JacksonEntityFieldsStreamEncoder();
   }
 
-  private static final AbstractVisitor<Map<String, JsonNode>> OBJECT_VISITOR =
-      new AbstractVisitor<Map<String, JsonNode>>() {
+  private static final AbstractVisitor<JsonNode.ObjectJsonNode> OBJECT_VISITOR =
+      new AbstractVisitor<JsonNode.ObjectJsonNode>() {
         @Override
-        public Decoded<Map<String, JsonNode>> visitObject(
+        public Decoded<JsonNode.ObjectJsonNode> visitObject(
             final JsonNode.ObjectJsonNode object
         ) {
-          return Decoded.of(object.getFields());
+          return Decoded.of(object);
         }
       };
 
   @Override
-  public Decoded<EntityFieldsDecoder<JsonNode>> newEntityDecoder(final JsonNode instance) {
-    return instance.visit(OBJECT_VISITOR).map(JacksonEntityFieldsDecoder::new);
+  public EntityFieldsDecoder<JsonNode> newEntityDecoder(
+      final JsonNode.ObjectJsonNode instance
+  ) {
+    return new JacksonEntityFieldsDecoder(instance.getFields());
+  }
+
+  @Override
+  public JsonNode entityAsValue(final JsonNode.ObjectJsonNode entity) {
+    return entity;
+  }
+
+  @Override
+  public Decoded<JsonNode.ObjectJsonNode> valueAsEntity(final JsonNode instance) {
+    return instance.visit(OBJECT_VISITOR);
   }
 }

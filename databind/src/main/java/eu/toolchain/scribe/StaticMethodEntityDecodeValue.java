@@ -19,10 +19,11 @@ public class StaticMethodEntityDecodeValue implements DecodeValue {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
-    return targetMapping.<Target, Source>newDecoder(resolver, factory).map(
+    return targetMapping.<Target, EntityTarget, Source>newDecoder(resolver, factory).map(
         parent -> new StaticMethodEntityDecodeValueDecoder<>(parent, method));
   }
 

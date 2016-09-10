@@ -14,8 +14,8 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   private final Flags flags;
 
   @Override
-  public <Target> Stream<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, EntityTarget> Stream<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     return mapping
         .newEncoder(resolver, factory, flags)
@@ -34,8 +34,8 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   }
 
   @Override
-  public <Target> Stream<BuilderEntityFieldDecoder<Target>> newEntityFieldDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+  public <Target, EntityTarget> Stream<BuilderEntityFieldDecoder<Target>> newEntityFieldDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     return mapping
         .newDecoder(resolver, factory, flags)

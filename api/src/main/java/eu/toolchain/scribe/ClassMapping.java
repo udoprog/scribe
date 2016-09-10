@@ -10,8 +10,9 @@ public interface ClassMapping extends Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
+  default <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
     return Stream.of((Encoder<Target, Source>) newEntityTypeEncoder(resolver, factory));
   }
@@ -26,21 +27,21 @@ public interface ClassMapping extends Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory, final Flags flags
+  default <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory, final Flags flags
   ) {
     return Stream.of((Decoder<Target, Source>) newEntityTypeDecoder(resolver, factory));
   }
 
-  <Target> EntityEncoder<Target, Object> newEntityTypeEncoder(
-      EntityResolver resolver, EncoderFactory<Target> factory
+  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityTypeEncoder(
+      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
   );
 
   <Target> EntityStreamEncoder<Target, Object> newEntityTypeStreamEncoder(
       EntityResolver resolver, StreamEncoderFactory<Target> factory
   );
 
-  <Target> EntityDecoder<Target, Object> newEntityTypeDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory
+  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityTypeDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
   );
 }

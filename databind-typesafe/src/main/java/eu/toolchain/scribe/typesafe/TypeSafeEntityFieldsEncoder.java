@@ -1,19 +1,18 @@
 package eu.toolchain.scribe.typesafe;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
-import com.typesafe.config.ConfigValueFactory;
-
 import eu.toolchain.scribe.Context;
-import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityFieldEncoder;
+import eu.toolchain.scribe.EntityFieldsEncoder;
+import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 @RequiredArgsConstructor
-public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigValue> {
+public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigValue, Config> {
   final Map<String, ConfigValue> object = new HashMap<>();
 
   @Override
@@ -25,12 +24,12 @@ public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigVa
   }
 
   @Override
-  public ConfigValue buildEmpty(final Context path) {
-    return ConfigValueFactory.fromAnyRef(null);
+  public Config buildEmpty(final Context path) {
+    return ConfigFactory.empty();
   }
 
   @Override
-  public ConfigValue build() {
-    return ConfigValueFactory.fromMap(object);
+  public Config build() {
+    return ConfigFactory.parseMap(object);
   }
 }

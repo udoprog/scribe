@@ -1,9 +1,9 @@
 package eu.toolchain.scribe;
 
-public interface EntityFieldsEncoder<Target> {
+public interface EntityFieldsEncoder<Target, EntityTarget> {
   <Source> void encodeField(EntityFieldEncoder<Target, Source> field, Context path, Source value);
 
-  Target buildEmpty(Context path);
+  EntityTarget buildEmpty(Context path);
 
-  Target build();
+  EntityTarget build();
 }

@@ -48,8 +48,9 @@ public class OptionalMapping<T> implements Mapping {
   }
 
   @Override
-  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
     final Function<Encoder<Target, Source>, OptionalEncoder<Target, Source>> encoder;
 
@@ -78,7 +79,8 @@ public class OptionalMapping<T> implements Mapping {
       };
     }
 
-    return component.<Target, Source>newEncoder(resolver, factory, flags).map(encoder);
+    return component.<Target, EntityTarget, Source>newEncoder(resolver, factory, flags).map(
+        encoder);
   }
 
   @Override
@@ -121,12 +123,14 @@ public class OptionalMapping<T> implements Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
-    return component.<Target, Source>newDecoder(resolver, factory, flags).map(parent -> {
-      return (Decoder<Target, Source>) new OptionalDecoder<>(parent);
-    });
+    return component.<Target, EntityTarget, Source>newDecoder(resolver, factory, flags).map(
+        parent -> {
+          return (Decoder<Target, Source>) new OptionalDecoder<>(parent);
+        });
   }
 
   @RequiredArgsConstructor

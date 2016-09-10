@@ -229,4 +229,29 @@ public class DatastoreTest {
 
     encoding.decode(value);
   }
+
+  @Data
+  public static class EntityEncoding {
+    private final String field;
+  }
+
+  /**
+   * Test special entity encoding support for datastore module.
+   */
+  @Test
+  public void testEntityEncoding() {
+    final DatastoreEntityEncoding<EntityEncoding> encoding =
+        mapper.entityEncodingFor(EntityEncoding.class);
+
+    final EntityEncoding expected = new EntityEncoding("foo");
+
+    final Entity.Builder builder = Entity.newBuilder();
+    builder.getMutableProperties().put("field", Value.newBuilder().setStringValue("foo").build());
+
+    final Entity expectedEntity = builder.build();
+    final Entity value = encoding.encodeEntity(expected);
+
+    assertThat(value, is(expectedEntity));
+    assertThat(encoding.decodeEntity(value), is(expected));
+  }
 }

@@ -26,8 +26,8 @@ import static eu.toolchain.scribe.TypeMatcher.isPrimitive;
 import static eu.toolchain.scribe.TypeMatcher.type;
 
 @RequiredArgsConstructor
-public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
-  private static DecoderRegistry<ConfigValue> decoders = new DecoderRegistry<>();
+public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue, ConfigObject> {
+  private static DecoderRegistry<ConfigValue, ConfigObject> decoders = new DecoderRegistry<>();
 
   static {
     decoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
@@ -47,8 +47,7 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
       return resolver.mapping(first).newDecoder(resolver, factory).map(ListDecoder::new);
     });
 
-    decoders.setup(type(String.class),
-        (resolver, type, factory) -> Stream.of(StringDecoder.get()));
+    decoders.setup(type(String.class), (resolver, type, factory) -> Stream.of(StringDecoder.get()));
 
     decoders.setup(isPrimitive(Boolean.class),
         (resolver, type, factory) -> Stream.of(BooleanDecoder.get()));
@@ -73,21 +72,21 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
   }
 
   @Override
-  public Decoded<EntityFieldsDecoder<ConfigValue>> newEntityDecoder(
-      final ConfigValue instance
+  public EntityFieldsDecoder<ConfigValue> newEntityDecoder(
+      final ConfigObject instance
   ) {
-    final Map<String, ConfigValue> values;
+    return new TypeSafeEntityFieldsDecoder(instance);
+  }
 
+  @Override
+  public Decoded<ConfigObject> valueAsEntity(final ConfigValue instance) {
     switch (instance.valueType()) {
       case OBJECT:
-        values = ((ConfigObject) instance);
-        break;
+        return Decoded.of(((ConfigObject) instance));
       case NULL:
         return Decoded.absent();
       default:
         throw new IllegalArgumentException("Expected object: " + instance);
     }
-
-    return Decoded.of(new TypeSafeEntityFieldsDecoder(values));
   }
 }

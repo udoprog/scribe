@@ -19,8 +19,8 @@ public class MethodClassEncoding implements ClassEncoding {
   private final InstanceBuilder instanceBuilder;
 
   @Override
-  public <Target> EntityEncoder<Target, Object> newEntityEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     final ArrayList<ReadFieldsEntityEncoder.Field<Target, Object>> fields = new ArrayList<>();
 
@@ -53,8 +53,8 @@ public class MethodClassEncoding implements ClassEncoding {
   }
 
   @Override
-  public <Target> EntityDecoder<Target, Object> newEntityDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     final ArrayList<EntityFieldDecoder<Target, Object>> fields = new ArrayList<>();
 

@@ -1,6 +1,8 @@
 package eu.toolchain.scribe.datastore;
 
 import com.google.datastore.v1.Value;
+import eu.toolchain.scribe.Decoder;
+import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Option;
 import eu.toolchain.scribe.TypeDecoderProvider;
@@ -27,15 +29,29 @@ public class DatastoreEntityMapper {
   }
 
   public DatastoreEncoding<Object> encodingForType(final Type type) {
-    return new DatastoreEncoding<>(valueEncoder.newEncoderForType(type), valueDecoder.newDecoderForType(type));
+    final Encoder<Value, Object> encoder = valueEncoder.newEncoderForType(type);
+    final Decoder<Value, Object> decoder = valueDecoder.newDecoderForType(type);
+    return new DatastoreEncoding<>(encoder, decoder);
   }
 
   public <T> DatastoreEncoding<T> encodingFor(final Class<T> type) {
-    return new DatastoreEncoding<>(valueEncoder.newEncoder(type), valueDecoder.newDecoder(type));
+    final Encoder<Value, T> encoder = valueEncoder.newEncoder(type);
+    final Decoder<Value, T> decoder = valueDecoder.newDecoder(type);
+    return new DatastoreEncoding<>(encoder, decoder);
   }
 
   public <T> DatastoreEncoding<T> encodingFor(final TypeReference<T> type) {
-    return new DatastoreEncoding<>(valueEncoder.newEncoder(type), valueDecoder.newDecoder(type));
+    final Encoder<Value, T> encoder = valueEncoder.newEncoder(type);
+    final Decoder<Value, T> decoder = valueDecoder.newDecoder(type);
+    return new DatastoreEncoding<>(encoder, decoder);
+  }
+
+  public <T> DatastoreEntityEncoding<T> entityEncodingFor(final Class<T> type) {
+    return encodingFor(type).asEntityEncoding();
+  }
+
+  public <T> DatastoreEntityEncoding<T> entityEncodingFor(final TypeReference<T> type) {
+    return encodingFor(type).asEntityEncoding();
   }
 
   public DatastoreEntityMapper withOptions(final Option... options) {

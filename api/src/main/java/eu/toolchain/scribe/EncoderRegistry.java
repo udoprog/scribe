@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class EncoderRegistry<Target> {
-  private final List<EncoderPair<Target, ?>> encoders = new ArrayList<>();
+public class EncoderRegistry<Target, EntityTarget> {
+  private final List<EncoderPair<Target, EntityTarget, ?>> encoders = new ArrayList<>();
 
   public <Source> void constant(
       final TypeMatcher matcher, final Encoder<Target, Source> encoder
@@ -27,14 +27,15 @@ public class EncoderRegistry<Target> {
   }
 
   public <Source> void setup(
-      final TypeMatcher matcher, final EncoderBuilder<Target, Source> encoder
+      final TypeMatcher matcher, final EncoderBuilder<Target, EntityTarget, Source> encoder
   ) {
     this.encoders.add(new EncoderPair<>(matcher, encoder));
   }
 
   @SuppressWarnings("unchecked")
   public <Source> Stream<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final JavaType type, final EncoderFactory<Target> encoder
+      final EntityResolver resolver, final JavaType type,
+      final EncoderFactory<Target, EntityTarget> encoder
   ) {
     return encoders.stream().filter(p -> p.matcher.matches(type)).flatMap(p -> {
       final Stream<? extends Encoder<Target, ?>> apply = p.encoder.apply(resolver, type, encoder);
@@ -43,15 +44,15 @@ public class EncoderRegistry<Target> {
   }
 
   @Data
-  static class EncoderPair<T, O> {
+  static class EncoderPair<T, E, O> {
     private final TypeMatcher matcher;
-    private final EncoderBuilder<T, O> encoder;
+    private final EncoderBuilder<T, E, O> encoder;
   }
 
   @FunctionalInterface
-  public interface EncoderBuilder<T, O> {
+  public interface EncoderBuilder<T, E, O> {
     Stream<Encoder<T, O>> apply(
-        EntityResolver resolver, JavaType type, EncoderFactory<T> encoder
+        EntityResolver resolver, JavaType type, EncoderFactory<T, E> encoder
     );
   }
 }

@@ -50,7 +50,9 @@ public interface EntityResolver {
    * @param <Target> Target type of the provider.
    * @return A type encoder provider.
    */
-  <Target> TypeEncoderProvider<Target> encoderFor(final EncoderFactory<Target> factory);
+  <Target, EntityTarget> TypeEncoderProvider<Target> encoderFor(
+      final EncoderFactory<Target, EntityTarget> factory
+  );
 
   /**
    * Create a stream encoder provider for the given factory.
@@ -70,7 +72,9 @@ public interface EntityResolver {
    * @param <Target> Target type of the provider.
    * @return A type decoder provider.
    */
-  <Target> TypeDecoderProvider<Target> decoderFor(final DecoderFactory<Target> factory);
+  <Target, EntityTarget> TypeDecoderProvider<Target> decoderFor(
+      final DecoderFactory<Target, EntityTarget> factory
+  );
 
   /**
    * Detect a method of creating instances of the given type.

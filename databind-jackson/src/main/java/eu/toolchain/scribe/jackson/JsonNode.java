@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,12 @@ public interface JsonNode {
       }
 
       return new ObjectJsonNode(fields);
+    }
+
+    private static final ObjectJsonNode EMPTY = new ObjectJsonNode(Collections.emptyMap());
+
+    public static ObjectJsonNode empty() {
+      return EMPTY;
     }
   }
 

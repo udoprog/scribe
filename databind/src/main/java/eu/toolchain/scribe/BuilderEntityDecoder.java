@@ -6,14 +6,15 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class BuilderEntityDecoder<Target> implements EntityDecoder<Target, Object> {
+public class BuilderEntityDecoder<Target, EntityTarget>
+    implements EntityDecoder<Target, EntityTarget, Object> {
   private final List<BuilderEntityFieldDecoder<Target>> fields;
   private final JavaType.Method newInstance;
   private final JavaType.Method build;
-  private final DecoderFactory<Target> factory;
+  private final DecoderFactory<Target, EntityTarget> factory;
 
   @Override
-  public Decoded<Object> decode(
+  public Object decode(
       final EntityFieldsDecoder<Target> encoder, final Context path
   ) {
     final Object builder;
@@ -40,7 +41,7 @@ public class BuilderEntityDecoder<Target> implements EntityDecoder<Target, Objec
     }
 
     try {
-      return Decoded.of(build.invoke(builder));
+      return build.invoke(builder);
     } catch (final Exception e) {
       throw new RuntimeException("Could not build instance using " + build, e);
     }
@@ -48,6 +49,11 @@ public class BuilderEntityDecoder<Target> implements EntityDecoder<Target, Objec
 
   @Override
   public Decoded<Object> decode(final Context path, final Target instance) {
-    return factory.newEntityDecoder(instance).flatMap(d -> decode(d, path));
+    return factory.valueAsEntity(instance).map(i -> decodeEntity(path, i));
+  }
+
+  @Override
+  public Object decodeEntity(final Context path, final EntityTarget entity) {
+    return decode(factory.newEntityDecoder(entity), path);
   }
 }

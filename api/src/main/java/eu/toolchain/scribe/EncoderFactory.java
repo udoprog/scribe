@@ -4,7 +4,7 @@ import eu.toolchain.scribe.reflection.JavaType;
 
 import java.util.stream.Stream;
 
-public interface EncoderFactory<Target> {
+public interface EncoderFactory<Target, EntityTarget> {
   <Source> Stream<Encoder<Target, Source>> newEncoder(
       EntityResolver resolver, JavaType type, Flags flags
   );
@@ -15,5 +15,7 @@ public interface EncoderFactory<Target> {
     return newEncoder(resolver, type, Flags.empty());
   }
 
-  EntityFieldsEncoder<Target> newEntityEncoder();
+  EntityFieldsEncoder<Target, EntityTarget> newEntityEncoder();
+
+  Target entityAsValue(EntityTarget entity);
 }

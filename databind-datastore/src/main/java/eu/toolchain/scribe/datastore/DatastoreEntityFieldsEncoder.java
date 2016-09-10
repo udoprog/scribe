@@ -2,15 +2,14 @@ package eu.toolchain.scribe.datastore;
 
 import com.google.datastore.v1.Entity;
 import com.google.datastore.v1.Value;
-import com.google.protobuf.NullValue;
 import eu.toolchain.scribe.Context;
+import eu.toolchain.scribe.EntityFieldEncoder;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.EntityFieldEncoder;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class DatastoreEntityFieldsEncoder implements EntityFieldsEncoder<Value> {
+public class DatastoreEntityFieldsEncoder implements EntityFieldsEncoder<Value, Entity> {
   final Entity.Builder object = Entity.newBuilder();
 
   @Override
@@ -34,12 +33,12 @@ public class DatastoreEntityFieldsEncoder implements EntityFieldsEncoder<Value> 
   }
 
   @Override
-  public Value buildEmpty(final Context path) {
-    return Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
+  public Entity buildEmpty(final Context path) {
+    return Entity.newBuilder().build();
   }
 
   @Override
-  public Value build() {
-    return Value.newBuilder().setEntityValue(object.build()).build();
+  public Entity build() {
+    return object.build();
   }
 }

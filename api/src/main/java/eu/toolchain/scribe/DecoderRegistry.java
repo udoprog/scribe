@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class DecoderRegistry<Target> {
-  private final List<MatcherPair<DecoderBuilder<Target, ?>>> decoders = new ArrayList<>();
+public class DecoderRegistry<Target, EntityTarget> {
+  private final List<MatcherPair<DecoderBuilder<Target, EntityTarget, ?>>> decoders =
+      new ArrayList<>();
 
   public <Source> void constant(
       final TypeMatcher matcher, final Decoder<Target, Source> decoder
@@ -27,14 +28,15 @@ public class DecoderRegistry<Target> {
   }
 
   public <Source> void setup(
-      final TypeMatcher matcher, final DecoderBuilder<Target, Source> decoder
+      final TypeMatcher matcher, final DecoderBuilder<Target, EntityTarget, Source> decoder
   ) {
     this.decoders.add(new MatcherPair<>(matcher, decoder));
   }
 
   @SuppressWarnings("unchecked")
   public <Source> Stream<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final JavaType type, final DecoderFactory<Target> encoding
+      final EntityResolver resolver, final JavaType type,
+      final DecoderFactory<Target, EntityTarget> encoding
   ) {
     return decoders.stream().filter(p -> p.matcher.matches(type)).flatMap(p -> {
       Stream<? extends Decoder<Target, ?>> decoders = p.value.apply(resolver, type, encoding);
@@ -49,9 +51,9 @@ public class DecoderRegistry<Target> {
   }
 
   @FunctionalInterface
-  public interface DecoderBuilder<T, O> {
+  public interface DecoderBuilder<T, E, O> {
     Stream<Decoder<T, O>> apply(
-        EntityResolver resolver, JavaType type, DecoderFactory<T> decoder
+        EntityResolver resolver, JavaType type, DecoderFactory<T, E> decoder
     );
   }
 }

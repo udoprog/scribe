@@ -17,12 +17,12 @@ public interface Mapping {
    * <p>
    * This method returns a stream because multiple encoders might match the current type.
    */
-  <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      EntityResolver resolver, EncoderFactory<Target> factory, Flags flags
+  <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory, Flags flags
   );
 
-  default <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      EntityResolver resolver, EncoderFactory<Target> factory
+  default <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
   ) {
     return newEncoder(resolver, factory, Flags.empty());
   }
@@ -47,12 +47,12 @@ public interface Mapping {
    * <p>
    * This method returns a stream because multiple decoders might match the current type.
    */
-  <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory, Flags flags
+  <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory, Flags flags
   );
 
-  default <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory
+  default <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
   ) {
     return newDecoder(resolver, factory, Flags.empty());
   }

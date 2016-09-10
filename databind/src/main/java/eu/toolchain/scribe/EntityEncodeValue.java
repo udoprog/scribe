@@ -17,10 +17,11 @@ public class EntityEncodeValue implements EncodeValue {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
-    return targetMapping.<Target, Source>newEncoder(resolver, factory).map(
+    return targetMapping.<Target, EntityTarget, Source>newEncoder(resolver, factory).map(
         parent -> new EntityEncodeValueEncoder<>(valueMethod, parent));
   }
 

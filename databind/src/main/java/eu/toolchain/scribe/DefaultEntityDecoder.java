@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class DefaultEntityDecoder<Target> implements EntityDecoder<Target, Object> {
+public class DefaultEntityDecoder<Target, EntityTarget>
+    implements EntityDecoder<Target, EntityTarget, Object> {
   private final List<EntityFieldDecoder<Target, Object>> fields;
   private final InstanceBuilder instanceBuilder;
-  private final DecoderFactory<Target> factory;
+  private final DecoderFactory<Target, EntityTarget> factory;
 
   @Override
-  public Decoded<Object> decode(
+  public Object decode(
       final EntityFieldsDecoder<Target> decoder, final Context path
   ) {
     final List<Object> arguments = new ArrayList<>();
@@ -23,7 +24,7 @@ public class DefaultEntityDecoder<Target> implements EntityDecoder<Target, Objec
     }
 
     try {
-      return Decoded.of(instanceBuilder.newInstance(arguments));
+      return instanceBuilder.newInstance(arguments);
     } catch (final Exception e) {
       throw path.error("Could not build instance using " + instanceBuilder, e);
     }
@@ -31,6 +32,11 @@ public class DefaultEntityDecoder<Target> implements EntityDecoder<Target, Objec
 
   @Override
   public Decoded<Object> decode(final Context path, final Target instance) {
-    return factory.newEntityDecoder(instance).flatMap(d -> decode(d, path));
+    return factory.valueAsEntity(instance).map(i -> decodeEntity(path, i));
+  }
+
+  @Override
+  public Object decodeEntity(final Context path, final EntityTarget entity) {
+    return decode(factory.newEntityDecoder(entity), path);
   }
 }

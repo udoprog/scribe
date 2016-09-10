@@ -22,8 +22,8 @@ public class ConcreteClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target> EntityEncoder<Target, Object> newEntityTypeEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityTypeEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     return deferred.newEntityEncoder(resolver, factory);
   }
@@ -36,8 +36,8 @@ public class ConcreteClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target> EntityDecoder<Target, Object> newEntityTypeDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityTypeDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     return deferred.newEntityDecoder(resolver, factory);
   }

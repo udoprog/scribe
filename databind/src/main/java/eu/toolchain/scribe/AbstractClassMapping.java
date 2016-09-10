@@ -24,15 +24,17 @@ public class AbstractClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target> EntityEncoder<Target, Object> newEntityTypeEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityTypeEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
-    final Map<JavaType, AbstractEntityEncoder.TypeEntry<Target>> byType = new HashMap<>();
+    final Map<JavaType, AbstractEntityEncoder.TypeEntry<Target, EntityTarget>> byType =
+        new HashMap<>();
 
     for (final SubType subType : subTypes) {
       final ClassMapping m = subType.getMapping();
 
-      final EntityEncoder<Target, Object> encoding = m.newEntityTypeEncoder(resolver, factory);
+      final EntityEncoder<Target, EntityTarget, Object> encoding =
+          m.newEntityTypeEncoder(resolver, factory);
 
       final String typeName = getTypeName(subType, m);
 
@@ -81,15 +83,16 @@ public class AbstractClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target> EntityDecoder<Target, Object> newEntityTypeDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityTypeDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
-    final Map<String, EntityDecoder<Target, Object>> byName = new HashMap<>();
+    final Map<String, EntityDecoder<Target, EntityTarget, Object>> byName = new HashMap<>();
 
     for (final SubType subType : subTypes) {
       final ClassMapping m = subType.getMapping();
 
-      final EntityDecoder<Target, Object> encoding = m.newEntityTypeDecoder(resolver, factory);
+      final EntityDecoder<Target, EntityTarget, Object> encoding =
+          m.newEntityTypeDecoder(resolver, factory);
 
       final String typeName = getTypeName(subType, m);
       byName.put(typeName, encoding);

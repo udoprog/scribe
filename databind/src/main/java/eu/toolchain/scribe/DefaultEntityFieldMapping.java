@@ -12,8 +12,8 @@ public class DefaultEntityFieldMapping implements EntityFieldMapping {
   private final Flags flags;
 
   @Override
-  public <Target> Stream<EntityFieldEncoder<Target, Object>> newEntityFieldEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, EntityTarget> Stream<EntityFieldEncoder<Target, Object>> newEntityFieldEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     return mapping
         .newEncoder(resolver, factory, flags)
@@ -30,8 +30,9 @@ public class DefaultEntityFieldMapping implements EntityFieldMapping {
   }
 
   @Override
-  public <T> Stream<? extends EntityFieldDecoder<T, Object>> newEntityFieldDecoder(
-      final EntityResolver resolver, final DecoderFactory<T> factory
+  public <Target, EntityTarget> Stream<? extends EntityFieldDecoder<Target, Object>>
+  newEntityFieldDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     return mapping
         .newDecoder(resolver, factory, flags)

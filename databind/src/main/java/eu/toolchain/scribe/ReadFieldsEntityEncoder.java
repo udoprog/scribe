@@ -5,14 +5,15 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ReadFieldsEntityEncoder<Target> implements EntityEncoder<Target, Object> {
+public class ReadFieldsEntityEncoder<Target, EntityTarget>
+    implements EntityEncoder<Target, EntityTarget, Object> {
   private final List<? extends Field<Target, Object>> fields;
-  private final EncoderFactory<Target> factory;
+  private final EncoderFactory<Target, EntityTarget> factory;
 
   @Override
-  public Target encode(
-      final EntityFieldsEncoder<Target> encoder, final Context path, final Object instance,
-      final Runnable callback
+  public EntityTarget encode(
+      final EntityFieldsEncoder<Target, EntityTarget> encoder, final Context path,
+      final Object instance, final Runnable callback
   ) {
     callback.run();
 
@@ -45,13 +46,18 @@ public class ReadFieldsEntityEncoder<Target> implements EntityEncoder<Target, Ob
   }
 
   @Override
-  public Target encode(final Context path, final Object instance) {
+  public EntityTarget encodeEntity(final Context path, final Object instance) {
     return encode(factory.newEntityEncoder(), path, instance, EntityEncoder.EMPTY_CALLBACK);
   }
 
   @Override
+  public Target encode(final Context path, final Object instance) {
+    return factory.entityAsValue(encodeEntity(path, instance));
+  }
+
+  @Override
   public Target encodeEmpty(final Context path) {
-    return factory.newEntityEncoder().buildEmpty(path);
+    return factory.entityAsValue(factory.newEntityEncoder().buildEmpty(path));
   }
 
   @Data

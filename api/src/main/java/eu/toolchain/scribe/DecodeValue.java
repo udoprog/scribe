@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 public interface DecodeValue {
   JavaType getSourceType();
 
-  <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, DecoderFactory<Target> factory, Flags flags
+  <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory, Flags flags
   );
 
   default void initialize(final EntityResolver resolver) {

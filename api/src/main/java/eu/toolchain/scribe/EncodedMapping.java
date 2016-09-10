@@ -13,8 +13,9 @@ public class EncodedMapping implements Mapping {
   private final JavaType type;
 
   @Override
-  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
     return factory.newEncoder(resolver, type, flags);
   }
@@ -27,8 +28,9 @@ public class EncodedMapping implements Mapping {
   }
 
   @Override
-  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
+  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
+      final Flags flags
   ) {
     return factory.newDecoder(resolver, type, flags);
   }
