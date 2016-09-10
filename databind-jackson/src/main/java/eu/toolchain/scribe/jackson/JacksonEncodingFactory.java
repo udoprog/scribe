@@ -4,18 +4,16 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.DecoderFactory;
-import eu.toolchain.scribe.DecoderRegistry;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
-import eu.toolchain.scribe.EncoderRegistry;
 import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
+import eu.toolchain.scribe.Registry;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
-import eu.toolchain.scribe.StreamEncodingRegistry;
 import eu.toolchain.scribe.jackson.encoding.AbstractVisitor;
 import eu.toolchain.scribe.jackson.encoding.BooleanDecoder;
 import eu.toolchain.scribe.jackson.encoding.BooleanEncoder;
@@ -55,12 +53,13 @@ import static eu.toolchain.scribe.TypeMatcher.type;
 public class JacksonEncodingFactory
     implements EncoderFactory<JsonNode, JsonNode.ObjectJsonNode>, DecoderFactory<JsonNode,
     JsonNode.ObjectJsonNode>, StreamEncoderFactory<JsonGenerator> {
-  private static StreamEncodingRegistry<JsonGenerator> streamRegistry =
-      new StreamEncodingRegistry<>();
-  private static EncoderRegistry<JsonNode, JsonNode.ObjectJsonNode> encoders =
-      new EncoderRegistry<>();
-  private static DecoderRegistry<JsonNode, JsonNode.ObjectJsonNode> decoders =
-      new DecoderRegistry<>();
+
+  private static final Registry<? super StreamEncoder<JsonGenerator, ?>, JacksonEncodingFactory>
+      streamRegistry = new Registry<>();
+  private static final Registry<? super Encoder<JsonNode, ?>, JacksonEncodingFactory> encoders =
+      new Registry<>();
+  private static final Registry<? super Decoder<JsonNode, ?>, JacksonEncodingFactory> decoders =
+      new Registry<>();
 
   static {
     streamRegistry.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
@@ -142,32 +141,36 @@ public class JacksonEncodingFactory
 
     decoders.constant(type(String.class), StringDecoder.get());
     decoders.constant(isPrimitive(Boolean.class), BooleanDecoder.get());
-    decoders.simple(isPrimitive(Short.class), () -> NumberDecoder.SHORT);
-    decoders.simple(isPrimitive(Integer.class), () -> NumberDecoder.INTEGER);
-    decoders.simple(isPrimitive(Long.class), () -> NumberDecoder.LONG);
-    decoders.simple(isPrimitive(Float.class), () -> NumberDecoder.FLOAT);
-    decoders.simple(isPrimitive(Double.class), () -> NumberDecoder.DOUBLE);
+    decoders.constant(isPrimitive(Short.class), NumberDecoder.SHORT);
+    decoders.constant(isPrimitive(Integer.class), NumberDecoder.INTEGER);
+    decoders.constant(isPrimitive(Long.class), NumberDecoder.LONG);
+    decoders.constant(isPrimitive(Float.class), NumberDecoder.FLOAT);
+    decoders.constant(isPrimitive(Double.class), NumberDecoder.DOUBLE);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <Source> Stream<Encoder<JsonNode, Source>> newEncoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    return encoders.newEncoder(resolver, type, this);
+    return (Stream<Encoder<JsonNode, Source>>) encoders.newInstance(resolver, type, this);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <Source> Stream<StreamEncoder<JsonGenerator, Source>> newStreamEncoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    return streamRegistry.newStreamEncoder(resolver, type, this);
+    return (Stream<StreamEncoder<JsonGenerator, Source>>) streamRegistry.newInstance(resolver, type,
+        this);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <Source> Stream<Decoder<JsonNode, Source>> newDecoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    return decoders.newDecoder(resolver, type, this);
+    return (Stream<Decoder<JsonNode, Source>>) decoders.newInstance(resolver, type, this);
   }
 
   @Override

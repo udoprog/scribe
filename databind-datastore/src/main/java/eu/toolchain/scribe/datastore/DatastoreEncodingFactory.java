@@ -6,14 +6,13 @@ import com.google.datastore.v1.Value;
 import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.DecoderFactory;
-import eu.toolchain.scribe.DecoderRegistry;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
-import eu.toolchain.scribe.EncoderRegistry;
 import eu.toolchain.scribe.EntityFieldsDecoder;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
+import eu.toolchain.scribe.Registry;
 import eu.toolchain.scribe.datastore.encoding.BooleanDecoder;
 import eu.toolchain.scribe.datastore.encoding.BooleanEncoder;
 import eu.toolchain.scribe.datastore.encoding.DoubleEncoder;
@@ -49,8 +48,10 @@ import static eu.toolchain.scribe.TypeMatcher.type;
 @RequiredArgsConstructor
 public class DatastoreEncodingFactory
     implements EncoderFactory<Value, Entity>, DecoderFactory<Value, Entity> {
-  private static EncoderRegistry<Value, Entity> encoders = new EncoderRegistry<>();
-  private static DecoderRegistry<Value, Entity> decoders = new DecoderRegistry<>();
+  private static final Registry<? super Encoder<Value, ?>, DatastoreEncodingFactory> encoders =
+      new Registry<>();
+  private static final Registry<? super Decoder<Value, ?>, DatastoreEncodingFactory> decoders =
+      new Registry<>();
 
   private final EntityResolver resolver;
 
@@ -112,11 +113,13 @@ public class DatastoreEncodingFactory
     decoders.constant(instance(Key.class), KeyDecoder.get());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <Source> Stream<Encoder<Value, Source>> newEncoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    Stream<Encoder<Value, Source>> encoder = encoders.newEncoder(resolver, type, this);
+    Stream<Encoder<Value, Source>> encoder =
+        (Stream<Encoder<Value, Source>>) encoders.newInstance(resolver, type, this);
 
     if (flags.getFlag(DatastoreFlags.ExcludeFromIndexes.class).findFirst().isPresent()) {
       encoder = encoder.map(ExcludeFromIndexesEncoder::new);
@@ -125,11 +128,13 @@ public class DatastoreEncodingFactory
     return encoder;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <Source> Stream<Decoder<Value, Source>> newDecoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    Stream<Decoder<Value, Source>> decoder = decoders.newDecoder(resolver, type, this);
+    Stream<Decoder<Value, Source>> decoder =
+        (Stream<Decoder<Value, Source>>) decoders.newInstance(resolver, type, this);
 
     final boolean strictCheck = flags
         .getFlag(DatastoreFlags.ExcludeFromIndexes.class)

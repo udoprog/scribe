@@ -4,10 +4,10 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
-import eu.toolchain.scribe.EncoderRegistry;
 import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
+import eu.toolchain.scribe.Registry;
 import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.typesafe.encoding.BooleanEncoder;
 import eu.toolchain.scribe.typesafe.encoding.ListEncoder;
@@ -27,7 +27,8 @@ import static eu.toolchain.scribe.TypeMatcher.type;
 
 @RequiredArgsConstructor
 public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue, Config> {
-  private static EncoderRegistry<ConfigValue, Config> encoders = new EncoderRegistry<>();
+  private static final Registry<? super Encoder<ConfigValue, ?>, TypeSafeEncoderFactory> encoders =
+      new Registry<>();
 
   static {
     encoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
@@ -51,17 +52,17 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue, Confi
     encoders.setup(isPrimitive(Boolean.class),
         (resolver, type, factory) -> Stream.of(BooleanEncoder.get()));
 
-    encoders.setup(
+    encoders.constant(
         anyOf(isPrimitive(Short.class), isPrimitive(Integer.class), isPrimitive(Long.class),
-            isPrimitive(Float.class), isPrimitive(Double.class)),
-        (resolver, type, factory) -> Stream.of(NumberEncoder.get()));
+            isPrimitive(Float.class), isPrimitive(Double.class)), NumberEncoder.get());
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public <O> Stream<Encoder<ConfigValue, O>> newEncoder(
+  public <Source> Stream<Encoder<ConfigValue, Source>> newEncoder(
       final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
-    return encoders.newEncoder(resolver, type, this);
+    return (Stream<Encoder<ConfigValue, Source>>) encoders.newInstance(resolver, type, this);
   }
 
   @Override
