@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class EntityMapperTest {
-  private final EntityMapper mapper = EntityMapper.nativeBuilder().build();
+public class ScribeTest {
+  private final Scribe mapper = Scribe.nativeBuilder().build();
 
   @Data
   @Builder

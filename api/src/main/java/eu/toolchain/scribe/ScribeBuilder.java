@@ -12,14 +12,14 @@ import eu.toolchain.scribe.detector.SubTypesDetector;
 import eu.toolchain.scribe.detector.TypeAliasDetector;
 import eu.toolchain.scribe.detector.TypeNameDetector;
 
-public interface EntityMapperBuilder {
+public interface ScribeBuilder {
   /**
    * Install a type alias detector.
    *
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder typeAlias(TypeAliasDetector detector);
+  ScribeBuilder typeAlias(TypeAliasDetector detector);
 
   /**
    * Install a mapping detector.
@@ -27,7 +27,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder mapping(MappingDetector detector);
+  ScribeBuilder mapping(MappingDetector detector);
 
   /**
    * Install a field reader detector.
@@ -35,7 +35,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder fieldReader(FieldReaderDetector detector);
+  ScribeBuilder fieldReader(FieldReaderDetector detector);
 
   /**
    * Install an instance builder detector.
@@ -43,7 +43,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder instanceBuilder(InstanceBuilderDetector detector);
+  ScribeBuilder instanceBuilder(InstanceBuilderDetector detector);
 
   /**
    * Install an class encoding detector.
@@ -51,7 +51,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder classEncoding(ClassEncodingDetector detector);
+  ScribeBuilder classEncoding(ClassEncodingDetector detector);
 
   /**
    * Install an sub types detector.
@@ -59,7 +59,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder subTypes(SubTypesDetector detector);
+  ScribeBuilder subTypes(SubTypesDetector detector);
 
   /**
    * Install an encode value detector.
@@ -67,7 +67,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder encodeValue(EncodeValueDetector detector);
+  ScribeBuilder encodeValue(EncodeValueDetector detector);
 
   /**
    * Install a decode value detector.
@@ -75,7 +75,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder decodeValue(DecodeValueDetector detector);
+  ScribeBuilder decodeValue(DecodeValueDetector detector);
 
   /**
    * Install a field name detector.
@@ -83,7 +83,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder fieldName(FieldNameDetector detector);
+  ScribeBuilder fieldName(FieldNameDetector detector);
 
   /**
    * Install a flag detector.
@@ -91,7 +91,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder flag(FlagDetector detector);
+  ScribeBuilder flag(FlagDetector detector);
 
   /**
    * Install a type name detector.
@@ -99,7 +99,7 @@ public interface EntityMapperBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  EntityMapperBuilder typeName(TypeNameDetector detector);
+  ScribeBuilder typeName(TypeNameDetector detector);
 
   /**
    * Install a module.
@@ -109,7 +109,7 @@ public interface EntityMapperBuilder {
    * @param module Module to install.
    * @return This builder.
    */
-  EntityMapperBuilder install(Module module);
+  ScribeBuilder install(Module module);
 
   /**
    * Set an option.
@@ -118,5 +118,5 @@ public interface EntityMapperBuilder {
    * @return This builder.
    * @see eu.toolchain.scribe.EntityResolver#getOption(Class)
    */
-  EntityMapperBuilder option(Option option);
+  ScribeBuilder option(Option option);
 }

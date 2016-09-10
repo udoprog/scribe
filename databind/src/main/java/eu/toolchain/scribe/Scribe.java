@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 import static eu.toolchain.scribe.Streams.streamRequireOne;
 
 @RequiredArgsConstructor
-public class EntityMapper implements EntityResolver {
+public class Scribe implements EntityResolver {
   private final List<TypeAliasDetector> typeAliasDetectors;
   private final List<MappingDetector> mappingDetectors;
   private final List<FieldReaderDetector> fieldReaderDetectors;
@@ -64,8 +64,7 @@ public class EntityMapper implements EntityResolver {
     return new TypeStreamEncoderProvider<Target>() {
       @Override
       public StreamEncoder<Target, Object> newStreamEncoder(Type type) {
-        return streamRequireOne(
-            mapping(JavaType.of(type)).newStreamEncoder(EntityMapper.this, factory),
+        return streamRequireOne(mapping(JavaType.of(type)).newStreamEncoder(Scribe.this, factory),
             values -> new IllegalArgumentException(
                 "Expected one stream encoder for type (" + type + ") but got (" + values + ")"));
       }
@@ -96,7 +95,7 @@ public class EntityMapper implements EntityResolver {
     return new TypeEncoderProvider<Target>() {
       @Override
       public Encoder<Target, Object> newEncoderForType(Type type) {
-        return streamRequireOne(mapping(JavaType.of(type)).newEncoder(EntityMapper.this, factory),
+        return streamRequireOne(mapping(JavaType.of(type)).newEncoder(Scribe.this, factory),
             values -> new IllegalArgumentException(
                 "Expected one encoder for type (" + type + ") but got (" + values + ")"));
       }
@@ -125,7 +124,7 @@ public class EntityMapper implements EntityResolver {
     return new TypeDecoderProvider<Target>() {
       @Override
       public Decoder<Target, Object> newDecoderForType(Type type) {
-        return streamRequireOne(mapping(JavaType.of(type)).newDecoder(EntityMapper.this, factory),
+        return streamRequireOne(mapping(JavaType.of(type)).newDecoder(Scribe.this, factory),
             values -> new IllegalArgumentException(
                 "Expected one decoder for type (" + type + ") but got (" + values + ")"));
       }
@@ -298,7 +297,7 @@ public class EntityMapper implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public EntityMapper withOptions(final Option... options) {
+  public Scribe withOptions(final Option... options) {
     if (options.length == 0) {
       return this;
     }
@@ -459,7 +458,7 @@ public class EntityMapper implements EntityResolver {
   }
 
   @AllArgsConstructor
-  public static class Builder implements EntityMapperBuilder {
+  public static class Builder implements ScribeBuilder {
     private final ArrayList<TypeAliasDetector> typeAliasDetectors;
     private final ArrayList<MappingDetector> mappingDetectors;
     private final ArrayList<FieldReaderDetector> fieldReaderDetectors;
@@ -565,11 +564,11 @@ public class EntityMapper implements EntityResolver {
       return this;
     }
 
-    public EntityMapper build() {
+    public Scribe build() {
       final Map<Class<? extends Option>, Option> options =
           this.options.stream().collect(Collectors.toMap(Option::getClass, Function.identity()));
 
-      return new EntityMapper(Collections.unmodifiableList(new ArrayList<>(typeAliasDetectors)),
+      return new Scribe(Collections.unmodifiableList(new ArrayList<>(typeAliasDetectors)),
           Collections.unmodifiableList(new ArrayList<>(mappingDetectors)),
           Collections.unmodifiableList(new ArrayList<>(fieldReaderDetectors)),
           Collections.unmodifiableList(new ArrayList<>(instanceBuilderDetectors)),

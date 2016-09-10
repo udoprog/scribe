@@ -8,13 +8,13 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <artifactId>scribe-databind-datastore</artifactId>
+  <artifactId>scribe-databind-datastore-v1-protos</artifactId>
   <packaging>jar</packaging>
 
-  <name>The Java Scribe (Datastore Databinding)</name>
+  <name>The Java Scribe (Datastore V1 Protos Databinding)</name>
 
   <description>
-    The Java Scribe (Datastore Databinding)
+    The Java Scribe (Datastore V1 Protos Databinding)
   </description>
 
   <properties>

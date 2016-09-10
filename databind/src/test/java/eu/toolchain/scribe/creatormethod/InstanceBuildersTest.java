@@ -1,7 +1,7 @@
 package eu.toolchain.scribe.creatormethod;
 
 import eu.toolchain.scribe.ConstructorInstanceBuilder;
-import eu.toolchain.scribe.EntityMapper;
+import eu.toolchain.scribe.Scribe;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.InstanceBuilder;
 import eu.toolchain.scribe.StaticMethodInstanceBuilder;
@@ -29,7 +29,7 @@ public class InstanceBuildersTest {
 
   @Before
   public void setup() {
-    resolver = spy(EntityMapper.nativeBuilder().build());
+    resolver = spy(Scribe.nativeBuilder().build());
     string = mock(Mapping.class);
 
     doReturn(string).when(resolver).mapping(STRING);

@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  *
  * @param <From> Type that we are aliasing from.
  * @param <To> Type that we are aliasing to.
- * @see eu.toolchain.scribe.EntityMapperBuilder
+ * @see ScribeBuilder
  * @see eu.toolchain.scribe.detector.TypeAliasDetector
  */
 @Data

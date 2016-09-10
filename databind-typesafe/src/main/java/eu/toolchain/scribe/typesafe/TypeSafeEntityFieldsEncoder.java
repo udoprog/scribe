@@ -1,7 +1,7 @@
 package eu.toolchain.scribe.typesafe;
 
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.EntityFieldEncoder;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigValue, Config> {
+public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigValue, ConfigObject> {
   final Map<String, ConfigValue> object = new HashMap<>();
 
   @Override
@@ -24,12 +24,12 @@ public class TypeSafeEntityFieldsEncoder implements EntityFieldsEncoder<ConfigVa
   }
 
   @Override
-  public Config buildEmpty(final Context path) {
-    return ConfigFactory.empty();
+  public ConfigObject buildEmpty(final Context path) {
+    return ConfigFactory.empty().root();
   }
 
   @Override
-  public Config build() {
-    return ConfigFactory.parseMap(object);
+  public ConfigObject build() {
+    return ConfigFactory.parseMap(object).root();
   }
 }

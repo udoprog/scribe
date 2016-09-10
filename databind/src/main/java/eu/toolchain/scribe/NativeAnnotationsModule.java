@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public class NativeAnnotationsModule implements Module {
   @Override
-  public void register(EntityMapperBuilder b) {
+  public void register(ScribeBuilder b) {
     b
         .instanceBuilder(ConstructorInstanceBuilder.forAnnotation(EntityCreator.class))
         .instanceBuilder(StaticMethodInstanceBuilder.forAnnotation(EntityCreator.class));

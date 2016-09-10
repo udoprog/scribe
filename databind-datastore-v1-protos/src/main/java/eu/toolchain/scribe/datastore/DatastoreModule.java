@@ -3,7 +3,7 @@ package eu.toolchain.scribe.datastore;
 import com.google.datastore.v1.Key;
 import com.google.datastore.v1.Value;
 import eu.toolchain.scribe.EncodedMapping;
-import eu.toolchain.scribe.EntityMapperBuilder;
+import eu.toolchain.scribe.ScribeBuilder;
 import eu.toolchain.scribe.Module;
 
 import java.util.stream.Stream;
@@ -13,7 +13,7 @@ import static eu.toolchain.scribe.detector.MappingDetector.matchMapping;
 
 public class DatastoreModule implements Module {
   @Override
-  public void register(final EntityMapperBuilder builder) {
+  public void register(final ScribeBuilder builder) {
     builder.mapping(matchMapping(type(Value.class), EncodedMapping::new));
     builder.mapping(matchMapping(type(Key.class), EncodedMapping::new));
 

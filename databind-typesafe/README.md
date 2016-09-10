@@ -10,12 +10,12 @@ Scribe.
 You can setup the library like the following.
 
 ```java
-final EntityResolver resolver = EntityMapper
+final EntityResolver resolver = Scribe
     .defaultBuilder()
     .install(new NativeAnnotationsModule())
     .build();
 
-final TypeSafeEntityMapper mapper = new TypeSafeEntityMapper(resolver);
+final TypeSafeMapper mapper = new TypeSafeMapper(resolver);
 ```
 
 Type initialization has to happen before serialization.
@@ -26,7 +26,7 @@ public class Foo {
     private final String field;
 }
 
-final TypeSafeEncoding<Foo> foo = mapper.encodingFor(Foo.class);
+final StringEncoding<Foo> foo = mapper.stringEncodingFor(Foo.class);
 ```
 
 At this point, you can now efficiently serialize or deserialize an

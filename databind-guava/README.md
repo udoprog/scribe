@@ -12,7 +12,7 @@ act as a carrier for optional fields and values.
 You can setup the library like the following.
 
 ```java
-final EntityMapper mapper = EntityMapper
+final EntityResolver resolver = Scribe
     .defaultBuilder()
     .install(new GuavaModule())
     .build();

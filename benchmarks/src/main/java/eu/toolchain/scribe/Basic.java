@@ -5,8 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
-import eu.toolchain.scribe.jackson.JacksonEncoding;
-import eu.toolchain.scribe.jackson.JacksonEntityMapper;
+import eu.toolchain.scribe.jackson.JacksonMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -61,13 +60,13 @@ public class Basic {
 
     switch (type) {
       case "scribe":
-        final JacksonEntityMapper scribe = new JacksonEntityMapper(
-            EntityMapper.defaultBuilder().install(new JacksonAnnotationsModule()).build());
+        final JacksonMapper scribe = new JacksonMapper(
+            Scribe.defaultBuilder().install(new JacksonAnnotationsModule()).build());
 
-        final JacksonEncoding<Object> foo = scribe.encodingForType(instance.type);
-        foo.encodeAsString(instance.instance);
+        final StringEncoding<Object> foo = scribe.stringEncodingForType(instance.type);
+        foo.encode(instance.instance);
 
-        benchmark = () -> foo.encodeAsString(i);
+        benchmark = () -> foo.encode(i);
         break;
       case "jackson":
         final ObjectMapper jackson = new ObjectMapper();

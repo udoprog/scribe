@@ -332,12 +332,13 @@ public abstract class AbstractDatabindTest {
    */
   @Test
   public void testDecodeNullList() {
-    final String reference = encodingFor(DecodeNullListFrom.class,
-        DatabindOptions.OPTIONAL_EMPTY_AS_NULL).encodeAsString(new DecodeNullListFrom(
-        ImmutableList.of(Optional.empty(), Optional.empty(), Optional.empty())));
+    final String reference =
+        encodingFor(DecodeNullListFrom.class, DatabindOptions.OPTIONAL_EMPTY_AS_NULL).encode(
+            new DecodeNullListFrom(
+                ImmutableList.of(Optional.empty(), Optional.empty(), Optional.empty())));
 
     final StringEncoding<DecodeNullList> e = encodingFor(DecodeNullList.class);
-    assertThat(e.decodeFromString(reference), is(new DecodeNullList(ImmutableList.of())));
+    assertThat(e.decode(reference), is(new DecodeNullList(ImmutableList.of())));
   }
 
   @Data
@@ -354,8 +355,8 @@ public abstract class AbstractDatabindTest {
 
     final StringEncoding<EncodeNullList> e = encodingFor(EncodeNullList.class);
 
-    final String s = e.encodeAsString(new EncodeNullList(result));
-    final EncodeNullList r = e.decodeFromString(s);
+    final String s = e.encode(new EncodeNullList(result));
+    final EncodeNullList r = e.decode(s);
 
     assertThat(r, is(new EncodeNullList(ImmutableList.of())));
   }
@@ -369,8 +370,8 @@ public abstract class AbstractDatabindTest {
 
     final StringEncoding<Map<String, Optional<String>>> e = encodingFor(OPTIONAL_STRING_MAP);
 
-    final String s = e.encodeAsString(result);
-    final Map<String, Optional<String>> r = e.decodeFromString(s);
+    final String s = e.encode(result);
+    final Map<String, Optional<String>> r = e.decode(s);
 
     assertThat(r, is(ImmutableMap.of()));
   }
@@ -395,8 +396,8 @@ public abstract class AbstractDatabindTest {
 
     final DecodeOptionalNullList from = new DecodeOptionalNullList(result);
 
-    final String encoded = e.encodeAsString(from);
-    assertThat(e.decodeFromString(encoded), is(new DecodeOptionalNullList(result)));
+    final String encoded = e.encode(from);
+    assertThat(e.decode(encoded), is(new DecodeOptionalNullList(result)));
   }
 
   @EntitySubTypes(
@@ -422,8 +423,8 @@ public abstract class AbstractDatabindTest {
   }
 
   protected <E> void roundTrip(final StringEncoding<E> encoding, final E instance) {
-    final String encoded = encoding.encodeAsString(instance);
-    assertEquals(instance, encoding.decodeFromString(encoded));
+    final String encoded = encoding.encode(instance);
+    assertEquals(instance, encoding.decode(encoded));
   }
 
   @Data

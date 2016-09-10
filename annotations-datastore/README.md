@@ -6,7 +6,7 @@ support for Jackson annotations.
 The annotations module is installed like the following.
 
 ```java
-final EntityMapper m =  EntityMapper
+final Scribe m = Scribe
     .defaultBuilder()
     .install(new DatastoreAnnotationsModule())
     .build();

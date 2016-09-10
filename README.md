@@ -85,7 +85,7 @@ public class Person {
 ```
 
 ```java
-EntityResolver resolver = EntityMapper.defaultBuilder().build();
+EntityResolver resolver = Scribe.defaultBuilder().build();
 TypeMapping person = resolver.mapping(JavaType.of(Person.class));
 ```
 
@@ -93,13 +93,12 @@ The following is an example using the provided Jackson support to encode and
 decode JSON.
 
 ```java
-final JacksonEntityMapper mapper =
-    new JacksonEntityMapper(
-      EntityMapper
-        .defaultBuilder()
-        .install(new JacksonAnnotationsModule())
-        .build(),
-      new JsonFactory());
+final JacksonMapper mapper = new JacksonMapper(
+    Scribe
+      .defaultBuilder()
+      .install(new JacksonAnnotationsModule())
+      .build(),
+    new JsonFactory());
 
 final JacksonEncoding<Person> encoding = mapper.encodingFor(Person.class);
 
@@ -157,7 +156,7 @@ encoding/decoding. The following is an example of a simple alias for
 ```java
 public class DefaultModule implements Module {
   @Override
-  public void register(EntityMapperBuilder b) {
+  public void register(ScribeBuilder b) {
     final Function<Character, String> charToString =
         c -> new String(new char[]{c});
 

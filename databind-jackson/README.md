@@ -10,12 +10,12 @@ Jackson, see [scribe-annotations-jackson](/annotations-jackson).
 You can setup the library like the following.
 
 ```java
-final EntityResolver resolver = EntityMapper
+final EntityResolver resolver = Scribe
     .defaultBuilder()
     .install(new JacksonAnnotationsModule())
     .build();
 
-final JacksonEntityMapper mapper = new JacksonEntityMapper(resolver);
+final JacksonMapper mapper = new JacksonMapper(resolver);
 ```
 
 Type initialization has to happen before serialization.
@@ -26,7 +26,7 @@ public class Foo {
     private final String field;
 }
 
-final JacksonEncoding<Foo> foo = mapper.encodingFor(Foo.class);
+final StringEncoding<Foo> foo = mapper.stringEncodingFor(Foo.class);
 ```
 
 At this point, you can now efficiently serialize or deserialize an
@@ -34,10 +34,10 @@ instance of `Foo`.
  
 ```java
 final Foo instance = new Foo("hello world");
-final String encoded = foo.encodeAsString(instance);
-final Foo result = foo.decodeFromString(encoded);
+final String encoded = foo.encode(instance);
+final Foo result = foo.decode(encoded);
 
-assert result.equals(instance) == true;
+assert result.equals(instance);
 ```
 
 

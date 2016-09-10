@@ -4,8 +4,9 @@ import com.google.datastore.v1.Entity;
 import com.google.datastore.v1.Key;
 import com.google.datastore.v1.Value;
 import com.google.protobuf.NullValue;
+import eu.toolchain.scribe.ConverterEncoding;
 import eu.toolchain.scribe.DatabindOptions;
-import eu.toolchain.scribe.EntityMapper;
+import eu.toolchain.scribe.Scribe;
 import eu.toolchain.scribe.NativeAnnotationsModule;
 import eu.toolchain.scribe.TypeReference;
 import lombok.Data;
@@ -23,11 +24,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class DatastoreTest {
-  private final DatastoreEntityMapper mapper = new DatastoreEntityMapper(EntityMapper
-      .defaultBuilder()
-      .install(new DatastoreModule())
-      .install(new NativeAnnotationsModule())
-      .build());
+  private final DatastoreV1ProtosMapper mapper = new DatastoreV1ProtosMapper(
+      Scribe
+          .defaultBuilder()
+          .install(new DatastoreModule())
+          .install(new NativeAnnotationsModule())
+          .build());
 
   private final Key key =
       Key.newBuilder().addPath(Key.PathElement.newBuilder().setKind("foo").build()).build();
@@ -189,9 +191,9 @@ public class DatastoreTest {
 
   private <T> void testValue(
       Class<T> cls, T value, BiFunction<Value.Builder, T, Value.Builder> converter,
-      Function<DatastoreEntityMapper, DatastoreEntityMapper> modifier
+      Function<DatastoreV1ProtosMapper, DatastoreV1ProtosMapper> modifier
   ) {
-    final DatastoreEncoding<T> encoding = modifier.apply(mapper).encodingFor(cls);
+    final ConverterEncoding<T, Value> encoding = modifier.apply(mapper).valueEncodingFor(cls);
     final Value expected = converter.apply(Value.newBuilder(), value).build();
 
     assertThat(encoding.encode(value), is(expected));
@@ -206,9 +208,9 @@ public class DatastoreTest {
 
   private <T> void testValue(
       TypeReference<T> type, T value, BiFunction<Value.Builder, T, Value.Builder> converter,
-      Function<DatastoreEntityMapper, DatastoreEntityMapper> modifier
+      Function<DatastoreV1ProtosMapper, DatastoreV1ProtosMapper> modifier
   ) {
-    final DatastoreEncoding<T> encoding = modifier.apply(mapper).encodingFor(type);
+    final ConverterEncoding<T, Value> encoding = modifier.apply(mapper).valueEncodingFor(type);
     final Value expected = converter.apply(Value.newBuilder(), value).build();
 
     assertThat(encoding.encode(value), is(expected));
@@ -224,7 +226,7 @@ public class DatastoreTest {
   public void testMissingField() {
     exception.expect(mappingException("field"));
 
-    final DatastoreEncoding<MissingField> encoding = mapper.encodingFor(MissingField.class);
+    final ConverterEncoding<MissingField, Value> encoding = mapper.valueEncodingFor(MissingField.class);
     final Value value = Value.newBuilder().setEntityValue(Entity.newBuilder().build()).build();
 
     encoding.decode(value);
@@ -240,7 +242,7 @@ public class DatastoreTest {
    */
   @Test
   public void testEntityEncoding() {
-    final DatastoreEntityEncoding<EntityEncoding> encoding =
+    final ConverterEncoding<EntityEncoding, Entity> encoding =
         mapper.entityEncodingFor(EntityEncoding.class);
 
     final EntityEncoding expected = new EntityEncoding("foo");
@@ -249,9 +251,9 @@ public class DatastoreTest {
     builder.getMutableProperties().put("field", Value.newBuilder().setStringValue("foo").build());
 
     final Entity expectedEntity = builder.build();
-    final Entity value = encoding.encodeEntity(expected);
+    final Entity value = encoding.encode(expected);
 
     assertThat(value, is(expectedEntity));
-    assertThat(encoding.decodeEntity(value), is(expected));
+    assertThat(encoding.decode(value), is(expected));
   }
 }

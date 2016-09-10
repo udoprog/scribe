@@ -3,7 +3,7 @@ package eu.toolchain.scribe.guava;
 import com.google.common.base.Optional;
 import eu.toolchain.scribe.ConcreteClassMapping;
 import eu.toolchain.scribe.DefaultEntityFieldMapping;
-import eu.toolchain.scribe.EntityMapper;
+import eu.toolchain.scribe.Scribe;
 import eu.toolchain.scribe.MethodClassEncoding;
 import eu.toolchain.scribe.OptionalMapping;
 import eu.toolchain.scribe.reflection.JavaType;
@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class GuavaTest {
-  private EntityMapper m = EntityMapper.defaultBuilder().install(new GuavaModule()).build();
+  private Scribe m = Scribe.defaultBuilder().install(new GuavaModule()).build();
 
   @Data
   static class GuavaOptional {

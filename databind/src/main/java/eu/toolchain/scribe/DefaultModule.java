@@ -20,7 +20,7 @@ public class DefaultModule implements Module {
   private static final Base64.Decoder b64d = Base64.getDecoder();
 
   @Override
-  public void register(EntityMapperBuilder b) {
+  public void register(ScribeBuilder b) {
     /* support constructors */
     b
         .instanceBuilder(ConstructorInstanceBuilder.forEmpty())

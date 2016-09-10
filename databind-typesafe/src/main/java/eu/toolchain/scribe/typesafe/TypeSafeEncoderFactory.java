@@ -1,6 +1,6 @@
 package eu.toolchain.scribe.typesafe;
 
-import com.typesafe.config.Config;
+import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.EncoderFactory;
@@ -26,7 +26,7 @@ import static eu.toolchain.scribe.TypeMatcher.isPrimitive;
 import static eu.toolchain.scribe.TypeMatcher.type;
 
 @RequiredArgsConstructor
-public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue, Config> {
+public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue, ConfigObject> {
   private static final Registry<? super Encoder<ConfigValue, ?>, TypeSafeEncoderFactory> encoders =
       new Registry<>();
 
@@ -66,12 +66,12 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue, Confi
   }
 
   @Override
-  public EntityFieldsEncoder<ConfigValue, Config> newEntityEncoder() {
+  public EntityFieldsEncoder<ConfigValue, ConfigObject> newEntityEncoder() {
     return new TypeSafeEntityFieldsEncoder();
   }
 
   @Override
-  public ConfigValue entityAsValue(final Config entity) {
-    return entity.root();
+  public ConfigValue entityAsValue(final ConfigObject entity) {
+    return entity;
   }
 }
