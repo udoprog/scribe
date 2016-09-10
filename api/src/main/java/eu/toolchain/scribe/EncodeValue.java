@@ -2,19 +2,19 @@ package eu.toolchain.scribe;
 
 import eu.toolchain.scribe.reflection.JavaType;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface EncodeValue {
   JavaType getSourceType();
 
   Mapping getTargetMapping();
 
-  <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      EntityResolver resolver, EncoderFactory<Target> factory
+  <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target> factory, Flags flags
   );
 
-  <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      EntityResolver resolver, StreamEncoderFactory<Target> factory
+  <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      EntityResolver resolver, StreamEncoderFactory<Target> factory, Flags flags
   );
 
   default void initialize(final EntityResolver resolver) {

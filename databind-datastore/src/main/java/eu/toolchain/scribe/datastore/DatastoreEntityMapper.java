@@ -27,7 +27,7 @@ public class DatastoreEntityMapper {
   }
 
   public DatastoreEncoding<Object> encodingForType(final Type type) {
-    return new DatastoreEncoding<>(valueEncoder.newEncoder(type), valueDecoder.newDecoder(type));
+    return new DatastoreEncoding<>(valueEncoder.newEncoderForType(type), valueDecoder.newDecoderForType(type));
   }
 
   public <T> DatastoreEncoding<T> encodingFor(final Class<T> type) {

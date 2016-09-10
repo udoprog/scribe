@@ -3,7 +3,7 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 @Data
 class BuilderEntityFieldMapping implements EntityFieldMapping {
@@ -14,31 +14,31 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   private final Flags flags;
 
   @Override
-  public <Target> Optional<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
+  public <Target> Stream<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
       final EntityResolver resolver, final EncoderFactory<Target> factory
   ) {
     return mapping
-        .newEncoder(resolver, flags, factory)
+        .newEncoder(resolver, factory, flags)
         .map(parent -> new BuilderEntityFieldEncoder<>(name, reader, mapping, setter, flags,
             parent));
   }
 
   @Override
-  public <Target> Optional<BuilderEntityFieldStreamEncoder<Target>> newEntityFieldStreamEncoder(
+  public <Target> Stream<BuilderEntityFieldStreamEncoder<Target>> newEntityFieldStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     return mapping
-        .newStreamEncoder(resolver, flags, factory)
+        .newStreamEncoder(resolver, factory, flags)
         .map(
             parent -> new BuilderEntityFieldStreamEncoder<>(name, reader, mapping, setter, parent));
   }
 
   @Override
-  public <Target> Optional<BuilderEntityFieldDecoder<Target>> newEntityFieldDecoder(
+  public <Target> Stream<BuilderEntityFieldDecoder<Target>> newEntityFieldDecoder(
       final EntityResolver resolver, final DecoderFactory<Target> factory
   ) {
     return mapping
-        .newDecoder(resolver, flags, factory)
+        .newDecoder(resolver, factory, flags)
         .map(parent -> new BuilderEntityFieldDecoder<>(name, reader, mapping, setter, flags,
             parent));
   }

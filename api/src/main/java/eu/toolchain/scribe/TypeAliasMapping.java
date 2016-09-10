@@ -3,8 +3,8 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
-import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * A type mapping for an alias.
@@ -29,10 +29,10 @@ public class TypeAliasMapping<From, To> implements Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, Flags flags, final EncoderFactory<Target> factory
+  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target> factory, Flags flags
   ) {
-    return mapping.<Target, From>newEncoder(resolver, flags, factory).map(parent -> {
+    return mapping.<Target, From>newEncoder(resolver, factory, flags).map(parent -> {
       final Encoder<Target, To> encoder = new Encoder<Target, To>() {
         @Override
         public Target encode(final Context path, final To instance) {
@@ -51,10 +51,10 @@ public class TypeAliasMapping<From, To> implements Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
+  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return mapping.<Target, From>newStreamEncoder(resolver, flags, factory).map(parent -> {
+    return mapping.<Target, From>newStreamEncoder(resolver, factory, flags).map(parent -> {
       final StreamEncoder<Target, To> encoder = new StreamEncoder<Target, To>() {
         @Override
         public void streamEncode(
@@ -75,10 +75,10 @@ public class TypeAliasMapping<From, To> implements Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final Flags flags, final DecoderFactory<Target> factory
+  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
   ) {
-    return mapping.<Target, From>newDecoder(resolver, flags, factory).map(parent -> {
+    return mapping.<Target, From>newDecoder(resolver, factory, flags).map(parent -> {
       final Decoder<Target, To> decoder =
           (path, instance) -> parent.decode(path, instance).map(convertFrom);
 

@@ -3,7 +3,7 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 @Data
 public class ValueMapping implements Mapping {
@@ -16,23 +16,29 @@ public class ValueMapping implements Mapping {
   }
 
   @Override
-  public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
+  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
   ) {
-    return encodeValue.newEncoder(resolver, factory);
+    return encodeValue.newEncoder(resolver, factory, flags);
   }
 
   @Override
-  public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
+  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return encodeValue.newStreamEncoder(resolver, factory);
+    return encodeValue.newStreamEncoder(resolver, factory, flags);
   }
 
   @Override
-  public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final Flags flags, final DecoderFactory<Target> factory
+  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
   ) {
-    return decodeValue.newDecoder(resolver, factory);
+    return decodeValue.newDecoder(resolver, factory, flags);
+  }
+
+  @Override
+  public void initialize(final EntityResolver resolver) {
+    encodeValue.initialize(resolver);
+    decodeValue.initialize(resolver);
   }
 }

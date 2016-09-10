@@ -1,6 +1,7 @@
 package eu.toolchain.scribe;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ClassMapping extends Mapping {
   default Optional<String> typeName() {
@@ -9,27 +10,26 @@ public interface ClassMapping extends Mapping {
 
   @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final Flags flags, final EncoderFactory<Target> factory
+  default <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
   ) {
-    return Optional.of((Encoder<Target, Source>) newEntityTypeEncoder(resolver, factory));
+    return Stream.of((Encoder<Target, Source>) newEntityTypeEncoder(resolver, factory));
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final Flags flags, final StreamEncoderFactory<Target> factory
+  default <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return Optional.of(
-        (StreamEncoder<Target, Source>) newEntityTypeStreamEncoder(resolver, factory));
+    return Stream.of((StreamEncoder<Target, Source>) newEntityTypeStreamEncoder(resolver, factory));
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, final Flags flags, DecoderFactory<Target> factory
+  default <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target> factory, final Flags flags
   ) {
-    return Optional.of((Decoder<Target, Source>) newEntityTypeDecoder(resolver, factory));
+    return Stream.of((Decoder<Target, Source>) newEntityTypeDecoder(resolver, factory));
   }
 
   <Target> EntityEncoder<Target, Object> newEntityTypeEncoder(

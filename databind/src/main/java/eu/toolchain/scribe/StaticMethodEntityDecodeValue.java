@@ -8,7 +8,6 @@ import lombok.Data;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,10 +19,10 @@ public class StaticMethodEntityDecodeValue implements DecodeValue {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      final EntityResolver resolver, final DecoderFactory<Target> factory
+  public <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      final EntityResolver resolver, final DecoderFactory<Target> factory, final Flags flags
   ) {
-    return targetMapping.<Target, Source>newDecoder(resolver, Flags.empty(), factory).map(
+    return targetMapping.<Target, Source>newDecoder(resolver, factory).map(
         parent -> new StaticMethodEntityDecodeValueDecoder<>(parent, method));
   }
 

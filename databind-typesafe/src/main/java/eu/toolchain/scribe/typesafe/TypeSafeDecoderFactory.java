@@ -30,7 +30,7 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
   private static DecoderRegistry<ConfigValue> decoders = new DecoderRegistry<>();
 
   static {
-    decoders.decoder(type(Map.class, any(), any()), (resolver, type, factory) -> {
+    decoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
       final JavaType second = type.getTypeParameter(1).get();
 
@@ -38,35 +38,36 @@ public class TypeSafeDecoderFactory implements DecoderFactory<ConfigValue> {
         throw new IllegalArgumentException("First type argument must be String (" + type + ")");
       }
 
-      final Decoder<ConfigValue, Object> value =
-          resolver.mapping(second).newDecoderImmediate(resolver, Flags.empty(), factory);
-      return new MapDecoder<>(value);
+      return resolver.mapping(second).newDecoder(resolver, factory).map(MapDecoder::new);
     });
 
-    decoders.decoder(type(List.class, any()), (resolver, type, factory) -> {
+    decoders.setup(type(List.class, any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
 
-      final Decoder<ConfigValue, Object> value =
-          resolver.mapping(first).newDecoderImmediate(resolver, Flags.empty(), factory);
-
-      return new ListDecoder<>(value);
+      return resolver.mapping(first).newDecoder(resolver, factory).map(ListDecoder::new);
     });
 
-    decoders.decoder(type(String.class), (resolver, type, factory) -> StringDecoder.get());
+    decoders.setup(type(String.class),
+        (resolver, type, factory) -> Stream.of(StringDecoder.get()));
 
-    decoders.decoder(isPrimitive(Boolean.class), (resolver, type, factory) -> BooleanDecoder.get());
+    decoders.setup(isPrimitive(Boolean.class),
+        (resolver, type, factory) -> Stream.of(BooleanDecoder.get()));
 
-    decoders.decoder(isPrimitive(Short.class), (resolver, type, factory) -> NumberDecoder.SHORT);
-    decoders.decoder(isPrimitive(Integer.class),
-        (resolver, type, factory) -> NumberDecoder.INTEGER);
-    decoders.decoder(isPrimitive(Long.class), (resolver, type, factory) -> NumberDecoder.LONG);
-    decoders.decoder(isPrimitive(Float.class), (resolver, type, factory) -> NumberDecoder.FLOAT);
-    decoders.decoder(isPrimitive(Double.class), (resolver, type, factory) -> NumberDecoder.DOUBLE);
+    decoders.setup(isPrimitive(Short.class),
+        (resolver, type, factory) -> Stream.of(NumberDecoder.SHORT));
+    decoders.setup(isPrimitive(Integer.class),
+        (resolver, type, factory) -> Stream.of(NumberDecoder.INTEGER));
+    decoders.setup(isPrimitive(Long.class),
+        (resolver, type, factory) -> Stream.of(NumberDecoder.LONG));
+    decoders.setup(isPrimitive(Float.class),
+        (resolver, type, factory) -> Stream.of(NumberDecoder.FLOAT));
+    decoders.setup(isPrimitive(Double.class),
+        (resolver, type, factory) -> Stream.of(NumberDecoder.DOUBLE));
   }
 
   @Override
   public <O> Stream<Decoder<ConfigValue, O>> newDecoder(
-      final EntityResolver resolver, final Flags flags, final JavaType type
+      final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
     return decoders.newDecoder(resolver, type, this);
   }

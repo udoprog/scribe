@@ -29,7 +29,7 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue> {
   private static EncoderRegistry<ConfigValue> encoders = new EncoderRegistry<>();
 
   static {
-    encoders.encoder(type(Map.class, any(), any()), (resolver, type, factory) -> {
+    encoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
       final JavaType second = type.getTypeParameter(1).get();
 
@@ -37,33 +37,28 @@ public class TypeSafeEncoderFactory implements EncoderFactory<ConfigValue> {
         throw new IllegalArgumentException("First type argument must be String (" + type + ")");
       }
 
-      final Encoder<ConfigValue, Object> value =
-          resolver.mapping(second).newEncoderImmediate(resolver, Flags.empty(), factory);
-      return new MapEncoder<>(value);
+      return resolver.mapping(second).newEncoder(resolver, factory).map(MapEncoder::new);
     });
 
-    encoders.encoder(type(List.class, any()), (resolver, type, factory) -> {
+    encoders.setup(type(List.class, any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
-
-      final Encoder<ConfigValue, Object> value =
-          resolver.mapping(first).newEncoderImmediate(resolver, Flags.empty(), factory);
-
-      return new ListEncoder<>(value);
+      return resolver.mapping(first).newEncoder(resolver, factory).map(ListEncoder::new);
     });
 
-    encoders.encoder(type(String.class), (resolver, type, factory) -> StringEncoder.get());
+    encoders.setup(type(String.class), (resolver, type, factory) -> Stream.of(StringEncoder.get()));
 
-    encoders.encoder(isPrimitive(Boolean.class), (resolver, type, factory) -> BooleanEncoder.get());
+    encoders.setup(isPrimitive(Boolean.class),
+        (resolver, type, factory) -> Stream.of(BooleanEncoder.get()));
 
-    encoders.encoder(
+    encoders.setup(
         anyOf(isPrimitive(Short.class), isPrimitive(Integer.class), isPrimitive(Long.class),
             isPrimitive(Float.class), isPrimitive(Double.class)),
-        (resolver, type, factory) -> NumberEncoder.get());
+        (resolver, type, factory) -> Stream.of(NumberEncoder.get()));
   }
 
   @Override
   public <O> Stream<Encoder<ConfigValue, O>> newEncoder(
-      final EntityResolver resolver, final Flags flags, final JavaType type
+      final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
     return encoders.newEncoder(resolver, type, this);
   }

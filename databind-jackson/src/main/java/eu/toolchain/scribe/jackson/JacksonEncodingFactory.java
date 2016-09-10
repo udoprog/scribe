@@ -13,7 +13,6 @@ import eu.toolchain.scribe.EntityFieldsEncoder;
 import eu.toolchain.scribe.EntityFieldsStreamEncoder;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.Flags;
-import eu.toolchain.scribe.reflection.JavaType;
 import eu.toolchain.scribe.StreamEncoder;
 import eu.toolchain.scribe.StreamEncoderFactory;
 import eu.toolchain.scribe.StreamEncodingRegistry;
@@ -41,6 +40,7 @@ import eu.toolchain.scribe.jackson.encoding.ShortStreamEncoder;
 import eu.toolchain.scribe.jackson.encoding.StringDecoder;
 import eu.toolchain.scribe.jackson.encoding.StringEncoder;
 import eu.toolchain.scribe.jackson.encoding.StringStreamEncoder;
+import eu.toolchain.scribe.reflection.JavaType;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -60,10 +60,8 @@ public class JacksonEncodingFactory
   private static EncoderRegistry<JsonNode> encoders = new EncoderRegistry<>();
   private static DecoderRegistry<JsonNode> decoders = new DecoderRegistry<>();
 
-  private final EntityResolver resolver;
-
   static {
-    streamRegistry.streamEncoder(type(Map.class, any(), any()), (resolver, type, factory) -> {
+    streamRegistry.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
       final JavaType second = type.getTypeParameter(1).get();
 
@@ -71,42 +69,32 @@ public class JacksonEncodingFactory
         throw new IllegalArgumentException("First type argument must be String (" + type + ")");
       }
 
-      final StreamEncoder<JsonGenerator, Object> value =
-          resolver.mapping(second).newStreamEncoderImmediate(resolver, Flags.empty(), factory);
-      return new MapStreamEncoder<>(value);
+      return resolver
+          .mapping(second)
+          .newStreamEncoder(resolver, factory)
+          .map(MapStreamEncoder::new);
     });
 
-    streamRegistry.streamEncoder(type(List.class, any()), (resolver, type, factory) -> {
+    streamRegistry.setup(type(List.class, any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
 
-      final StreamEncoder<JsonGenerator, Object> value =
-          resolver.mapping(first).newStreamEncoderImmediate(resolver, Flags.empty(), factory);
-
-      return new ListStreamEncoder<>(value);
+      return resolver
+          .mapping(first)
+          .newStreamEncoder(resolver, factory)
+          .map(ListStreamEncoder::new);
     });
 
-    streamRegistry.streamEncoder(type(String.class),
-        (resolver, type, factory) -> StringStreamEncoder.get());
-
-    streamRegistry.streamEncoder(isPrimitive(Boolean.class),
-        (resolver, type, factory) -> BooleanStreamEncoder.get());
-
-    streamRegistry.streamEncoder(isPrimitive(Short.class),
-        (resolver, type, factory) -> ShortStreamEncoder.get());
-    streamRegistry.streamEncoder(isPrimitive(Integer.class),
-        (resolver, type, factory) -> IntegerStreamEncoder.get());
-    streamRegistry.streamEncoder(isPrimitive(Long.class),
-        (resolver, type, factory) -> LongStreamEncoder.get());
-
-    streamRegistry.streamEncoder(isPrimitive(Float.class),
-        (resolver, type, factory) -> FloatStreamEncoder.get());
-
-    streamRegistry.streamEncoder(isPrimitive(Double.class),
-        (resolver, type, factory) -> DoubleStreamEncoder.get());
+    streamRegistry.constant(type(String.class), StringStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Boolean.class), BooleanStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Short.class), ShortStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Integer.class), IntegerStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Long.class), LongStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Float.class), FloatStreamEncoder.get());
+    streamRegistry.constant(isPrimitive(Double.class), DoubleStreamEncoder.get());
   }
 
   static {
-    encoders.encoder(type(Map.class, any(), any()), (resolver, type, factory) -> {
+    encoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
       final JavaType second = type.getTypeParameter(1).get();
 
@@ -114,35 +102,26 @@ public class JacksonEncodingFactory
         throw new IllegalArgumentException("First type argument must be String (" + type + ")");
       }
 
-      final Encoder<JsonNode, Object> value =
-          resolver.mapping(second).newEncoderImmediate(resolver, Flags.empty(), factory);
-      return new MapEncoder<>(value);
+      return resolver.mapping(second).newEncoder(resolver, factory).map(MapEncoder::new);
     });
 
-    encoders.encoder(type(List.class, any()), (resolver, type, factory) -> {
+    encoders.setup(type(List.class, any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
 
-      final Encoder<JsonNode, Object> value =
-          resolver.mapping(first).newEncoderImmediate(resolver, Flags.empty(), factory);
-
-      return new ListEncoder<>(value);
+      return resolver.mapping(first).newEncoder(resolver, factory).map(ListEncoder::new);
     });
 
-    encoders.encoder(type(String.class), (resolver, type, factory) -> StringEncoder.get());
-
-    encoders.encoder(isPrimitive(Boolean.class), (resolver, type, factory) -> BooleanEncoder.get());
-
-    encoders.encoder(isPrimitive(Short.class), (resolver, type, factory) -> ShortEncoder.get());
-    encoders.encoder(isPrimitive(Integer.class), (resolver, type, factory) -> IntegerEncoder.get());
-    encoders.encoder(isPrimitive(Long.class), (resolver, type, factory) -> LongEncoder.get());
-
-    encoders.encoder(isPrimitive(Float.class), (resolver, type, factory) -> FloatEncoder.get());
-
-    encoders.encoder(isPrimitive(Double.class), (resolver, type, factory) -> DoubleEncoder.get());
+    encoders.constant(type(String.class), StringEncoder.get());
+    encoders.constant(isPrimitive(Boolean.class), BooleanEncoder.get());
+    encoders.constant(isPrimitive(Short.class), ShortEncoder.get());
+    encoders.constant(isPrimitive(Integer.class), IntegerEncoder.get());
+    encoders.constant(isPrimitive(Long.class), LongEncoder.get());
+    encoders.constant(isPrimitive(Float.class), FloatEncoder.get());
+    encoders.constant(isPrimitive(Double.class), DoubleEncoder.get());
   }
 
   static {
-    decoders.decoder(type(Map.class, any(), any()), (resolver, type, factory) -> {
+    decoders.setup(type(Map.class, any(), any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
       final JavaType second = type.getTypeParameter(1).get();
 
@@ -150,49 +129,41 @@ public class JacksonEncodingFactory
         throw new IllegalArgumentException("First type argument must be String (" + type + ")");
       }
 
-      final Decoder<JsonNode, Object> value =
-          resolver.mapping(second).newDecoderImmediate(resolver, Flags.empty(), factory);
-      return new MapDecoder<>(value);
+      return resolver.mapping(second).newDecoder(resolver, factory).map(MapDecoder::new);
     });
 
-    decoders.decoder(type(List.class, any()), (resolver, type, factory) -> {
+    decoders.setup(type(List.class, any()), (resolver, type, factory) -> {
       final JavaType first = type.getTypeParameter(0).get();
 
-      final Decoder<JsonNode, Object> value =
-          resolver.mapping(first).newDecoderImmediate(resolver, Flags.empty(), factory);
-
-      return new ListDecoder<>(value);
+      return resolver.mapping(first).newDecoder(resolver, factory).map(ListDecoder::new);
     });
 
-    decoders.decoder(type(String.class), (resolver, type, factory) -> StringDecoder.get());
-
-    decoders.decoder(isPrimitive(Boolean.class), (resolver, type, factory) -> BooleanDecoder.get());
-
-    decoders.decoder(isPrimitive(Short.class), (resolver, type, factory) -> NumberDecoder.SHORT);
-    decoders.decoder(isPrimitive(Integer.class),
-        (resolver, type, factory) -> NumberDecoder.INTEGER);
-    decoders.decoder(isPrimitive(Long.class), (resolver, type, factory) -> NumberDecoder.LONG);
-    decoders.decoder(isPrimitive(Float.class), (resolver, type, factory) -> NumberDecoder.FLOAT);
-    decoders.decoder(isPrimitive(Double.class), (resolver, type, factory) -> NumberDecoder.DOUBLE);
+    decoders.constant(type(String.class), StringDecoder.get());
+    decoders.constant(isPrimitive(Boolean.class), BooleanDecoder.get());
+    decoders.simple(isPrimitive(Short.class), () -> NumberDecoder.SHORT);
+    decoders.simple(isPrimitive(Integer.class), () -> NumberDecoder.INTEGER);
+    decoders.simple(isPrimitive(Long.class), () -> NumberDecoder.LONG);
+    decoders.simple(isPrimitive(Float.class), () -> NumberDecoder.FLOAT);
+    decoders.simple(isPrimitive(Double.class), () -> NumberDecoder.DOUBLE);
   }
 
   @Override
   public <Source> Stream<Encoder<JsonNode, Source>> newEncoder(
-      final EntityResolver resolver, final Flags flags, final JavaType type
+      final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
     return encoders.newEncoder(resolver, type, this);
   }
 
   @Override
   public <Source> Stream<StreamEncoder<JsonGenerator, Source>> newStreamEncoder(
-      final EntityResolver resolver, final Flags flags, final JavaType type
+      final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
     return streamRegistry.newStreamEncoder(resolver, type, this);
   }
 
   @Override
   public <Source> Stream<Decoder<JsonNode, Source>> newDecoder(
-      final EntityResolver resolver, final Flags flags, final JavaType type
+      final EntityResolver resolver, final JavaType type, final Flags flags
   ) {
     return decoders.newDecoder(resolver, type, this);
   }

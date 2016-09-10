@@ -29,7 +29,7 @@ public class JacksonEntityMapper {
     this.resolver = resolver;
     this.factory = factory;
 
-    final JacksonEncodingFactory f = new JacksonEncodingFactory(resolver);
+    final JacksonEncodingFactory f = new JacksonEncodingFactory();
 
     this.encoderProvider = resolver.encoderFor(f);
     this.streamEncoderProvider = resolver.streamEncoderFor(f);
@@ -37,8 +37,9 @@ public class JacksonEntityMapper {
   }
 
   public JacksonEncoding<Object> encodingForType(final Type type) {
-    return new JacksonEncoding<>(encoderProvider.newEncoder(type),
-        streamEncoderProvider.newStreamEncoder(type), decoderProvider.newDecoder(type), factory);
+    return new JacksonEncoding<>(encoderProvider.newEncoderForType(type),
+        streamEncoderProvider.newStreamEncoder(type), decoderProvider.newDecoderForType(type),
+        factory);
   }
 
   public <T> JacksonEncoding<T> encodingFor(final Class<T> type) {

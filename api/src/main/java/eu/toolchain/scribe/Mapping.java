@@ -2,7 +2,7 @@ package eu.toolchain.scribe;
 
 import eu.toolchain.scribe.reflection.JavaType;
 
-import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Encapsulates information about a given Type that is used for resolving an encoder.
@@ -12,40 +12,60 @@ import java.util.Optional;
 public interface Mapping {
   JavaType getType();
 
-  <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      EntityResolver resolver, Flags flags, EncoderFactory<Target> factory
+  /**
+   * Build a stream of new encoders for the current type mapping.
+   * <p>
+   * This method returns a stream because multiple encoders might match the current type.
+   */
+  <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target> factory, Flags flags
   );
 
-  <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      EntityResolver resolver, Flags flags, StreamEncoderFactory<Target> factory
+  default <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      EntityResolver resolver, EncoderFactory<Target> factory
+  ) {
+    return newEncoder(resolver, factory, Flags.empty());
+  }
+
+  /**
+   * Build a stream of new stream encoders for the current type mapping.
+   * <p>
+   * This method returns a stream because multiple stream encoders might match the current type.
+   */
+  <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      EntityResolver resolver, StreamEncoderFactory<Target> factory, Flags flags
   );
 
-  <Target, Source> Optional<Decoder<Target, Source>> newDecoder(
-      EntityResolver resolver, Flags flags, DecoderFactory<Target> factory
+  default <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      EntityResolver resolver, StreamEncoderFactory<Target> factory
+  ) {
+    return newStreamEncoder(resolver, factory, Flags.empty());
+  }
+
+  /**
+   * Build a stream of new decoders for the current type mapping.
+   * <p>
+   * This method returns a stream because multiple decoders might match the current type.
+   */
+  <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target> factory, Flags flags
   );
 
-  default <Target, Source> Encoder<Target, Source> newEncoderImmediate(
-      EntityResolver resolver, Flags flags, EncoderFactory<Target> factory
+  default <Target, Source> Stream<Decoder<Target, Source>> newDecoder(
+      EntityResolver resolver, DecoderFactory<Target> factory
   ) {
-    return this.<Target, Source>newEncoder(resolver, flags, factory).orElseThrow(
-        () -> new IllegalArgumentException("Unable to build encoder for type (" + getType() + ")"));
+    return newDecoder(resolver, factory, Flags.empty());
   }
 
-  default <Target, Source> StreamEncoder<Target, Source> newStreamEncoderImmediate(
-      EntityResolver resolver, Flags flags, StreamEncoderFactory<Target> factory
-  ) {
-    return this.<Target, Source>newStreamEncoder(resolver, flags, factory).orElseThrow(
-        () -> new IllegalArgumentException(
-            "Unable to build stream encoder for type (" + getType() + ")"));
-  }
-
-  default <Target, Source> Decoder<Target, Source> newDecoderImmediate(
-      EntityResolver resolver, Flags flags, DecoderFactory<Target> factory
-  ) {
-    return this.<Target, Source>newDecoder(resolver, flags, factory).orElseThrow(
-        () -> new IllegalArgumentException("Unable to build decoder for type (" + getType() + ")"));
-  }
-
+  /**
+   * Lazy initialization of this mapper.
+   * <p>
+   * This method is called immediately after this mapping has been cached by the resolver. Any
+   * dependent type parameters should be initialized in here to avoid indefinite circular
+   * resolving.
+   *
+   * @param resolver Resolver to initialize using.
+   */
   default void initialize(final EntityResolver resolver) {
   }
 }

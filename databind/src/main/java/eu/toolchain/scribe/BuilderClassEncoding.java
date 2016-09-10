@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static eu.toolchain.scribe.Streams.streamRequireOne;
+
 /**
  * Entity binding that uses a builder for constructing new instances.
  *
@@ -30,10 +32,8 @@ public class BuilderClassEncoding implements ClassEncoding {
     final ArrayList<ReadFieldsEntityEncoder.Field<Target, Object>> fields = new ArrayList<>();
 
     for (final BuilderEntityFieldMapping field : this.fields) {
-      final BuilderEntityFieldEncoder<Target> fieldEncoder = field
-          .newEntityFieldEncoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")"));
+      final BuilderEntityFieldEncoder<Target> fieldEncoder =
+          streamRequireOne(field.newEntityFieldEncoder(resolver, factory));
 
       fields.add(new ReadFieldsEntityEncoder.Field<>(fieldEncoder, field.getReader()));
     }
@@ -49,10 +49,8 @@ public class BuilderClassEncoding implements ClassEncoding {
         new ArrayList<>();
 
     for (final BuilderEntityFieldMapping field : this.fields) {
-      final BuilderEntityFieldStreamEncoder<Target> encoder = field
-          .newEntityFieldStreamEncoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")"));
+      final BuilderEntityFieldStreamEncoder<Target> encoder =
+          streamRequireOne(field.newEntityFieldStreamEncoder(resolver, factory));
 
       fields.add(
           new ReadFieldsEntityStreamEncoder.ReadFieldsEntityField<>(encoder, field.getReader()));
@@ -68,10 +66,7 @@ public class BuilderClassEncoding implements ClassEncoding {
     final ArrayList<BuilderEntityFieldDecoder<Target>> fields = new ArrayList<>();
 
     for (final BuilderEntityFieldMapping field : this.fields) {
-      fields.add(field
-          .newEntityFieldDecoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")")));
+      fields.add(streamRequireOne(field.newEntityFieldDecoder(resolver, factory)));
     }
 
     return new BuilderEntityDecoder<>(Collections.unmodifiableList(fields), newInstance, build,

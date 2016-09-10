@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static eu.toolchain.scribe.Streams.streamRequireOne;
+
 @Data
 public class MethodClassEncoding implements ClassEncoding {
   private final List<DefaultEntityFieldMapping> fields;
@@ -23,10 +25,8 @@ public class MethodClassEncoding implements ClassEncoding {
     final ArrayList<ReadFieldsEntityEncoder.Field<Target, Object>> fields = new ArrayList<>();
 
     for (final DefaultEntityFieldMapping field : this.fields) {
-      final EntityFieldEncoder<Target, Object> fieldEncoder = field
-          .newEntityFieldEncoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")"));
+      final EntityFieldEncoder<Target, Object> fieldEncoder =
+          streamRequireOne(field.newEntityFieldEncoder(resolver, factory));
 
       fields.add(new ReadFieldsEntityEncoder.Field<>(fieldEncoder, field.getReader()));
     }
@@ -42,10 +42,8 @@ public class MethodClassEncoding implements ClassEncoding {
         new ArrayList<>();
 
     for (final DefaultEntityFieldMapping field : this.fields) {
-      final EntityFieldStreamEncoder<Target, Object> encoder = field
-          .newEntityFieldStreamEncoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")"));
+      final EntityFieldStreamEncoder<Target, Object> encoder =
+          streamRequireOne(field.newEntityFieldStreamEncoder(resolver, factory));
 
       fields.add(
           new ReadFieldsEntityStreamEncoder.ReadFieldsEntityField<>(encoder, field.getReader()));
@@ -61,10 +59,7 @@ public class MethodClassEncoding implements ClassEncoding {
     final ArrayList<EntityFieldDecoder<Target, Object>> fields = new ArrayList<>();
 
     for (final EntityFieldMapping field : this.fields) {
-      fields.add(field
-          .newEntityFieldDecoder(resolver, factory)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unable to apply encoding for field (" + field + ")")));
+      fields.add(streamRequireOne(field.newEntityFieldDecoder(resolver, factory)));
     }
 
     return new DefaultEntityDecoder<>(Collections.unmodifiableList(fields), instanceBuilder,
@@ -107,8 +102,7 @@ public class MethodClassEncoding implements ClassEncoding {
         fields.add(new DefaultEntityFieldMapping(fieldName, m, reader, flags));
       }
 
-      return Stream.of(
-          new MethodClassEncoding(Collections.unmodifiableList(fields), creator));
+      return Stream.of(new MethodClassEncoding(Collections.unmodifiableList(fields), creator));
     }).orElseGet(Stream::empty).map(Match.withPriority(MatchPriority.HIGH));
   }
 }

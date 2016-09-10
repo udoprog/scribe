@@ -7,7 +7,6 @@ import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @Data
@@ -18,19 +17,19 @@ public class EntityEncodeValue implements EncodeValue {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<Encoder<Target, Source>> newEncoder(
-      final EntityResolver resolver, final EncoderFactory<Target> factory
+  public <Target, Source> Stream<Encoder<Target, Source>> newEncoder(
+      final EntityResolver resolver, final EncoderFactory<Target> factory, final Flags flags
   ) {
-    return targetMapping.<Target, Source>newEncoder(resolver, Flags.empty(), factory).map(
+    return targetMapping.<Target, Source>newEncoder(resolver, factory).map(
         parent -> new EntityEncodeValueEncoder<>(valueMethod, parent));
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Optional<StreamEncoder<Target, Source>> newStreamEncoder(
-      final EntityResolver resolver, final StreamEncoderFactory<Target> factory
+  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+      final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return targetMapping.<Target, Source>newStreamEncoder(resolver, Flags.empty(), factory).map(
+    return targetMapping.<Target, Source>newStreamEncoder(resolver, factory).map(
         parent -> new EntityEncodeValueStreamEncoder<>(valueMethod, parent));
   }
 

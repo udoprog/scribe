@@ -25,8 +25,8 @@ public class TypeSafeEntityMapper {
   }
 
   public TypeSafeEncoding<Object> encodingForType(final Type type) {
-    return new TypeSafeEncoding<>(encoderProvider.newEncoder(type),
-        decoderProvider.newDecoder(type));
+    return new TypeSafeEncoding<>(encoderProvider.newEncoderForType(type),
+        decoderProvider.newDecoderForType(type));
   }
 
   public <T> TypeSafeEncoding<T> encodingFor(final Class<T> type) {

@@ -34,6 +34,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static eu.toolchain.scribe.Streams.streamRequireOne;
+
 @RequiredArgsConstructor
 public class EntityMapper implements EntityResolver {
   private final List<TypeAliasDetector> typeAliasDetectors;
@@ -62,10 +64,10 @@ public class EntityMapper implements EntityResolver {
     return new TypeStreamEncoderProvider<Target>() {
       @Override
       public StreamEncoder<Target, Object> newStreamEncoder(Type type) {
-        return mapping(JavaType.of(type))
-            .newStreamEncoder(EntityMapper.this, Flags.empty(), factory)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Unable to resolve encoding for type (" + type + ")"));
+        return streamRequireOne(
+            mapping(JavaType.of(type)).newStreamEncoder(EntityMapper.this, factory),
+            values -> new IllegalArgumentException(
+                "Expected one stream encoder for type (" + type + ") but got (" + values + ")"));
       }
 
       @SuppressWarnings("unchecked")
@@ -93,23 +95,22 @@ public class EntityMapper implements EntityResolver {
   ) {
     return new TypeEncoderProvider<Target>() {
       @Override
-      public Encoder<Target, Object> newEncoder(Type type) {
-        return mapping(JavaType.of(type))
-            .newEncoder(EntityMapper.this, Flags.empty(), factory)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Unable to resolve encoding for type (" + type + ")"));
+      public Encoder<Target, Object> newEncoderForType(Type type) {
+        return streamRequireOne(mapping(JavaType.of(type)).newEncoder(EntityMapper.this, factory),
+            values -> new IllegalArgumentException(
+                "Expected one encoder for type (" + type + ") but got (" + values + ")"));
       }
 
       @SuppressWarnings("unchecked")
       @Override
       public <Source> Encoder<Target, Source> newEncoder(Class<Source> type) {
-        return (Encoder<Target, Source>) newEncoder((Type) type);
+        return (Encoder<Target, Source>) newEncoderForType((Type) type);
       }
 
       @SuppressWarnings("unchecked")
       @Override
       public <Source> Encoder<Target, Source> newEncoder(TypeReference<Source> type) {
-        return (Encoder<Target, Source>) newEncoder(type.getType());
+        return (Encoder<Target, Source>) newEncoderForType(type.getType());
       }
     };
   }
@@ -123,23 +124,22 @@ public class EntityMapper implements EntityResolver {
   ) {
     return new TypeDecoderProvider<Target>() {
       @Override
-      public Decoder<Target, Object> newDecoder(Type type) {
-        return mapping(JavaType.of(type))
-            .newDecoder(EntityMapper.this, Flags.empty(), factory)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Unable to resolve encoding for type (" + type + ")"));
+      public Decoder<Target, Object> newDecoderForType(Type type) {
+        return streamRequireOne(mapping(JavaType.of(type)).newDecoder(EntityMapper.this, factory),
+            values -> new IllegalArgumentException(
+                "Expected one decoder for type (" + type + ") but got (" + values + ")"));
       }
 
       @SuppressWarnings("unchecked")
       @Override
       public <Source> Decoder<Target, Source> newDecoder(Class<Source> type) {
-        return (Decoder<Target, Source>) newDecoder((Type) type);
+        return (Decoder<Target, Source>) newDecoderForType((Type) type);
       }
 
       @SuppressWarnings("unchecked")
       @Override
       public <Source> Decoder<Target, Source> newDecoder(TypeReference<Source> type) {
-        return (Decoder<Target, Source>) newDecoder(type.getType());
+        return (Decoder<Target, Source>) newDecoderForType(type.getType());
       }
     };
   }

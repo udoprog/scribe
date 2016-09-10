@@ -5,12 +5,28 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class EncoderRegistry<Target> {
   private final List<EncoderPair<Target, ?>> encoders = new ArrayList<>();
 
-  public <Source> void encoder(
+  public <Source> void constant(
+      final TypeMatcher matcher, final Encoder<Target, Source> encoder
+  ) {
+    simple(matcher, () -> encoder);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <Source> void simple(
+      final TypeMatcher matcher, final Supplier<Encoder<Target, Source>> supplier
+  ) {
+    this.encoders.add(new EncoderPair<>(matcher, (resolver, type, decoder) -> {
+      return Stream.of((Encoder<Target, Object>) supplier.get());
+    }));
+  }
+
+  public <Source> void setup(
       final TypeMatcher matcher, final EncoderBuilder<Target, Source> encoder
   ) {
     this.encoders.add(new EncoderPair<>(matcher, encoder));
@@ -20,10 +36,10 @@ public class EncoderRegistry<Target> {
   public <Source> Stream<Encoder<Target, Source>> newEncoder(
       final EntityResolver resolver, final JavaType type, final EncoderFactory<Target> encoder
   ) {
-    return encoders
-        .stream()
-        .filter(p -> p.matcher.matches(type))
-        .map(p -> (Encoder<Target, Source>) p.encoder.apply(resolver, type, encoder));
+    return encoders.stream().filter(p -> p.matcher.matches(type)).flatMap(p -> {
+      final Stream<? extends Encoder<Target, ?>> apply = p.encoder.apply(resolver, type, encoder);
+      return (Stream<Encoder<Target, Source>>) apply;
+    });
   }
 
   @Data
@@ -34,7 +50,7 @@ public class EncoderRegistry<Target> {
 
   @FunctionalInterface
   public interface EncoderBuilder<T, O> {
-    Encoder<T, O> apply(
+    Stream<Encoder<T, O>> apply(
         EntityResolver resolver, JavaType type, EncoderFactory<T> encoder
     );
   }
