@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @author udoprog
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
 public @interface Property {
   String value();
 }

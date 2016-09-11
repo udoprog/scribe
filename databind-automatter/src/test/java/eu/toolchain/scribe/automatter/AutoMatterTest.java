@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 public class AutoMatterTest {
-  private final Scribe m = Scribe.defaultBuilder().install(new AutoMatterModule()).build();
+  private final Scribe m = Scribe.nativeBuilder().install(new AutoMatterModule()).build();
 
   private final JacksonMapper mapper = new JacksonMapper(m);
 
@@ -19,6 +19,18 @@ public class AutoMatterTest {
 
     final Basic basic = new BasicBuilder().field("value").build();
     final String encoded = "{\"field\":\"value\"}";
+
+    assertThat(encoding.encode(basic), is(encoded));
+    assertThat(encoding.decode(encoded), is(basic));
+  }
+
+  @Test
+  public void testNativeAnnotation() {
+    final StringEncoding<NativeAnnotation> encoding =
+        mapper.stringEncodingFor(NativeAnnotation.class);
+
+    final NativeAnnotation basic = new NativeAnnotationBuilder().field("value").build();
+    final String encoded = "{\"alias\":\"value\"}";
 
     assertThat(encoding.encode(basic), is(encoded));
     assertThat(encoding.decode(encoded), is(basic));
