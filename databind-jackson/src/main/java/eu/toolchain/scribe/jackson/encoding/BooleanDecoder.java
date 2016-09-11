@@ -5,8 +5,10 @@ import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.jackson.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class BooleanDecoder extends AbstractVisitor<Boolean> implements Decoder<JsonNode, Boolean> {
   @Override
   public Decoded<Boolean> visitBoolean(final JsonNode.BooleanJsonNode booleanNode) {

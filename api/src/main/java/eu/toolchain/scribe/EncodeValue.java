@@ -4,16 +4,16 @@ import eu.toolchain.scribe.reflection.JavaType;
 
 import java.util.stream.Stream;
 
-public interface EncodeValue {
+public interface EncodeValue<Source> {
   JavaType getSourceType();
 
-  Mapping getTargetMapping();
+  Mapping<Source> getTargetMapping();
 
-  <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+  <Target, EntityTarget> Stream<Encoder<Target, Source>> newEncoder(
       EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory, Flags flags
   );
 
-  <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+  <Target> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
       EntityResolver resolver, StreamEncoderFactory<Target> factory, Flags flags
   );
 

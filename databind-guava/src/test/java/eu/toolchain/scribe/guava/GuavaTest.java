@@ -3,10 +3,9 @@ package eu.toolchain.scribe.guava;
 import com.google.common.base.Optional;
 import eu.toolchain.scribe.ConcreteClassMapping;
 import eu.toolchain.scribe.DefaultEntityFieldMapping;
-import eu.toolchain.scribe.Scribe;
 import eu.toolchain.scribe.MethodClassEncoding;
 import eu.toolchain.scribe.OptionalMapping;
-import eu.toolchain.scribe.reflection.JavaType;
+import eu.toolchain.scribe.Scribe;
 import lombok.Data;
 import org.junit.Test;
 
@@ -23,11 +22,12 @@ public class GuavaTest {
 
   @Test
   public void testGuavaOptional() {
-    final ConcreteClassMapping mapping =
-        (ConcreteClassMapping) m.mapping(JavaType.of(GuavaOptional.class));
+    final ConcreteClassMapping<GuavaOptional> mapping =
+        (ConcreteClassMapping<GuavaOptional>) m.mapping(GuavaOptional.class);
 
-    final MethodClassEncoding encoding = (MethodClassEncoding) mapping.getDeferred();
-    final DefaultEntityFieldMapping field = encoding.getFields().get(0);
+    final MethodClassEncoding<GuavaOptional> encoding =
+        (MethodClassEncoding<GuavaOptional>) mapping.getDeferred();
+    final DefaultEntityFieldMapping<Object> field = encoding.getFields().get(0);
 
     assertThat(field.getMapping(), instanceOf(OptionalMapping.class));
   }

@@ -4,11 +4,13 @@ import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.jackson.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class MapEncoder<ValueSource> extends AbstractEncoder<Map<String, ValueSource>> {
   private final Encoder<JsonNode, ValueSource> value;
 

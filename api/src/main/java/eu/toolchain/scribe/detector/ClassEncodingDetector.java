@@ -8,5 +8,5 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface ClassEncodingDetector {
-  Stream<Match<ClassEncoding>> detect(EntityResolver resolver, JavaType type);
+  Stream<Match<ClassEncoding<Object>>> detect(EntityResolver resolver, JavaType type);
 }

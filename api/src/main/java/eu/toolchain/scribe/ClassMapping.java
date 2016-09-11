@@ -3,45 +3,42 @@ package eu.toolchain.scribe;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface ClassMapping extends Mapping {
+public interface ClassMapping<Source> extends Mapping<Source> {
   default Optional<String> typeName() {
     return Optional.empty();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  default <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+  default <Target, EntityTarget> Stream<Encoder<Target, Source>> newEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    return Stream.of((Encoder<Target, Source>) newEntityTypeEncoder(resolver, factory));
+    return Stream.of(newEntityTypeEncoder(resolver, factory));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  default <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+  default <Target> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return Stream.of((StreamEncoder<Target, Source>) newEntityTypeStreamEncoder(resolver, factory));
+    return Stream.of(newEntityTypeStreamEncoder(resolver, factory));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  default <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+  default <Target, EntityTarget> Stream<Decoder<Target, Source>> newDecoder(
       EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory, final Flags flags
   ) {
-    return Stream.of((Decoder<Target, Source>) newEntityTypeDecoder(resolver, factory));
+    return Stream.of(newEntityTypeDecoder(resolver, factory));
   }
 
-  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityTypeEncoder(
+  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityTypeEncoder(
       EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
   );
 
-  <Target> EntityStreamEncoder<Target, Object> newEntityTypeStreamEncoder(
+  <Target> EntityStreamEncoder<Target, Source> newEntityTypeStreamEncoder(
       EntityResolver resolver, StreamEncoderFactory<Target> factory
   );
 
-  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityTypeDecoder(
+  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityTypeDecoder(
       EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
   );
 }

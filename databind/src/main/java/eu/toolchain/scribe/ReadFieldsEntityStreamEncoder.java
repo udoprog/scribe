@@ -5,13 +5,14 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ReadFieldsEntityStreamEncoder<Target> implements EntityStreamEncoder<Target, Object> {
+public class ReadFieldsEntityStreamEncoder<Target, Source>
+    implements EntityStreamEncoder<Target, Source> {
   private final List<ReadFieldsEntityField<Target, Object>> fields;
   private final StreamEncoderFactory<Target> factory;
 
   @Override
   public void streamEncode(
-      final EntityFieldsStreamEncoder<Target> encoder, final Context path, final Object instance,
+      final EntityFieldsStreamEncoder<Target> encoder, final Context path, final Source instance,
       final Target target, final Runnable callback
   ) {
     encoder.encodeStart(path, target);
@@ -37,7 +38,7 @@ public class ReadFieldsEntityStreamEncoder<Target> implements EntityStreamEncode
   }
 
   @Override
-  public void streamEncode(final Context path, final Object instance, final Target target) {
+  public void streamEncode(final Context path, final Source instance, final Target target) {
     streamEncode(factory.newEntityStreamEncoder(), path, instance, target,
         EntityStreamEncoder.EMPTY_CALLBACK);
   }

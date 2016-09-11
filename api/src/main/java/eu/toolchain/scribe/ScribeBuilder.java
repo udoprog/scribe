@@ -19,7 +19,7 @@ public interface ScribeBuilder {
    * @param detector Detector to install.
    * @return This builder.
    */
-  ScribeBuilder typeAlias(TypeAliasDetector detector);
+  <From, To> ScribeBuilder typeAlias(TypeAliasDetector<From, To> detector);
 
   /**
    * Install a mapping detector.

@@ -5,8 +5,10 @@ import com.google.datastore.v1.Value;
 import eu.toolchain.scribe.Context;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class FloatEncoder extends AbstractEncoder<Float> {
   @Override
   public Value encode(final Context path, final Float instance) {

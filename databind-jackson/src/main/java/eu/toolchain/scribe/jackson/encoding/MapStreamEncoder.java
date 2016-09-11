@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.StreamEncoder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class MapStreamEncoder<ValueSource> extends AbstractStreamEncoder<Map<String, ValueSource>> {
   private final StreamEncoder<JsonGenerator, ValueSource> value;
 

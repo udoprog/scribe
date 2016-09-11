@@ -9,13 +9,13 @@ import java.util.Map;
 import java.util.Optional;
 
 @Data
-public class AbstractClassMapping implements ClassMapping {
+public class AbstractClassMapping<Source> implements ClassMapping<Source> {
   public static final JavaType STRING = JavaType.of(String.class);
   public static final String DEFAULT_TYPE_FIELD = "type";
 
   private final JavaType type;
   private final Optional<String> typeName;
-  private final List<SubType> subTypes;
+  private final List<SubType<Source>> subTypes;
   private final Optional<String> typeField;
 
   @Override
@@ -24,16 +24,16 @@ public class AbstractClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityTypeEncoder(
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityTypeEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
-    final Map<JavaType, AbstractEntityEncoder.TypeEntry<Target, EntityTarget>> byType =
+    final Map<JavaType, AbstractEntityEncoder.TypeEntry<Target, EntityTarget, Source>> byType =
         new HashMap<>();
 
-    for (final SubType subType : subTypes) {
-      final ClassMapping m = subType.getMapping();
+    for (final SubType<Source> subType : subTypes) {
+      final ClassMapping<Source> m = subType.getMapping();
 
-      final EntityEncoder<Target, EntityTarget, Object> encoding =
+      final EntityEncoder<Target, EntityTarget, Source> encoding =
           m.newEntityTypeEncoder(resolver, factory);
 
       final String typeName = getTypeName(subType, m);
@@ -53,16 +53,16 @@ public class AbstractClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target> EntityStreamEncoder<Target, Object> newEntityTypeStreamEncoder(
+  public <Target> EntityStreamEncoder<Target, Source> newEntityTypeStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
-    final Map<JavaType, AbstractEntityStreamEncoder.EntityEncoderEntry<Target>> byType =
+    final Map<JavaType, AbstractEntityStreamEncoder.EntityEncoderEntry<Target, Source>> byType =
         new HashMap<>();
 
-    for (final SubType subType : subTypes) {
-      final ClassMapping m = subType.getMapping();
+    for (final SubType<Source> subType : subTypes) {
+      final ClassMapping<Source> m = subType.getMapping();
 
-      final EntityStreamEncoder<Target, Object> encoder =
+      final EntityStreamEncoder<Target, Source> encoder =
           m.newEntityTypeStreamEncoder(resolver, factory);
 
       final String typeName = getTypeName(subType, m);
@@ -83,15 +83,15 @@ public class AbstractClassMapping implements ClassMapping {
   }
 
   @Override
-  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityTypeDecoder(
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityTypeDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
-    final Map<String, EntityDecoder<Target, EntityTarget, Object>> byName = new HashMap<>();
+    final Map<String, EntityDecoder<Target, EntityTarget, Source>> byName = new HashMap<>();
 
-    for (final SubType subType : subTypes) {
-      final ClassMapping m = subType.getMapping();
+    for (final SubType<Source> subType : subTypes) {
+      final ClassMapping<Source> m = subType.getMapping();
 
-      final EntityDecoder<Target, EntityTarget, Object> encoding =
+      final EntityDecoder<Target, EntityTarget, Source> encoding =
           m.newEntityTypeDecoder(resolver, factory);
 
       final String typeName = getTypeName(subType, m);
@@ -116,7 +116,9 @@ public class AbstractClassMapping implements ClassMapping {
         .orElse(DEFAULT_TYPE_FIELD));
   }
 
-  private String getTypeName(final SubType subType, final ClassMapping m) {
+  private String getTypeName(
+      final SubType<Source> subType, final ClassMapping<Source> m
+  ) {
     return subType
         .getName()
         .orElseGet(() -> m

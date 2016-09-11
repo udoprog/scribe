@@ -15,15 +15,16 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Data
-public class StaticMethodInstanceBuilder implements InstanceBuilder {
+public class StaticMethodInstanceBuilder<Source> implements InstanceBuilder<Source> {
   private final List<EntityField> fields;
   private final Optional<List<String>> fieldNames;
   private final JavaType.Method method;
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Object newInstance(final Context path, final List<Object> arguments) {
+  public Source newInstance(final Context path, final List<Object> arguments) {
     try {
-      return method.invoke(null, arguments.toArray());
+      return (Source) method.invoke(null, arguments.toArray());
     } catch (final Exception e) {
       throw path.error("failed to create instance using static method (" + method + ")", e);
     }
@@ -62,7 +63,7 @@ public class StaticMethodInstanceBuilder implements InstanceBuilder {
           }
         });
 
-        return new StaticMethodInstanceBuilder(fields, Optional.empty(), m);
+        return new StaticMethodInstanceBuilder<>(fields, Optional.empty(), m);
       });
     }).map(Match.withPriority(MatchPriority.HIGH));
   }

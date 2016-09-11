@@ -16,8 +16,9 @@ public interface EntityResolver {
    * @param cls Class to create {@link Mapping} from.
    * @return A {@link Mapping} created from the given class.
    */
-  default Mapping mapping(Class<?> cls) {
-    return mapping(JavaType.of(cls));
+  @SuppressWarnings("unchecked")
+  default <T> Mapping<T> mapping(Class<T> cls) {
+    return (Mapping<T>) mapping(JavaType.of(cls));
   }
 
   /**
@@ -29,7 +30,7 @@ public interface EntityResolver {
    * @param type The type to lookup.
    * @return A mapping for the given type.
    */
-  Mapping mapping(JavaType type);
+  Mapping<Object> mapping(JavaType type);
 
   /**
    * Performed a cached lookup of the given type.
@@ -41,7 +42,7 @@ public interface EntityResolver {
    * @param annotations External annotations associated with the given type.
    * @return A mapping for the given type.
    */
-  Mapping mapping(JavaType type, Annotations annotations);
+  Mapping<Object> mapping(JavaType type, Annotations annotations);
 
   /**
    * Create an encoder provider for the given factory.
@@ -82,7 +83,7 @@ public interface EntityResolver {
    * @param type Type to create instances of.
    * @return An optional {@link InstanceBuilder}.
    */
-  Optional<InstanceBuilder> detectInstanceBuilder(JavaType type);
+  Optional<InstanceBuilder<Object>> detectInstanceBuilder(JavaType type);
 
   /**
    * Detect how to read the given field.
@@ -90,7 +91,7 @@ public interface EntityResolver {
    * @param type The type the field is associated with.
    * @param fieldName The name of the field.
    * @param fieldType The type of the field.
-   * @return
+   * @return The field reader for the given type.
    */
   Optional<FieldReader> detectFieldReader(
       JavaType type, String fieldName, JavaType fieldType
@@ -104,7 +105,7 @@ public interface EntityResolver {
    * @param type Entity type to detect mapping for.
    * @return An optional entity mapping for the given type.
    */
-  Optional<ClassEncoding> detectEntityMapping(JavaType type);
+  Optional<ClassEncoding<Object>> detectEntityMapping(JavaType type);
 
   /**
    * Detect encode-value methods for the given type.
@@ -117,7 +118,7 @@ public interface EntityResolver {
    * @param type Type to detect encode-value methods for.
    * @return An optional encode-value method for the given type.
    */
-  Optional<EncodeValue> detectEncodeValue(JavaType type);
+  Optional<EncodeValue<Object>> detectEncodeValue(JavaType type);
 
   /**
    * Detect decode-value methods for the given type. Similar to {@link
@@ -127,7 +128,7 @@ public interface EntityResolver {
    * @return An optional decode-value method for the given type.
    * @see #detectEncodeValue(JavaType)
    */
-  Optional<DecodeValue> detectDecodeValue(JavaType type, JavaType fieldType);
+  Optional<DecodeValue<Object>> detectDecodeValue(JavaType type, JavaType fieldType);
 
   /**
    * Detect the field name of the given type, with the given set of annotations.
@@ -162,7 +163,7 @@ public interface EntityResolver {
    *
    * @param type Type of the field.
    * @param annotations Annotations associated with the field.
-   * @return
+   * @return The detected flags for the given type.
    */
   Flags detectFieldFlags(JavaType type, Annotations annotations);
 

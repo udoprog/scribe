@@ -10,13 +10,13 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface MappingDetector {
-  Stream<Match<Mapping>> map(EntityResolver resolver, JavaType type);
+  Stream<Match<Mapping<Object>>> detect(EntityResolver resolver, JavaType type);
 
   static MappingDetector matchMapping(
-      final TypeMatcher matcher, final Function<JavaType, Mapping> mapping
+      final TypeMatcher matcher, final Function<JavaType, Mapping<Object>> mapping
   ) {
     return (resolver, type) -> {
-      final Stream<Mapping> stream =
+      final Stream<Mapping<Object>> stream =
           matcher.matches(type) ? Stream.of(mapping.apply(type)) : Stream.empty();
 
       return stream.map(Match.withPriority(MatchPriority.HIGH));

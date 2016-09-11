@@ -17,15 +17,16 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Data
-public class ConstructorInstanceBuilder implements InstanceBuilder {
+public class ConstructorInstanceBuilder<Source> implements InstanceBuilder<Source> {
   private final List<EntityField> fields;
   private final Optional<List<String>> fieldNames;
   private final JavaType.Constructor constructor;
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Object newInstance(final Context path, final List<Object> arguments) {
+  public Source newInstance(final Context path, final List<Object> arguments) {
     try {
-      return constructor.newInstance(arguments.toArray());
+      return (Source) constructor.newInstance(arguments.toArray());
     } catch (final Exception e) {
       throw path.error("failed to create instance using constructor (" + constructor + ")", e);
     }
@@ -36,7 +37,7 @@ public class ConstructorInstanceBuilder implements InstanceBuilder {
         .getConstructors()
         .filter(AccessibleType::isPublic)
         .filter(c -> c.getParameters().isEmpty())
-        .map(c -> new ConstructorInstanceBuilder(Collections.emptyList(), Optional.empty(), c))
+        .map(c -> new ConstructorInstanceBuilder<>(Collections.emptyList(), Optional.empty(), c))
         .map(Match.withPriority(MatchPriority.LOW));
   }
 
@@ -68,7 +69,7 @@ public class ConstructorInstanceBuilder implements InstanceBuilder {
           }
         });
 
-        return new ConstructorInstanceBuilder(fields, fieldNames, c);
+        return new ConstructorInstanceBuilder<>(fields, fieldNames, c);
       });
     }).map(Match.withPriority(MatchPriority.HIGH));
   }

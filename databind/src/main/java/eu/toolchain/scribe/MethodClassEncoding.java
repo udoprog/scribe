@@ -14,17 +14,17 @@ import java.util.stream.Stream;
 import static eu.toolchain.scribe.Streams.streamRequireOne;
 
 @Data
-public class MethodClassEncoding implements ClassEncoding {
-  private final List<DefaultEntityFieldMapping> fields;
-  private final InstanceBuilder instanceBuilder;
+public class MethodClassEncoding<Source> implements ClassEncoding<Source> {
+  private final List<DefaultEntityFieldMapping<Object>> fields;
+  private final InstanceBuilder<Source> instanceBuilder;
 
   @Override
-  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityEncoder(
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     final ArrayList<ReadFieldsEntityEncoder.Field<Target, Object>> fields = new ArrayList<>();
 
-    for (final DefaultEntityFieldMapping field : this.fields) {
+    for (final DefaultEntityFieldMapping<Object> field : this.fields) {
       final EntityFieldEncoder<Target, Object> fieldEncoder =
           streamRequireOne(field.newEntityFieldEncoder(resolver, factory));
 
@@ -35,13 +35,13 @@ public class MethodClassEncoding implements ClassEncoding {
   }
 
   @Override
-  public <Target> EntityStreamEncoder<Target, Object> newEntityStreamEncoder(
+  public <Target> EntityStreamEncoder<Target, Source> newEntityStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     final ArrayList<ReadFieldsEntityStreamEncoder.ReadFieldsEntityField<Target, Object>> fields =
         new ArrayList<>();
 
-    for (final DefaultEntityFieldMapping field : this.fields) {
+    for (final DefaultEntityFieldMapping<Object> field : this.fields) {
       final EntityFieldStreamEncoder<Target, Object> encoder =
           streamRequireOne(field.newEntityFieldStreamEncoder(resolver, factory));
 
@@ -53,12 +53,12 @@ public class MethodClassEncoding implements ClassEncoding {
   }
 
   @Override
-  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityDecoder(
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     final ArrayList<EntityFieldDecoder<Target, Object>> fields = new ArrayList<>();
 
-    for (final EntityFieldMapping field : this.fields) {
+    for (final EntityFieldMapping<Object> field : this.fields) {
       fields.add(streamRequireOne(field.newEntityFieldDecoder(resolver, factory)));
     }
 
@@ -66,11 +66,11 @@ public class MethodClassEncoding implements ClassEncoding {
         factory);
   }
 
-  public static Stream<Match<ClassEncoding>> detect(
+  public static Stream<Match<ClassEncoding<Object>>> detect(
       final EntityResolver resolver, final JavaType type
   ) {
     return resolver.detectInstanceBuilder(type).map(creator -> {
-      final ArrayList<DefaultEntityFieldMapping> fields = new ArrayList<>();
+      final ArrayList<DefaultEntityFieldMapping<Object>> fields = new ArrayList<>();
 
       for (final EntityField field : creator.getFields()) {
         final String fieldName = field
@@ -96,13 +96,13 @@ public class MethodClassEncoding implements ClassEncoding {
           annotations = base;
         }
 
-        final Mapping m = resolver.mapping(reader.fieldType(), annotations);
+        final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
         final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
 
-        fields.add(new DefaultEntityFieldMapping(fieldName, m, reader, flags));
+        fields.add(new DefaultEntityFieldMapping<>(fieldName, m, reader, flags));
       }
 
-      return Stream.of(new MethodClassEncoding(Collections.unmodifiableList(fields), creator));
+      return Stream.of(new MethodClassEncoding<>(Collections.unmodifiableList(fields), creator));
     }).orElseGet(Stream::empty).map(Match.withPriority(MatchPriority.HIGH));
   }
 }

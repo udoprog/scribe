@@ -20,19 +20,19 @@ import static eu.toolchain.scribe.Streams.streamRequireOne;
  * @author udoprog
  */
 @Data
-public class BuilderClassEncoding implements ClassEncoding {
-  private final List<BuilderEntityFieldMapping> fields;
+public class BuilderClassEncoding<Source> implements ClassEncoding<Source> {
+  private final List<BuilderEntityFieldMapping<Object>> fields;
   private final JavaType.Method newInstance;
   private final JavaType.Method build;
 
   @Override
-  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityEncoder(
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     final ArrayList<ReadFieldsEntityEncoder.Field<Target, Object>> fields = new ArrayList<>();
 
-    for (final BuilderEntityFieldMapping field : this.fields) {
-      final BuilderEntityFieldEncoder<Target> fieldEncoder =
+    for (final BuilderEntityFieldMapping<Object> field : this.fields) {
+      final BuilderEntityFieldEncoder<Target, Object> fieldEncoder =
           streamRequireOne(field.newEntityFieldEncoder(resolver, factory));
 
       fields.add(new ReadFieldsEntityEncoder.Field<>(fieldEncoder, field.getReader()));
@@ -42,14 +42,14 @@ public class BuilderClassEncoding implements ClassEncoding {
   }
 
   @Override
-  public <Target> EntityStreamEncoder<Target, Object> newEntityStreamEncoder(
+  public <Target> EntityStreamEncoder<Target, Source> newEntityStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     final ArrayList<ReadFieldsEntityStreamEncoder.ReadFieldsEntityField<Target, Object>> fields =
         new ArrayList<>();
 
-    for (final BuilderEntityFieldMapping field : this.fields) {
-      final BuilderEntityFieldStreamEncoder<Target> encoder =
+    for (final BuilderEntityFieldMapping<Object> field : this.fields) {
+      final BuilderEntityFieldStreamEncoder<Target, Object> encoder =
           streamRequireOne(field.newEntityFieldStreamEncoder(resolver, factory));
 
       fields.add(
@@ -60,12 +60,12 @@ public class BuilderClassEncoding implements ClassEncoding {
   }
 
   @Override
-  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityDecoder(
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
-    final ArrayList<BuilderEntityFieldDecoder<Target>> fields = new ArrayList<>();
+    final ArrayList<BuilderEntityFieldDecoder<Target, Object>> fields = new ArrayList<>();
 
-    for (final BuilderEntityFieldMapping field : this.fields) {
+    for (final BuilderEntityFieldMapping<Object> field : this.fields) {
       fields.add(streamRequireOne(field.newEntityFieldDecoder(resolver, factory)));
     }
 
@@ -73,11 +73,11 @@ public class BuilderClassEncoding implements ClassEncoding {
         factory);
   }
 
-  public static Stream<Match<ClassEncoding>> detect(
+  public static Stream<Match<ClassEncoding<Object>>> detect(
       final EntityResolver resolver, final JavaType type
   ) {
     return type.getMethod("builder").filter(AccessibleType::isStatic).map(newInstance -> {
-      final ArrayList<BuilderEntityFieldMapping> fields = new ArrayList<>();
+      final ArrayList<BuilderEntityFieldMapping<Object>> fields = new ArrayList<>();
 
       final JavaType returnType = newInstance.getReturnType();
 
@@ -114,12 +114,12 @@ public class BuilderClassEncoding implements ClassEncoding {
         final String fieldName =
             resolver.detectFieldName(type, annotations).orElseGet(field::getName);
 
-        final Mapping m = resolver.mapping(reader.fieldType(), annotations);
+        final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
         final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
-        fields.add(new BuilderEntityFieldMapping(fieldName, m, reader, setter, flags));
+        fields.add(new BuilderEntityFieldMapping<>(fieldName, m, reader, setter, flags));
       });
 
-      return new BuilderClassEncoding(Collections.unmodifiableList(fields), newInstance,
+      return new BuilderClassEncoding<>(Collections.unmodifiableList(fields), newInstance,
           builderBuild);
     }).map(Match.withPriority(MatchPriority.LOW));
   }

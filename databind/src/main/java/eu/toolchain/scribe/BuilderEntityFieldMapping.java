@@ -6,15 +6,16 @@ import lombok.Data;
 import java.util.stream.Stream;
 
 @Data
-class BuilderEntityFieldMapping implements EntityFieldMapping {
+class BuilderEntityFieldMapping<Source> implements EntityFieldMapping<Source> {
   private final String name;
-  private final Mapping mapping;
+  private final Mapping<Source> mapping;
   private final FieldReader reader;
   private final JavaType.Method setter;
   private final Flags flags;
 
   @Override
-  public <Target, EntityTarget> Stream<BuilderEntityFieldEncoder<Target>> newEntityFieldEncoder(
+  public <Target, EntityTarget> Stream<BuilderEntityFieldEncoder<Target, Source>>
+  newEntityFieldEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     return mapping
@@ -24,7 +25,8 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   }
 
   @Override
-  public <Target> Stream<BuilderEntityFieldStreamEncoder<Target>> newEntityFieldStreamEncoder(
+  public <Target> Stream<BuilderEntityFieldStreamEncoder<Target, Source>>
+  newEntityFieldStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     return mapping
@@ -34,7 +36,8 @@ class BuilderEntityFieldMapping implements EntityFieldMapping {
   }
 
   @Override
-  public <Target, EntityTarget> Stream<BuilderEntityFieldDecoder<Target>> newEntityFieldDecoder(
+  public <Target, EntityTarget> Stream<BuilderEntityFieldDecoder<Target, Source>>
+  newEntityFieldDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     return mapping

@@ -9,8 +9,10 @@ import eu.toolchain.scribe.Encoder;
 import java.util.Map;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class MapEncoder<ValueSource> extends AbstractEncoder<Map<String, ValueSource>> {
   private final Encoder<Value, ValueSource> value;
 

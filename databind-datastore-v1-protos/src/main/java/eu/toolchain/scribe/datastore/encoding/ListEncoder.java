@@ -9,8 +9,10 @@ import eu.toolchain.scribe.Encoder;
 import java.util.List;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ListEncoder<ElementSource> extends AbstractEncoder<List<ElementSource>> {
   private final Encoder<Value, ElementSource> value;
 

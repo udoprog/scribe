@@ -8,5 +8,5 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface InstanceBuilderDetector {
-  Stream<Match<InstanceBuilder>> detect(EntityResolver resolver, JavaType type);
+  Stream<Match<InstanceBuilder<Object>>> detect(EntityResolver resolver, JavaType type);
 }

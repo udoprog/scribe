@@ -1,15 +1,15 @@
 package eu.toolchain.scribe;
 
-public interface ClassEncoding {
-  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Object> newEntityEncoder(
+public interface ClassEncoding<Source> {
+  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityEncoder(
       EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
   );
 
-  <Target> EntityStreamEncoder<Target, Object> newEntityStreamEncoder(
+  <Target> EntityStreamEncoder<Target, Source> newEntityStreamEncoder(
       EntityResolver resolver, StreamEncoderFactory<Target> factory
   );
 
-  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Object> newEntityDecoder(
+  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityDecoder(
       EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
   );
 }

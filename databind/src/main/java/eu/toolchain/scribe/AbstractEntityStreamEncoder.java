@@ -6,17 +6,18 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-public class AbstractEntityStreamEncoder<Target> implements EntityStreamEncoder<Target, Object> {
-  private final Map<JavaType, EntityEncoderEntry<Target>> byType;
+public class AbstractEntityStreamEncoder<Target, Source>
+    implements EntityStreamEncoder<Target, Source> {
+  private final Map<JavaType, EntityEncoderEntry<Target, Source>> byType;
   private final StreamEncoderFactory<Target> factory;
   private final EntityFieldStreamEncoder<Target, String> typeEncoder;
 
   @Override
   public void streamEncode(
-      final EntityFieldsStreamEncoder<Target> encoder, final Context path, final Object instance,
+      final EntityFieldsStreamEncoder<Target> encoder, final Context path, final Source instance,
       final Target target, final Runnable callback
   ) {
-    final EntityEncoderEntry<Target> sub = byType.get(JavaType.of(instance.getClass()));
+    final EntityEncoderEntry<Target, Source> sub = byType.get(JavaType.of(instance.getClass()));
 
     if (sub == null) {
       throw path.error("Could not resolve subtype for instance (" + instance + ")");
@@ -29,7 +30,7 @@ public class AbstractEntityStreamEncoder<Target> implements EntityStreamEncoder<
   }
 
   @Override
-  public void streamEncode(final Context path, final Object instance, final Target target) {
+  public void streamEncode(final Context path, final Source instance, final Target target) {
     streamEncode(factory.newEntityStreamEncoder(), path, instance, target,
         EntityStreamEncoder.EMPTY_CALLBACK);
   }
@@ -40,8 +41,8 @@ public class AbstractEntityStreamEncoder<Target> implements EntityStreamEncoder<
   }
 
   @Data
-  public static class EntityEncoderEntry<Target> {
+  public static class EntityEncoderEntry<Target, Source> {
     final String type;
-    final EntityStreamEncoder<Target, Object> encoder;
+    final EntityStreamEncoder<Target, Source> encoder;
   }
 }

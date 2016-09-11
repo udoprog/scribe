@@ -8,5 +8,7 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface DecodeValueDetector {
-  Stream<Match<DecodeValue>> detect(EntityResolver resolver, JavaType type, JavaType fieldType);
+  Stream<Match<DecodeValue<Object>>> detect(
+      EntityResolver resolver, JavaType type, JavaType fieldType
+  );
 }

@@ -4,11 +4,13 @@ import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
 import eu.toolchain.scribe.jackson.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ListEncoder<ElementSource> extends AbstractEncoder<List<ElementSource>> {
   private final Encoder<JsonNode, ElementSource> value;
 

@@ -16,29 +16,35 @@ import static eu.toolchain.scribe.TypeMatcher.any;
 import static eu.toolchain.scribe.TypeMatcher.type;
 
 @Data
-public class OptionalMapping<T> implements Mapping {
-  private final Mapping component;
+public class OptionalMapping<OptionalType, Source> implements Mapping<OptionalType> {
+  private final Mapping<Source> component;
 
-  private final Function<T, Boolean> isPresent;
-  private final Function<T, Object> get;
-  private final Function<Object, T> of;
-  private final Supplier<T> empty;
+  private final Function<OptionalType, Boolean> isPresent;
+  private final Function<OptionalType, Source> get;
+  private final Function<Source, OptionalType> of;
+  private final Supplier<OptionalType> empty;
 
-  public static <T> MappingDetector forType(
-      final Class<T> optionalType, final Function<T, Boolean> isPresent,
-      final Function<T, Object> get, final Function<Object, T> of, final Supplier<T> empty
+  @SuppressWarnings("unchecked")
+  public static <OptionalType, Source> MappingDetector forType(
+      final Class<OptionalType> optionalType, final Function<OptionalType, Boolean> isPresent,
+      final Function<OptionalType, Source> get, final Function<Source, OptionalType> of,
+      final Supplier<OptionalType> empty
   ) {
     final TypeMatcher matcher = type(optionalType, any());
 
     return (resolver, type) -> {
-      if (matcher.matches(type)) {
-        final Mapping component = type.getTypeParameter(0).map(resolver::mapping).get();
-        return Stream
-            .of(new OptionalMapping<>(component, isPresent, get, of, empty))
-            .map(Match.withPriority(MatchPriority.HIGH));
+      if (!matcher.matches(type)) {
+        return Stream.empty();
       }
 
-      return Stream.empty();
+      final Mapping<Source> component =
+          (Mapping<Source>) type.getTypeParameter(0).map(resolver::mapping).get();
+
+      final OptionalMapping<OptionalType, Source> m =
+          new OptionalMapping<>(component, isPresent, get, of, empty);
+
+      /* detector is expected to return an anonymous mapping */
+      return Stream.of((Mapping<Object>) m).map(Match.withPriority(MatchPriority.HIGH));
     };
   }
 
@@ -48,102 +54,90 @@ public class OptionalMapping<T> implements Mapping {
   }
 
   @Override
-  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+  public <Target, EntityTarget> Stream<Encoder<Target, OptionalType>> newEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    final Function<Encoder<Target, Source>, OptionalEncoder<Target, Source>> encoder;
+    final Function<Encoder<Target, Source>, OptionalEncoder<Target>> encoder;
 
     if (resolver.isOptionPresent(DatabindOptions.OPTIONAL_EMPTY_AS_NULL)) {
-      encoder = p -> new OptionalEncoder<Target, Source>(p) {
+      encoder = p -> new OptionalEncoder<Target>(p) {
         @Override
         public void encodeOptionally(
-            final Context path, final Source instance, final Consumer<Target> callback
+            final Context path, final OptionalType instance, final Consumer<Target> callback
         ) {
           callback.accept(encode(path, instance));
         }
       };
     } else {
-      encoder = p -> new OptionalEncoder<Target, Source>(p) {
+      encoder = p -> new OptionalEncoder<Target>(p) {
         @SuppressWarnings("unchecked")
         @Override
         public void encodeOptionally(
-            final Context path, final Source instance, final Consumer<Target> callback
+            final Context path, final OptionalType instance, final Consumer<Target> callback
         ) {
-          final T o = (T) instance;
-
-          if (isPresent.apply(o)) {
-            callback.accept(parent.encode(path, (Source) get.apply(o)));
+          if (isPresent.apply(instance)) {
+            callback.accept(parent.encode(path, get.apply(instance)));
           }
         }
       };
     }
 
-    return component.<Target, EntityTarget, Source>newEncoder(resolver, factory, flags).map(
-        encoder);
+    return component.newEncoder(resolver, factory, flags).map(encoder);
   }
 
   @Override
-  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+  public <Target> Stream<StreamEncoder<Target, OptionalType>> newStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    final Function<StreamEncoder<Target, Source>, OptionalStreamEncoder<Target, Source>> encoder;
+    final Function<StreamEncoder<Target, Source>, OptionalStreamEncoder<Target>> encoder;
 
     if (resolver.isOptionPresent(DatabindOptions.OPTIONAL_EMPTY_AS_NULL)) {
-      encoder = p -> new OptionalStreamEncoder<Target, Source>(p) {
+      encoder = p -> new OptionalStreamEncoder<Target>(p) {
         @Override
         public void streamEncodeOptionally(
-            final Context path, final Source instance, final Target target,
+            final Context path, final OptionalType instance, final Target target,
             final Consumer<Runnable> callback
         ) {
-          callback.accept(() -> {
-            streamEncode(path, instance, target);
-          });
+          callback.accept(() -> streamEncode(path, instance, target));
         }
       };
     } else {
-      encoder = p -> new OptionalStreamEncoder<Target, Source>(p) {
+      encoder = p -> new OptionalStreamEncoder<Target>(p) {
         @SuppressWarnings("unchecked")
         @Override
         public void streamEncodeOptionally(
-            final Context path, final Source instance, final Target target,
+            final Context path, final OptionalType instance, final Target target,
             final Consumer<Runnable> callback
         ) {
-          final T o = (T) instance;
-
-          if (isPresent.apply(o)) {
-            callback.accept(() -> parent.streamEncode(path, (Source) get.apply(o), target));
+          if (isPresent.apply(instance)) {
+            callback.accept(() -> parent.streamEncode(path, get.apply(instance), target));
           }
         }
       };
     }
 
-    return component.<Target, Source>newStreamEncoder(resolver, factory, flags).map(encoder);
+    return component.newStreamEncoder(resolver, factory, flags).map(encoder);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+  public <Target, EntityTarget> Stream<Decoder<Target, OptionalType>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    return component.<Target, EntityTarget, Source>newDecoder(resolver, factory, flags).map(
-        parent -> {
-          return (Decoder<Target, Source>) new OptionalDecoder<>(parent);
-        });
+    return component.newDecoder(resolver, factory, flags).map(OptionalDecoder::new);
   }
 
   @RequiredArgsConstructor
-  abstract class OptionalEncoder<Target, Source> implements Encoder<Target, Source> {
+  abstract class OptionalEncoder<Target> implements Encoder<Target, OptionalType> {
     protected final Encoder<Target, Source> parent;
 
     @SuppressWarnings("unchecked")
     @Override
-    public Target encode(final Context path, final Source instance) {
-      final T o = (T) instance;
-
-      if (isPresent.apply(o)) {
-        return parent.encode(path, (Source) get.apply(o));
+    public Target encode(final Context path, final OptionalType instance) {
+      if (isPresent.apply(instance)) {
+        return parent.encode(path, get.apply(instance));
       } else {
         return parent.encodeEmpty(path);
       }
@@ -156,18 +150,16 @@ public class OptionalMapping<T> implements Mapping {
   }
 
   @RequiredArgsConstructor
-  abstract class OptionalStreamEncoder<Target, Source> implements StreamEncoder<Target, Source> {
+  abstract class OptionalStreamEncoder<Target> implements StreamEncoder<Target, OptionalType> {
     protected final StreamEncoder<Target, Source> parent;
 
     @SuppressWarnings("unchecked")
     @Override
     public void streamEncode(
-        final Context path, final Source instance, final Target target
+        final Context path, final OptionalType instance, final Target target
     ) {
-      final T o = (T) instance;
-
-      if (isPresent.apply(o)) {
-        parent.streamEncode(path, (Source) get.apply(o), target);
+      if (isPresent.apply(instance)) {
+        parent.streamEncode(path, get.apply(instance), target);
       } else {
         parent.streamEncodeEmpty(path, target);
       }
@@ -180,16 +172,18 @@ public class OptionalMapping<T> implements Mapping {
   }
 
   @Data
-  class OptionalDecoder<Target, Source> implements Decoder<Target, T> {
+  class OptionalDecoder<Target> implements Decoder<Target, OptionalType> {
     private final Decoder<Target, Source> parent;
 
     @Override
-    public Decoded<T> decode(final Context path, final Target instance) {
+    public Decoded<OptionalType> decode(final Context path, final Target instance) {
       return parent.decode(path, instance).handle(of, empty);
     }
 
     @Override
-    public Decoded<T> decodeOptionally(final Context path, final Decoded<Target> instance) {
+    public Decoded<OptionalType> decodeOptionally(
+        final Context path, final Decoded<Target> instance
+    ) {
       return instance.flatMap(v -> parent.decode(path, v).map(of)).handleAbsent(empty);
     }
   }

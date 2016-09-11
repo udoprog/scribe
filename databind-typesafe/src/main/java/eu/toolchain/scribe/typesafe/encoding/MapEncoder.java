@@ -5,11 +5,13 @@ import com.typesafe.config.ConfigValueFactory;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.Encoder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class MapEncoder<ValueSource> extends AbstractEncoder<Map<String, ValueSource>> {
   private final Encoder<ConfigValue, ValueSource> value;
 

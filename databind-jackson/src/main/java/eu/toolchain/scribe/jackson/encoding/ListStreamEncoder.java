@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import eu.toolchain.scribe.StreamEncoder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ListStreamEncoder<ElementSource> extends AbstractStreamEncoder<List<ElementSource>> {
   private final StreamEncoder<JsonGenerator, ElementSource> value;
 

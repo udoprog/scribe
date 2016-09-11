@@ -62,6 +62,7 @@ public class TypeSafeMapper
     };
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ConverterEncoding<Object, ConfigObject> entityEncodingForType(final Type type) {
     final Encoder<ConfigValue, Object> valueEncoder = this.encoderProvider.newEncoderForType(type);

@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 @Data
 @ToString(of = {"to", "from"})
-public class SimpleTypeAlias<From, To> implements TypeAlias {
+public class SimpleTypeAlias<From, To> implements TypeAlias<From, To> {
   private final JavaType to;
   private final JavaType from;
 
@@ -26,11 +26,11 @@ public class SimpleTypeAlias<From, To> implements TypeAlias {
   }
 
   @Override
-  public Mapping apply(final Mapping mapping) {
+  public Mapping<To> apply(final Mapping<From> mapping) {
     return new TypeAliasMapping<>(to, mapping, convertTo, convertFrom);
   }
 
-  public static <From, To> TypeAlias simpleAlias(
+  public static <From, To> TypeAlias<From, To> simpleAlias(
       Class<To> to, Class<From> from, Function<To, From> toConverter,
       Function<From, To> fromConverter
   ) {

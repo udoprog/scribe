@@ -3,10 +3,12 @@ package eu.toolchain.scribe.jackson.encoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.IOException;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class BooleanStreamEncoder extends AbstractStreamEncoder<Boolean> {
   @Override
   public void streamEncode(

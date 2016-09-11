@@ -58,6 +58,7 @@ public class DatastoreV1ProtosMapper
     };
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ConverterEncoding<Object, Entity> entityEncodingForType(final Type type) {
     final Encoder<Value, Object> valueEncoder = this.valueEncoder.newEncoderForType(type);

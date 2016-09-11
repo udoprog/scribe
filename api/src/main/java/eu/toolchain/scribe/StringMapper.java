@@ -3,7 +3,7 @@ package eu.toolchain.scribe;
 import java.lang.reflect.Type;
 
 public interface StringMapper {
-  StringEncoding<Object> stringEncodingForType(final Type type);
+  StringEncoding<?> stringEncodingForType(final Type type);
 
   @SuppressWarnings("unchecked")
   default <T> StringEncoding<T> stringEncodingFor(final TypeReference<T> type) {

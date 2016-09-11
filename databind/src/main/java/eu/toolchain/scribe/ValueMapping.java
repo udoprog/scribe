@@ -6,9 +6,9 @@ import lombok.Data;
 import java.util.stream.Stream;
 
 @Data
-public class ValueMapping implements Mapping {
-  private final EncodeValue encodeValue;
-  private final DecodeValue decodeValue;
+public class ValueMapping<Source> implements Mapping<Source> {
+  private final EncodeValue<Source> encodeValue;
+  private final DecodeValue<Source> decodeValue;
 
   @Override
   public JavaType getType() {
@@ -16,7 +16,7 @@ public class ValueMapping implements Mapping {
   }
 
   @Override
-  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+  public <Target, EntityTarget> Stream<Encoder<Target, Source>> newEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
@@ -24,14 +24,14 @@ public class ValueMapping implements Mapping {
   }
 
   @Override
-  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+  public <Target> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
     return encodeValue.newStreamEncoder(resolver, factory, flags);
   }
 
   @Override
-  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+  public <Target, EntityTarget> Stream<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
@@ -39,7 +39,7 @@ public class ValueMapping implements Mapping {
   }
 
   @Override
-  public void initialize(final EntityResolver resolver) {
+  public void postCacheInitialize(final EntityResolver resolver) {
     encodeValue.initialize(resolver);
     decodeValue.initialize(resolver);
   }

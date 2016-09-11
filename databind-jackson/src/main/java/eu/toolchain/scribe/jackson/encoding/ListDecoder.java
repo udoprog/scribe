@@ -5,11 +5,13 @@ import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.jackson.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ListDecoder<ElementSource> extends AbstractVisitor<List<JsonNode>>
     implements Decoder<JsonNode, List<ElementSource>> {
   @Override

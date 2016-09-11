@@ -9,5 +9,5 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface SubTypesDetector {
-  Stream<Match<List<SubType>>> detect(EntityResolver resolver, JavaType type);
+  Stream<Match<List<SubType<Object>>>> detect(EntityResolver resolver, JavaType type);
 }

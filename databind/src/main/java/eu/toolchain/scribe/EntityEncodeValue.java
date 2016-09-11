@@ -10,28 +10,29 @@ import java.lang.annotation.Annotation;
 import java.util.stream.Stream;
 
 @Data
-public class EntityEncodeValue implements EncodeValue {
+public class EntityEncodeValue<Source> implements EncodeValue<Source> {
   private final JavaType sourceType;
-  private final Mapping targetMapping;
+  private final Mapping<Source> targetMapping;
   private final JavaType.Method valueMethod;
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, EntityTarget, Source> Stream<Encoder<Target, Source>> newEncoder(
+  public <Target, EntityTarget> Stream<Encoder<Target, Source>> newEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    return targetMapping.<Target, EntityTarget, Source>newEncoder(resolver, factory).map(
+    return targetMapping.<Target, EntityTarget>newEncoder(resolver, factory).map(
         parent -> new EntityEncodeValueEncoder<>(valueMethod, parent));
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, Source> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
+  public <Target> Stream<StreamEncoder<Target, Source>> newStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory, final Flags flags
   ) {
-    return targetMapping.<Target, Source>newStreamEncoder(resolver, factory).map(
-        parent -> new EntityEncodeValueStreamEncoder<>(valueMethod, parent));
+    return targetMapping
+        .newStreamEncoder(resolver, factory)
+        .map(parent -> new EntityEncodeValueStreamEncoder(valueMethod, parent));
   }
 
   public static EncodeValueDetector forAnnotation(
@@ -47,8 +48,8 @@ public class EntityEncodeValue implements EncodeValue {
                     m));
           }
 
-          final Mapping targetMapping = resolver.mapping(m.getReturnType());
-          return Stream.of(new EntityEncodeValue(sourceType, targetMapping, m));
+          final Mapping<Object> targetMapping = resolver.mapping(m.getReturnType());
+          return Stream.of(new EntityEncodeValue<>(sourceType, targetMapping, m));
         })
         .map(Match.withPriority(MatchPriority.HIGH));
   }

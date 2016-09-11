@@ -19,13 +19,13 @@ public class AnnotationSubTypesResolver {
     return (resolver, type) -> type
         .getAnnotation(annotation)
         .map(a -> Arrays.stream(value.apply(a)).map(v -> {
-          final Mapping m = resolver.mapping(valueAsType.apply(v));
+          final Mapping<Object> m = resolver.mapping(valueAsType.apply(v));
 
           if (!(m instanceof ClassMapping)) {
             throw new IllegalArgumentException("Not an entity mapping: " + m);
           }
 
-          return new SubType((ClassMapping) m, fieldName.apply(v));
+          return new SubType<>((ClassMapping<Object>) m, fieldName.apply(v));
         }).collect(Collectors.toList()))
         .map(Match.withPriority(MatchPriority.HIGH));
   }

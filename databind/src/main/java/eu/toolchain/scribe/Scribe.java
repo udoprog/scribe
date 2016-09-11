@@ -38,7 +38,7 @@ import static eu.toolchain.scribe.Streams.streamRequireOne;
 
 @RequiredArgsConstructor
 public class Scribe implements EntityResolver {
-  private final List<TypeAliasDetector> typeAliasDetectors;
+  private final List<TypeAliasDetector<Object, Object>> typeAliasDetectors;
   private final List<MappingDetector> mappingDetectors;
   private final List<FieldReaderDetector> fieldReaderDetectors;
   private final List<InstanceBuilderDetector> instanceBuilderDetectors;
@@ -51,7 +51,7 @@ public class Scribe implements EntityResolver {
   private final List<TypeNameDetector> typeNameDetectors;
   private final Map<Class<? extends Option>, Option> options;
 
-  private final ConcurrentMap<EntityKey, Mapping> cache = new ConcurrentHashMap<>();
+  private final ConcurrentMap<EntityKey, Mapping<Object>> cache = new ConcurrentHashMap<>();
   private final Object resolverLock = new Object();
 
   /**
@@ -147,26 +147,26 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Mapping mapping(final JavaType type, final Annotations annotations) {
+  public Mapping<Object> mapping(final JavaType type, final Annotations annotations) {
     final EntityKey key = new EntityKey(type, annotations);
 
-    final Mapping mapping = cache.get(key);
+    final Mapping<Object> mapping = cache.get(key);
 
     if (mapping != null) {
       return mapping;
     }
 
     synchronized (resolverLock) {
-      final Mapping candidate = cache.get(key);
+      final Mapping<Object> candidate = cache.get(key);
 
       if (candidate != null) {
         return candidate;
       }
 
-      final Mapping newMapping = resolveAliasing(type, annotations);
+      final Mapping<Object> newMapping = resolveAliasing(type, annotations);
 
       cache.put(key, newMapping);
-      newMapping.initialize(this);
+      newMapping.postCacheInitialize(this);
       return newMapping;
     }
   }
@@ -175,7 +175,7 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Mapping mapping(final JavaType type) {
+  public Mapping<Object> mapping(final JavaType type) {
     return mapping(type, Annotations.empty());
   }
 
@@ -183,7 +183,7 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<InstanceBuilder> detectInstanceBuilder(JavaType type) {
+  public Optional<InstanceBuilder<Object>> detectInstanceBuilder(JavaType type) {
     return Match.bestUniqueMatch(instanceBuilderDetectors.stream(), c -> c.detect(this, type));
   }
 
@@ -202,11 +202,11 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<ClassEncoding> detectEntityMapping(JavaType type) {
+  public Optional<ClassEncoding<Object>> detectEntityMapping(JavaType type) {
     return Match.bestUniqueMatch(classEncodingDetectors.stream(), d -> d.detect(this, type));
   }
 
-  public List<SubType> resolveSubTypes(final JavaType type) {
+  public List<SubType<Object>> resolveSubTypes(final JavaType type) {
     return Match
         .bestUniqueMatch(subTypesDetectors.stream(), d -> d.detect(this, type))
         .orElseGet(Collections::emptyList);
@@ -216,7 +216,7 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<EncodeValue> detectEncodeValue(final JavaType type) {
+  public Optional<EncodeValue<Object>> detectEncodeValue(final JavaType type) {
     return Match.bestUniqueMatch(encodeValueDetectors.stream(), d -> d.detect(this, type));
   }
 
@@ -224,7 +224,9 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<DecodeValue> detectDecodeValue(final JavaType type, final JavaType fieldType) {
+  public Optional<DecodeValue<Object>> detectDecodeValue(
+      final JavaType type, final JavaType fieldType
+  ) {
     return Match.bestUniqueMatch(decodeValueDetectors.stream(),
         d -> d.detect(this, type, fieldType));
   }
@@ -315,8 +317,8 @@ public class Scribe implements EntityResolver {
         .orElseGet(Annotations::empty);
   }
 
-  private Mapping resolveAliasing(final JavaType type, final Annotations annotations) {
-    final List<TypeAlias> aliasing = resolveTypeAliases(type, annotations);
+  private Mapping<Object> resolveAliasing(final JavaType type, final Annotations annotations) {
+    final List<TypeAlias<Object, Object>> aliasing = resolveTypeAliases(type, annotations);
 
     if (aliasing.isEmpty()) {
       return resolveTypeMapping(type);
@@ -325,12 +327,12 @@ public class Scribe implements EntityResolver {
     }
   }
 
-  private Mapping applyTypeAliases(final List<TypeAlias> aliasing) {
-    final TypeAlias lastAlias = aliasing.get(aliasing.size() - 1);
+  private Mapping<Object> applyTypeAliases(final List<TypeAlias<Object, Object>> aliasing) {
+    final TypeAlias<Object, Object> lastAlias = aliasing.get(aliasing.size() - 1);
 
-    final ListIterator<TypeAlias> it = aliasing.listIterator(aliasing.size());
+    final ListIterator<TypeAlias<Object, Object>> it = aliasing.listIterator(aliasing.size());
 
-    Mapping lastMapping = resolveTypeMapping(lastAlias.getFromType());
+    Mapping<Object> lastMapping = resolveTypeMapping(lastAlias.getFromType());
 
     while (it.hasPrevious()) {
       lastMapping = it.previous().apply(lastMapping);
@@ -339,14 +341,16 @@ public class Scribe implements EntityResolver {
     return lastMapping;
   }
 
-  private Mapping resolveTypeMapping(final JavaType sourceType) {
+  private Mapping<Object> resolveTypeMapping(final JavaType sourceType) {
     return Match
-        .bestUniqueMatch(mappingDetectors.stream(), m -> m.map(this, sourceType))
+        .bestUniqueMatch(mappingDetectors.stream(), m -> m.detect(this, sourceType))
         .orElseGet(() -> resolveBean(sourceType));
   }
 
-  private List<TypeAlias> resolveTypeAliases(final JavaType type, final Annotations annotations) {
-    final ArrayList<TypeAlias> aliasing = new ArrayList<>();
+  private List<TypeAlias<Object, Object>> resolveTypeAliases(
+      final JavaType type, final Annotations annotations
+  ) {
+    final ArrayList<TypeAlias<Object, Object>> aliasing = new ArrayList<>();
 
     final List<JavaType> seen = new ArrayList<>();
     seen.add(type);
@@ -355,14 +359,14 @@ public class Scribe implements EntityResolver {
 
     while (true) {
       final JavaType t = current;
-      final Optional<TypeAlias> m =
+      final Optional<TypeAlias<Object, Object>> m =
           firstMatch(typeAliasDetectors.stream(), a -> a.detect(t, annotations));
 
       if (!m.isPresent()) {
         break;
       }
 
-      final TypeAlias alias = m.get();
+      final TypeAlias<Object, Object> alias = m.get();
 
       if (seen.contains(alias.getFromType())) {
         seen.add(alias.getToType());
@@ -394,7 +398,7 @@ public class Scribe implements EntityResolver {
     return results.stream().findFirst();
   }
 
-  private Mapping resolveBean(final JavaType type) {
+  private Mapping<Object> resolveBean(final JavaType type) {
     return resolveEncodeValue(type).orElseGet(() -> {
       final Optional<String> typeName = detectTypeName(type);
 
@@ -406,28 +410,28 @@ public class Scribe implements EntityResolver {
     });
   }
 
-  private Optional<Mapping> resolveEncodeValue(final JavaType type) {
-    return detectEncodeValue(type).<Mapping>map(encodeValue -> {
-      final Mapping target = encodeValue.getTargetMapping();
+  private Optional<Mapping<Object>> resolveEncodeValue(final JavaType type) {
+    return detectEncodeValue(type).map(encodeValue -> {
+      final Mapping<Object> target = encodeValue.getTargetMapping();
 
-      final DecodeValue decodeValue = detectDecodeValue(type, target.getType()).orElseThrow(
+      final DecodeValue<Object> decodeValue = detectDecodeValue(type, target.getType()).orElseThrow(
           () -> new IllegalArgumentException("Value encoder (" + encodeValue +
               ") detected, but no corresponding decoder for type (" + type + ")"));
 
-      return new ValueMapping(encodeValue, decodeValue);
+      return new ValueMapping<>(encodeValue, decodeValue);
     });
   }
 
-  private ClassMapping doAbstract(
+  private ClassMapping<Object> doAbstract(
       final JavaType type, final Optional<String> typeName
   ) {
-    final List<SubType> subTypes = resolveSubTypes(type);
+    final List<SubType<Object>> subTypes = resolveSubTypes(type);
 
-    return new AbstractClassMapping(type, typeName, subTypes, Optional.empty());
+    return new AbstractClassMapping<>(type, typeName, subTypes, Optional.empty());
   }
 
-  private ClassMapping doConcrete(final JavaType type, final Optional<String> typeName) {
-    return new ConcreteClassMapping(type, typeName);
+  private ClassMapping<Object> doConcrete(final JavaType type, final Optional<String> typeName) {
+    return new ConcreteClassMapping<>(type, typeName);
   }
 
   @Data
@@ -459,7 +463,7 @@ public class Scribe implements EntityResolver {
 
   @AllArgsConstructor
   public static class Builder implements ScribeBuilder {
-    private final ArrayList<TypeAliasDetector> typeAliasDetectors;
+    private final ArrayList<TypeAliasDetector<Object, Object>> typeAliasDetectors;
     private final ArrayList<MappingDetector> mappingDetectors;
     private final ArrayList<FieldReaderDetector> fieldReaderDetectors;
     private final ArrayList<InstanceBuilderDetector> instanceBuilderDetectors;
@@ -487,9 +491,10 @@ public class Scribe implements EntityResolver {
       options = new HashSet<>();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Builder typeAlias(TypeAliasDetector detector) {
-      this.typeAliasDetectors.add(detector);
+    public <From, To> Builder typeAlias(final TypeAliasDetector<From, To> detector) {
+      this.typeAliasDetectors.add((TypeAliasDetector<Object, Object>) detector);
       return this;
     }
 

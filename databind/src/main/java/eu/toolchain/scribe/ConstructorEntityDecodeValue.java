@@ -13,19 +13,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-public class ConstructorEntityDecodeValue implements DecodeValue {
+public class ConstructorEntityDecodeValue<Source> implements DecodeValue<Source> {
   private final JavaType sourceType;
-  private final Mapping targetMapping;
+  private final Mapping<Source> targetMapping;
   private final JavaType.Constructor constructor;
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+  public <Target, EntityTarget> Stream<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    return targetMapping.<Target, EntityTarget, Source>newDecoder(resolver, factory).map(
-        parent -> new ConstructorEntityDecodeValueDecoder<>(constructor, parent));
+    return targetMapping
+        .newDecoder(resolver, factory)
+        .map(parent -> new ConstructorEntityDecodeValueDecoder<>(constructor, parent));
   }
 
   public static DecodeValueDetector forAnnotation(final Class<? extends Annotation> annotation) {
@@ -39,8 +40,8 @@ public class ConstructorEntityDecodeValue implements DecodeValue {
             .collect(Collectors.toList())
             .equals(Collections.singletonList(targetType)))
         .flatMap(c -> {
-          final Mapping targetMapping = resolver.mapping(targetType);
-          return Stream.of(new ConstructorEntityDecodeValue(sourceType, targetMapping, c));
+          final Mapping<Object> targetMapping = resolver.mapping(targetType);
+          return Stream.of(new ConstructorEntityDecodeValue<>(sourceType, targetMapping, c));
         })
         .map(Match.withPriority(MatchPriority.HIGH));
   }

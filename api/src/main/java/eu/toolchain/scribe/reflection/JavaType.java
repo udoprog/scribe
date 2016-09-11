@@ -260,7 +260,7 @@ public class JavaType implements AccessibleType, AnnotatedType {
         .collect(Collectors.toMap(e -> JavaType.of(e.getKey()), e -> JavaType.of(e.getValue()))));
   }
 
-  private static <T> List<T> immutableCopy(final T... arguments) {
+  private static <T> List<T> immutableCopy(final T[] arguments) {
     return Collections.unmodifiableList(Arrays.stream(arguments).collect(Collectors.toList()));
   }
 

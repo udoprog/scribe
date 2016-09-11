@@ -2,10 +2,10 @@ package eu.toolchain.scribe;
 
 import eu.toolchain.scribe.reflection.JavaType;
 
-public interface TypeAlias {
+public interface TypeAlias<From, To> {
   JavaType getFromType();
 
   JavaType getToType();
 
-  Mapping apply(Mapping mapping);
+  Mapping<To> apply(Mapping<From> mapping);
 }

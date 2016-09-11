@@ -29,7 +29,8 @@ public class DefaultModule implements Module {
 
     b.fieldReader(GetterFieldReader::detect);
 
-    b.classEncoding(MethodClassEncoding::detect).classEncoding(BuilderClassEncoding::detect);
+    b.classEncoding(MethodClassEncoding::detect);
+    b.classEncoding(BuilderClassEncoding::detect);
 
     b.mapping(
         OptionalMapping.forType(Optional.class, Optional::isPresent, Optional::get, Optional::of,

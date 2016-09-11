@@ -72,6 +72,7 @@ public class JacksonMapper
     };
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ConverterEncoding<Object, JsonNode.ObjectJsonNode> entityEncodingForType(
       final Type type

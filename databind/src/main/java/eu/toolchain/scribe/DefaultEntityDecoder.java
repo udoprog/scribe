@@ -6,19 +6,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class DefaultEntityDecoder<Target, EntityTarget>
-    implements EntityDecoder<Target, EntityTarget, Object> {
+public class DefaultEntityDecoder<Target, EntityTarget, Source>
+    implements EntityDecoder<Target, EntityTarget, Source> {
   private final List<EntityFieldDecoder<Target, Object>> fields;
-  private final InstanceBuilder instanceBuilder;
+  private final InstanceBuilder<Source> instanceBuilder;
   private final DecoderFactory<Target, EntityTarget> factory;
 
   @Override
-  public Decoded<Object> decode(final Context path, final Target instance) {
+  public Decoded<Source> decode(final Context path, final Target instance) {
     return factory.valueAsEntity(instance).map(i -> decodeEntity(path, i));
   }
 
   @Override
-  public Object decodeEntity(
+  public Source decodeEntity(
       final Context path, final EntityTarget entity
   ) {
     final EntityFieldsDecoder<Target> decoder = factory.newEntityDecoder(entity);
@@ -26,7 +26,7 @@ public class DefaultEntityDecoder<Target, EntityTarget>
   }
 
   @Override
-  public Object decodeEntity(
+  public Source decodeEntity(
       final Context path, final EntityTarget entity, final EntityFieldsDecoder<Target> decoder
   ) {
     final List<Object> arguments = new ArrayList<>();

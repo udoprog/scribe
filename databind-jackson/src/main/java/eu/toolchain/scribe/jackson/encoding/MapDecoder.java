@@ -5,11 +5,13 @@ import eu.toolchain.scribe.Decoded;
 import eu.toolchain.scribe.Decoder;
 import eu.toolchain.scribe.jackson.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class MapDecoder<ValueSource> extends AbstractVisitor<Map<String, JsonNode>>
     implements Decoder<JsonNode, Map<String, ValueSource>> {
   @Override

@@ -12,19 +12,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-public class StaticMethodEntityDecodeValue implements DecodeValue {
+public class StaticMethodEntityDecodeValue<Source> implements DecodeValue<Source> {
   private final JavaType sourceType;
-  private final Mapping targetMapping;
+  private final Mapping<Source> targetMapping;
   private final JavaType.Method method;
 
   @SuppressWarnings("unchecked")
   @Override
-  public <Target, EntityTarget, Source> Stream<Decoder<Target, Source>> newDecoder(
+  public <Target, EntityTarget> Stream<Decoder<Target, Source>> newDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory,
       final Flags flags
   ) {
-    return targetMapping.<Target, EntityTarget, Source>newDecoder(resolver, factory).map(
-        parent -> new StaticMethodEntityDecodeValueDecoder<>(parent, method));
+    return targetMapping
+        .newDecoder(resolver, factory)
+        .map(parent -> new StaticMethodEntityDecodeValueDecoder<>(parent, method));
   }
 
   public static DecodeValueDetector forAnnotation(
@@ -40,8 +41,8 @@ public class StaticMethodEntityDecodeValue implements DecodeValue {
             .collect(Collectors.toList())
             .equals(Collections.singletonList(targetType)))
         .flatMap(m -> {
-          final Mapping targetMapping = resolver.mapping(targetType);
-          return Stream.of(new StaticMethodEntityDecodeValue(sourceType, targetMapping, m));
+          final Mapping<Object> targetMapping = resolver.mapping(targetType);
+          return Stream.of(new StaticMethodEntityDecodeValue<>(sourceType, targetMapping, m));
         })
         .map(Match.withPriority(MatchPriority.HIGH));
   }

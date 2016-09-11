@@ -8,6 +8,7 @@ class EntityEncodeValueStreamEncoder<Target, Source> implements StreamEncoder<Ta
   private final JavaType.Method valueMethod;
   private final StreamEncoder<Target, Source> parent;
 
+  @SuppressWarnings("unchecked")
   @Override
   public void streamEncode(
       final Context path, final Source instance, final Target target

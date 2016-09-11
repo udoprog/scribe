@@ -3,8 +3,10 @@ package eu.toolchain.scribe.jackson.encoding;
 import com.fasterxml.jackson.core.JsonGenerator;
 import eu.toolchain.scribe.Context;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class IntegerStreamEncoder extends AbstractStreamEncoder<Integer> {
   @Override
   public void streamEncode(
