@@ -16,8 +16,8 @@ public class NativeAnnotationsModule implements Module {
   @Override
   public void register(ScribeBuilder b) {
     b
-        .instanceBuilder(ConstructorInstanceBuilder.forAnnotation(EntityCreator.class))
-        .instanceBuilder(StaticMethodInstanceBuilder.forAnnotation(EntityCreator.class));
+        .instanceBuilder(ConstructorClassInstanceBuilder.forAnnotation(EntityCreator.class))
+        .instanceBuilder(StaticMethodClassInstanceBuilder.forAnnotation(EntityCreator.class));
 
     b.subTypes(AnnotationSubTypesResolver.forAnnotation(EntitySubTypes.class, EntitySubTypes::value,
         e -> JavaType.of(e.value()), e -> Optional.empty()));

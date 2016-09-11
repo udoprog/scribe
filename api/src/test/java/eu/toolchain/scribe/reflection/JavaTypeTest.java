@@ -1,7 +1,6 @@
 package eu.toolchain.scribe.reflection;
 
 import eu.toolchain.scribe.TypeReference;
-import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 import org.junit.Test;
 
@@ -132,16 +131,6 @@ public class JavaTypeTest {
 
   private final JavaType typeA = JavaType.of(EqualityTypeA.class);
   private final JavaType typeB = JavaType.of(EqualityTypeB.class);
-
-  @Test
-  public void testConstructorEquality() throws Exception {
-    // Identical constructors from different types are not equal in the JDK.
-    assertNotEquals(EqualityTypeA.class.getConstructor(int.class),
-        EqualityTypeB.class.getConstructor(int.class));
-
-    assertEquals(typeA.getConstructor(JavaType.of(int.class)),
-        typeB.getConstructor(JavaType.of(int.class)));
-  }
 
   @Test
   public void testMethodEquality() throws Exception {

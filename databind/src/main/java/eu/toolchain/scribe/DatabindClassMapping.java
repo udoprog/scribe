@@ -3,13 +3,14 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * A type mapping associated with concrete classes.
  */
 @Data
-public class ConcreteClassMapping<Source> implements ClassMapping<Source> {
+public class DatabindClassMapping<Source> implements ClassMapping<Source> {
   private final JavaType type;
   private final Optional<String> typeName;
 
@@ -44,9 +45,14 @@ public class ConcreteClassMapping<Source> implements ClassMapping<Source> {
 
   @SuppressWarnings("unchecked")
   @Override
-  public void postCacheInitialize(EntityResolver resolver) {
-    this.deferred = (ClassEncoding<Source>) resolver
-        .detectEntityMapping(type)
-        .orElseThrow(() -> new RuntimeException("Unable to detect binding for type: " + type));
+  public void postCacheInitialize(final EntityResolver resolver) {
+    this.deferred = (ClassEncoding<Source>) resolver.detectClassEncoding(type).orElseGet(() -> {
+      if (type.isAbstract()) {
+        final List<SubType<Object>> subTypes = resolver.detectSubTypes(type);
+        return new AbstractClassEncoding<>(type, subTypes, Optional.empty());
+      }
+
+      throw new RuntimeException("Unable to detect binding for type: " + type);
+    });
   }
 }

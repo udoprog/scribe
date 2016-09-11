@@ -3,6 +3,7 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.detector.ClassEncodingDetector;
 import eu.toolchain.scribe.detector.DecodeValueDetector;
 import eu.toolchain.scribe.detector.EncodeValueDetector;
+import eu.toolchain.scribe.detector.FieldsDetector;
 import eu.toolchain.scribe.detector.FieldNameDetector;
 import eu.toolchain.scribe.detector.FieldReaderDetector;
 import eu.toolchain.scribe.detector.FlagDetector;
@@ -49,6 +50,7 @@ public class Scribe implements EntityResolver {
   private final List<FieldNameDetector> fieldNameDetectors;
   private final List<FlagDetector> flagDetectors;
   private final List<TypeNameDetector> typeNameDetectors;
+  private final List<FieldsDetector> fieldsDetectors;
   private final Map<Class<? extends Option>, Option> options;
 
   private final ConcurrentMap<EntityKey, Mapping<Object>> cache = new ConcurrentHashMap<>();
@@ -183,7 +185,7 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<InstanceBuilder<Object>> detectInstanceBuilder(JavaType type) {
+  public Optional<ClassInstanceBuilder<Object>> detectInstanceBuilder(JavaType type) {
     return Match.bestUniqueMatch(instanceBuilderDetectors.stream(), c -> c.detect(this, type));
   }
 
@@ -202,11 +204,12 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<ClassEncoding<Object>> detectEntityMapping(JavaType type) {
+  public Optional<ClassEncoding<Object>> detectClassEncoding(JavaType type) {
     return Match.bestUniqueMatch(classEncodingDetectors.stream(), d -> d.detect(this, type));
   }
 
-  public List<SubType<Object>> resolveSubTypes(final JavaType type) {
+  @Override
+  public List<SubType<Object>> detectSubTypes(final JavaType type) {
     return Match
         .bestUniqueMatch(subTypesDetectors.stream(), d -> d.detect(this, type))
         .orElseGet(Collections::emptyList);
@@ -246,6 +249,14 @@ public class Scribe implements EntityResolver {
   @Override
   public Optional<String> detectTypeName(JavaType type) {
     return Match.bestUniqueMatch(typeNameDetectors.stream(), d -> d.detect(this, type));
+  }
+
+  @Override
+  public List<EntityField> detectFields(JavaType type) {
+    return Match
+        .bestUniqueMatch(fieldsDetectors.stream(), d -> d.detect(this, type))
+        .orElseThrow(
+            () -> new IllegalArgumentException("Cannot detect fields for type (" + type + ")"));
   }
 
   /**
@@ -401,12 +412,7 @@ public class Scribe implements EntityResolver {
   private Mapping<Object> resolveBean(final JavaType type) {
     return resolveEncodeValue(type).orElseGet(() -> {
       final Optional<String> typeName = detectTypeName(type);
-
-      if (type.isAbstract()) {
-        return doAbstract(type, typeName);
-      }
-
-      return doConcrete(type, typeName);
+      return new DatabindClassMapping<>(type, typeName);
     });
   }
 
@@ -422,16 +428,8 @@ public class Scribe implements EntityResolver {
     });
   }
 
-  private ClassMapping<Object> doAbstract(
-      final JavaType type, final Optional<String> typeName
-  ) {
-    final List<SubType<Object>> subTypes = resolveSubTypes(type);
-
-    return new AbstractClassMapping<>(type, typeName, subTypes, Optional.empty());
-  }
-
   private ClassMapping<Object> doConcrete(final JavaType type, final Optional<String> typeName) {
-    return new ConcreteClassMapping<>(type, typeName);
+    return new DatabindClassMapping<>(type, typeName);
   }
 
   @Data
@@ -446,7 +444,8 @@ public class Scribe implements EntityResolver {
         new ArrayList<>(classEncodingDetectors), new ArrayList<>(subTypesDetectors),
         new ArrayList<>(encodeValueDetectors), new ArrayList<>(decodeValueDetectors),
         new ArrayList<>(fieldNameDetectors), new ArrayList<>(flagDetectors),
-        new ArrayList<>(typeNameDetectors), new HashSet<>(options.values()));
+        new ArrayList<>(typeNameDetectors), new ArrayList<>(fieldsDetectors),
+        new HashSet<>(options.values()));
   }
 
   public static Builder builder() {
@@ -474,6 +473,7 @@ public class Scribe implements EntityResolver {
     private final ArrayList<FieldNameDetector> fieldNameDetectors;
     private final ArrayList<FlagDetector> flagDetectors;
     private final ArrayList<TypeNameDetector> typeNameDetectors;
+    private final ArrayList<FieldsDetector> fieldsDetectors;
     private final HashSet<Option> options;
 
     public Builder() {
@@ -488,6 +488,7 @@ public class Scribe implements EntityResolver {
       fieldNameDetectors = new ArrayList<>();
       flagDetectors = new ArrayList<>();
       typeNameDetectors = new ArrayList<>();
+      fieldsDetectors = new ArrayList<>();
       options = new HashSet<>();
     }
 
@@ -558,6 +559,12 @@ public class Scribe implements EntityResolver {
     }
 
     @Override
+    public Builder fields(FieldsDetector detector) {
+      this.fieldsDetectors.add(detector);
+      return this;
+    }
+
+    @Override
     public Builder option(Option option) {
       this.options.add(option);
       return this;
@@ -584,6 +591,7 @@ public class Scribe implements EntityResolver {
           Collections.unmodifiableList(new ArrayList<>(fieldNameDetectors)),
           Collections.unmodifiableList(new ArrayList<>(flagDetectors)),
           Collections.unmodifiableList(new ArrayList<>(typeNameDetectors)),
+          Collections.unmodifiableList(new ArrayList<>(fieldsDetectors)),
           Collections.unmodifiableMap(options));
     }
   }

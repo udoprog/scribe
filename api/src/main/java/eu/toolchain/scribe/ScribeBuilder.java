@@ -3,6 +3,7 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.detector.ClassEncodingDetector;
 import eu.toolchain.scribe.detector.DecodeValueDetector;
 import eu.toolchain.scribe.detector.EncodeValueDetector;
+import eu.toolchain.scribe.detector.FieldsDetector;
 import eu.toolchain.scribe.detector.FieldNameDetector;
 import eu.toolchain.scribe.detector.FieldReaderDetector;
 import eu.toolchain.scribe.detector.FlagDetector;
@@ -100,6 +101,11 @@ public interface ScribeBuilder {
    * @return This builder.
    */
   ScribeBuilder typeName(TypeNameDetector detector);
+
+  /**
+   * Install a field detector.
+   */
+  ScribeBuilder fields(FieldsDetector detector);
 
   /**
    * Install a module.

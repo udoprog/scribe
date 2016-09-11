@@ -1,6 +1,7 @@
 package eu.toolchain.scribe.creatormethod;
 
-import eu.toolchain.scribe.ConstructorInstanceBuilder;
+import eu.toolchain.scribe.ClassInstanceBuilder;
+import eu.toolchain.scribe.ConstructorClassInstanceBuilder;
 import eu.toolchain.scribe.EntityField;
 import eu.toolchain.scribe.EntityResolver;
 import eu.toolchain.scribe.InstanceBuilder;
@@ -24,7 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ConstructorInstanceBuilderTest {
+public class ConstructorClassInstanceBuilderTest {
   @Mock
   EntityResolver resolver;
 
@@ -34,27 +35,30 @@ public class ConstructorInstanceBuilderTest {
 
     when(resolver.detectExecutableFields(any())).thenReturn(fields);
 
-    final InstanceBuilderDetector detector = ConstructorInstanceBuilder.forAnnotation(Marker.class);
+    final InstanceBuilderDetector detector =
+        ConstructorClassInstanceBuilder.forAnnotation(Marker.class);
 
-    Optional<Match<InstanceBuilder<Object>>> detected =
+    Optional<Match<ClassInstanceBuilder<Object>>> detected =
         detector.detect(resolver, JavaType.of(Entity.class)).findFirst();
 
-    Match<InstanceBuilder<Object>> match =
+    Match<ClassInstanceBuilder<Object>> match =
         detected.orElseThrow(() -> new AssertionError("Expected value"));
 
     assertEquals(MatchPriority.HIGH, match.getPriority());
-    final ConstructorInstanceBuilder method = (ConstructorInstanceBuilder) match.getValue();
+    final ConstructorClassInstanceBuilder<Object> method =
+        (ConstructorClassInstanceBuilder<Object>) match.getValue();
 
-    System.out.println(method.getConstructor());
+    final InstanceBuilder.Constructor<Object> builder =
+        (InstanceBuilder.Constructor<Object>) method.getInstanceBuilder();
 
     assertEquals(fields, method.getFields());
     assertEquals(JavaType.of(Entity.class).getConstructors().findFirst().get(),
-        method.getConstructor());
+        builder.getConstructor());
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testNonRuntimeRetentionPolicy() {
-    ConstructorInstanceBuilder.forAnnotation(NonRuntimeMarker.class);
+    ConstructorClassInstanceBuilder.forAnnotation(NonRuntimeMarker.class);
   }
 
   static class Entity {

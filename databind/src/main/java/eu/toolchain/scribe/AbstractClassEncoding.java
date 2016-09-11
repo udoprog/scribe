@@ -9,22 +9,16 @@ import java.util.Map;
 import java.util.Optional;
 
 @Data
-public class AbstractClassMapping<Source> implements ClassMapping<Source> {
+public class AbstractClassEncoding<Source> implements ClassEncoding<Source> {
   public static final JavaType STRING = JavaType.of(String.class);
   public static final String DEFAULT_TYPE_FIELD = "type";
 
   private final JavaType type;
-  private final Optional<String> typeName;
   private final List<SubType<Source>> subTypes;
   private final Optional<String> typeField;
 
   @Override
-  public Optional<String> typeName() {
-    return typeName;
-  }
-
-  @Override
-  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityTypeEncoder(
+  public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityEncoder(
       final EntityResolver resolver, final EncoderFactory<Target, EntityTarget> factory
   ) {
     final Map<JavaType, AbstractEntityEncoder.TypeEntry<Target, EntityTarget, Source>> byType =
@@ -53,7 +47,7 @@ public class AbstractClassMapping<Source> implements ClassMapping<Source> {
   }
 
   @Override
-  public <Target> EntityStreamEncoder<Target, Source> newEntityTypeStreamEncoder(
+  public <Target> EntityStreamEncoder<Target, Source> newEntityStreamEncoder(
       final EntityResolver resolver, final StreamEncoderFactory<Target> factory
   ) {
     final Map<JavaType, AbstractEntityStreamEncoder.EntityEncoderEntry<Target, Source>> byType =
@@ -83,7 +77,7 @@ public class AbstractClassMapping<Source> implements ClassMapping<Source> {
   }
 
   @Override
-  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityTypeDecoder(
+  public <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityDecoder(
       final EntityResolver resolver, final DecoderFactory<Target, EntityTarget> factory
   ) {
     final Map<String, EntityDecoder<Target, EntityTarget, Source>> byName = new HashMap<>();

@@ -1,7 +1,7 @@
 package eu.toolchain.scribe.guava;
 
 import com.google.common.base.Optional;
-import eu.toolchain.scribe.ConcreteClassMapping;
+import eu.toolchain.scribe.DatabindClassMapping;
 import eu.toolchain.scribe.DefaultEntityFieldMapping;
 import eu.toolchain.scribe.MethodClassEncoding;
 import eu.toolchain.scribe.OptionalMapping;
@@ -22,8 +22,8 @@ public class GuavaTest {
 
   @Test
   public void testGuavaOptional() {
-    final ConcreteClassMapping<GuavaOptional> mapping =
-        (ConcreteClassMapping<GuavaOptional>) m.mapping(GuavaOptional.class);
+    final DatabindClassMapping<GuavaOptional> mapping =
+        (DatabindClassMapping<GuavaOptional>) m.mapping(GuavaOptional.class);
 
     final MethodClassEncoding<GuavaOptional> encoding =
         (MethodClassEncoding<GuavaOptional>) mapping.getDeferred();

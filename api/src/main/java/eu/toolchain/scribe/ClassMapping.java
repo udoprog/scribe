@@ -4,9 +4,19 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface ClassMapping<Source> extends Mapping<Source> {
-  default Optional<String> typeName() {
-    return Optional.empty();
-  }
+  Optional<String> typeName();
+
+  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityTypeEncoder(
+      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
+  );
+
+  <Target> EntityStreamEncoder<Target, Source> newEntityTypeStreamEncoder(
+      EntityResolver resolver, StreamEncoderFactory<Target> factory
+  );
+
+  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityTypeDecoder(
+      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
+  );
 
   @Override
   default <Target, EntityTarget> Stream<Encoder<Target, Source>> newEncoder(
@@ -29,16 +39,4 @@ public interface ClassMapping<Source> extends Mapping<Source> {
   ) {
     return Stream.of(newEntityTypeDecoder(resolver, factory));
   }
-
-  <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityTypeEncoder(
-      EntityResolver resolver, EncoderFactory<Target, EntityTarget> factory
-  );
-
-  <Target> EntityStreamEncoder<Target, Source> newEntityTypeStreamEncoder(
-      EntityResolver resolver, StreamEncoderFactory<Target> factory
-  );
-
-  <Target, EntityTarget> EntityDecoder<Target, EntityTarget, Source> newEntityTypeDecoder(
-      EntityResolver resolver, DecoderFactory<Target, EntityTarget> factory
-  );
 }

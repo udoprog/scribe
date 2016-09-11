@@ -81,9 +81,14 @@ public interface EntityResolver {
    * Detect a method of creating instances of the given type.
    *
    * @param type Type to create instances of.
-   * @return An optional {@link InstanceBuilder}.
+   * @return An optional {@link ClassInstanceBuilder}.
    */
-  Optional<InstanceBuilder<Object>> detectInstanceBuilder(JavaType type);
+  Optional<ClassInstanceBuilder<Object>> detectInstanceBuilder(JavaType type);
+
+  /**
+   * Detect all available fields on the given type.
+   */
+  List<EntityField> detectFields(JavaType type);
 
   /**
    * Detect how to read the given field.
@@ -105,7 +110,15 @@ public interface EntityResolver {
    * @param type Entity type to detect mapping for.
    * @return An optional entity mapping for the given type.
    */
-  Optional<ClassEncoding<Object>> detectEntityMapping(JavaType type);
+  Optional<ClassEncoding<Object>> detectClassEncoding(JavaType type);
+
+  /**
+   * Detect all available subtypes for the given type.
+   *
+   * @param type Type to detect subtypes for.
+   * @return A list of available subtypes.
+   */
+  List<SubType<Object>> detectSubTypes(JavaType type);
 
   /**
    * Detect encode-value methods for the given type.

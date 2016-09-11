@@ -3,13 +3,14 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
 public class BuilderEntityDecoder<Target, EntityTarget, Source>
     implements EntityDecoder<Target, EntityTarget, Source> {
   private final List<BuilderEntityFieldDecoder<Target, ?>> fields;
-  private final JavaType.Method newInstance;
+  private final InstanceBuilder<Object> newBuilder;
   private final JavaType.Method build;
   private final DecoderFactory<Target, EntityTarget> factory;
 
@@ -29,13 +30,7 @@ public class BuilderEntityDecoder<Target, EntityTarget, Source>
   public Source decodeEntity(
       final Context path, final EntityTarget entity, final EntityFieldsDecoder<Target> decoder
   ) {
-    final Object builder;
-
-    try {
-      builder = newInstance.invoke(null);
-    } catch (final Exception e) {
-      throw path.error("Failed to create instance forAnnotation builder (" + newInstance + ")", e);
-    }
+    final Object builder = newBuilder.newInstance(path, Collections.emptyList());
 
     for (final BuilderEntityFieldDecoder<Target, ?> m : fields) {
       final Context p = path.push(m.getName());

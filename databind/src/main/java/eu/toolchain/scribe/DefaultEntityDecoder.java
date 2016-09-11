@@ -9,7 +9,7 @@ import java.util.List;
 public class DefaultEntityDecoder<Target, EntityTarget, Source>
     implements EntityDecoder<Target, EntityTarget, Source> {
   private final List<EntityFieldDecoder<Target, Object>> fields;
-  private final InstanceBuilder<Source> instanceBuilder;
+  private final ClassInstanceBuilder<Source> classInstanceBuilder;
   private final DecoderFactory<Target, EntityTarget> factory;
 
   @Override
@@ -38,6 +38,6 @@ public class DefaultEntityDecoder<Target, EntityTarget, Source>
       arguments.add(value);
     }
 
-    return instanceBuilder.newInstance(path, arguments);
+    return classInstanceBuilder.getInstanceBuilder().newInstance(path, arguments);
   }
 }

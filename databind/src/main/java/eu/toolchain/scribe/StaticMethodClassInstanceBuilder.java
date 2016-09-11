@@ -4,7 +4,6 @@ import eu.toolchain.scribe.detector.InstanceBuilderDetector;
 import eu.toolchain.scribe.detector.Match;
 import eu.toolchain.scribe.detector.MatchPriority;
 import eu.toolchain.scribe.reflection.Annotations;
-import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
@@ -15,20 +14,10 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Data
-public class StaticMethodInstanceBuilder<Source> implements InstanceBuilder<Source> {
+public class StaticMethodClassInstanceBuilder<Source> implements ClassInstanceBuilder<Source> {
   private final List<EntityField> fields;
   private final Optional<List<String>> fieldNames;
-  private final JavaType.Method method;
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public Source newInstance(final Context path, final List<Object> arguments) {
-    try {
-      return (Source) method.invoke(null, arguments.toArray());
-    } catch (final Exception e) {
-      throw path.error("failed to create instance using static method (" + method + ")", e);
-    }
-  }
+  private final InstanceBuilder.StaticMethod<Source> instanceBuilder;
 
   public static <A extends Annotation> InstanceBuilderDetector forAnnotation(
       final Class<A> marker
@@ -63,7 +52,9 @@ public class StaticMethodInstanceBuilder<Source> implements InstanceBuilder<Sour
           }
         });
 
-        return new StaticMethodInstanceBuilder<>(fields, Optional.empty(), m);
+        final InstanceBuilder.StaticMethod<Object> instanceBuilder =
+            InstanceBuilder.fromStaticMethod(m);
+        return new StaticMethodClassInstanceBuilder<>(fields, Optional.empty(), instanceBuilder);
       });
     }).map(Match.withPriority(MatchPriority.HIGH));
   }

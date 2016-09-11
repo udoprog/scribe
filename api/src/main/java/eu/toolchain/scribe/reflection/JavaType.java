@@ -2,8 +2,10 @@ package eu.toolchain.scribe.reflection;
 
 import eu.toolchain.scribe.ExecutableType;
 import eu.toolchain.scribe.TypeReference;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -139,7 +141,8 @@ public class JavaType implements AccessibleType, AnnotatedType {
   public Stream<Constructor> getConstructors() {
     return Arrays.stream(type.getDeclaredConstructors()).map(m -> {
       final List<Parameter> parameters = buildParameters(m, parent);
-      return new Constructor(m, parameters, immutableCopy(m.getAnnotations()), m.getModifiers());
+      return new Constructor(m, parameters, immutableCopy(m.getAnnotations()), m.getModifiers(),
+          this);
     });
   }
 
@@ -182,6 +185,24 @@ public class JavaType implements AccessibleType, AnnotatedType {
     typeParameters.stream().map(JavaType::toString).forEach(joiner::add);
 
     return type.getCanonicalName() + "<" + joiner.toString() + ">";
+  }
+
+  public static Optional<JavaType> ofClassName(final String canonicalName) {
+    try {
+      return Optional.of(of(Class.forName(canonicalName)));
+    } catch (final ClassNotFoundException e) {
+      return Optional.empty();
+    }
+  }
+
+  public static Optional<JavaType> ofClassName(
+      final String canonicalName, final boolean initialize, final ClassLoader loader
+  ) {
+    try {
+      return Optional.of(of(Class.forName(canonicalName, initialize, loader)));
+    } catch (final ClassNotFoundException e) {
+      return Optional.empty();
+    }
   }
 
   public static JavaType of(final TypeReference<?> reference) {
@@ -271,6 +292,14 @@ public class JavaType implements AccessibleType, AnnotatedType {
         .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey)));
   }
 
+  public String getCanonicalName() {
+    return type.getCanonicalName();
+  }
+
+  public String getTypeName() {
+    return type.getTypeName();
+  }
+
   @Data
   public static class Parameter implements AnnotatedType {
     private final JavaType parameterType;
@@ -284,29 +313,32 @@ public class JavaType implements AccessibleType, AnnotatedType {
   }
 
   @Data
-  @EqualsAndHashCode(exclude = {"type"})
+  @EqualsAndHashCode(exclude = {"internalType"})
   public static class Constructor implements ExecutableType, AccessibleType, AnnotatedType {
-    private final java.lang.reflect.Constructor<?> type;
+    @Getter(AccessLevel.NONE)
+    private final java.lang.reflect.Constructor<?> internalType;
 
     private final List<Parameter> parameters;
     private final List<Annotation> annotations;
     private final int modifiers;
+    private final JavaType type;
 
     public Object newInstance(Object... arguments)
         throws IllegalAccessException, InvocationTargetException, InstantiationException {
-      return type.newInstance(arguments);
+      return internalType.newInstance(arguments);
     }
 
     @Override
     public Stream<Annotation> getAnnotationStream() {
-      return Arrays.stream(type.getAnnotations());
+      return Arrays.stream(internalType.getAnnotations());
     }
   }
 
   @Data
-  @EqualsAndHashCode(exclude = {"type"})
+  @EqualsAndHashCode(exclude = {"internalType"})
   public static class Method implements ExecutableType, AccessibleType, AnnotatedType {
-    private final java.lang.reflect.Method type;
+    @Getter(AccessLevel.NONE)
+    private final java.lang.reflect.Method internalType;
 
     private final List<Annotation> annotations;
     private final int modifiers;
@@ -321,7 +353,7 @@ public class JavaType implements AccessibleType, AnnotatedType {
 
     public Object invoke(final Object instance, final Object... arguments)
         throws InvocationTargetException, IllegalAccessException {
-      return type.invoke(instance, arguments);
+      return internalType.invoke(instance, arguments);
     }
   }
 

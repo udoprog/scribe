@@ -16,8 +16,8 @@ public class JacksonAnnotationsModule implements Module {
   @Override
   public void register(ScribeBuilder builder) {
     builder
-        .instanceBuilder(ConstructorInstanceBuilder.forAnnotation(JsonCreator.class))
-        .instanceBuilder(StaticMethodInstanceBuilder.forAnnotation(JsonCreator.class));
+        .instanceBuilder(ConstructorClassInstanceBuilder.forAnnotation(JsonCreator.class))
+        .instanceBuilder(StaticMethodClassInstanceBuilder.forAnnotation(JsonCreator.class));
 
     builder.subTypes(
         AnnotationSubTypesResolver.forAnnotation(JsonSubTypes.class, JsonSubTypes::value,

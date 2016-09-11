@@ -1,11 +1,11 @@
 package eu.toolchain.scribe.creatormethod;
 
-import eu.toolchain.scribe.ConstructorInstanceBuilder;
+import eu.toolchain.scribe.ConstructorClassInstanceBuilder;
 import eu.toolchain.scribe.EntityResolver;
-import eu.toolchain.scribe.InstanceBuilder;
+import eu.toolchain.scribe.ClassInstanceBuilder;
 import eu.toolchain.scribe.Mapping;
 import eu.toolchain.scribe.Scribe;
-import eu.toolchain.scribe.StaticMethodInstanceBuilder;
+import eu.toolchain.scribe.StaticMethodClassInstanceBuilder;
 import eu.toolchain.scribe.annotations.EntityCreator;
 import eu.toolchain.scribe.annotations.Property;
 import eu.toolchain.scribe.reflection.JavaType;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-public class InstanceBuildersTest {
+public class ClassInstanceBuildersTest {
   private static final JavaType STRING = JavaType.of(String.class);
 
   private EntityResolver resolver;
@@ -43,7 +43,7 @@ public class InstanceBuildersTest {
 
   @Test
   public void testBadEntity() {
-    Optional<InstanceBuilder<Object>> method =
+    Optional<ClassInstanceBuilder<Object>> method =
         resolver.detectInstanceBuilder(JavaType.of(BadEntity.class));
     assertFalse(method.isPresent());
   }
@@ -58,13 +58,13 @@ public class InstanceBuildersTest {
 
   @Test
   public void testConstructor() {
-    Optional<InstanceBuilder<Object>> method =
+    Optional<ClassInstanceBuilder<Object>> method =
         resolver.detectInstanceBuilder(JavaType.of(Constructor.class));
 
     assertTrue(method.isPresent());
-    final InstanceBuilder<Object> creator = method.get();
-    assertTrue(creator instanceof ConstructorInstanceBuilder);
-    final ConstructorInstanceBuilder<Object> c = (ConstructorInstanceBuilder<Object>) creator;
+    final ClassInstanceBuilder<Object> creator = method.get();
+    assertTrue(creator instanceof ConstructorClassInstanceBuilder);
+    final ConstructorClassInstanceBuilder<Object> c = (ConstructorClassInstanceBuilder<Object>) creator;
 
     checkFields(c);
   }
@@ -80,18 +80,18 @@ public class InstanceBuildersTest {
 
   @Test
   public void testStaticMethod() {
-    Optional<InstanceBuilder<Object>> method =
+    Optional<ClassInstanceBuilder<Object>> method =
         resolver.detectInstanceBuilder(JavaType.of(StaticMethod.class));
 
     assertTrue(method.isPresent());
-    final InstanceBuilder<Object> creator = method.get();
-    assertTrue(creator instanceof StaticMethodInstanceBuilder);
-    final StaticMethodInstanceBuilder<Object> c = (StaticMethodInstanceBuilder<Object>) creator;
+    final ClassInstanceBuilder<Object> creator = method.get();
+    assertTrue(creator instanceof StaticMethodClassInstanceBuilder);
+    final StaticMethodClassInstanceBuilder<Object> c = (StaticMethodClassInstanceBuilder<Object>) creator;
 
     checkFields(c);
   }
 
-  private void checkFields(final InstanceBuilder<Object> c) {
+  private void checkFields(final ClassInstanceBuilder<Object> c) {
     assertEquals(2, c.getFields().size());
 
     assertEquals(STRING, c.getFields().get(0).getType());

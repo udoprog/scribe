@@ -5,7 +5,6 @@ import eu.toolchain.scribe.detector.Match;
 import eu.toolchain.scribe.detector.MatchPriority;
 import eu.toolchain.scribe.reflection.AccessibleType;
 import eu.toolchain.scribe.reflection.Annotations;
-import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
@@ -17,28 +16,22 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Data
-public class ConstructorInstanceBuilder<Source> implements InstanceBuilder<Source> {
+public class ConstructorClassInstanceBuilder<Source> implements ClassInstanceBuilder<Source> {
   private final List<EntityField> fields;
   private final Optional<List<String>> fieldNames;
-  private final JavaType.Constructor constructor;
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public Source newInstance(final Context path, final List<Object> arguments) {
-    try {
-      return (Source) constructor.newInstance(arguments.toArray());
-    } catch (final Exception e) {
-      throw path.error("failed to create instance using constructor (" + constructor + ")", e);
-    }
-  }
+  private final InstanceBuilder<Source> instanceBuilder;
 
   public static InstanceBuilderDetector forEmpty() {
     return (resolver, type) -> type
         .getConstructors()
         .filter(AccessibleType::isPublic)
         .filter(c -> c.getParameters().isEmpty())
-        .map(c -> new ConstructorInstanceBuilder<>(Collections.emptyList(), Optional.empty(), c))
-        .map(Match.withPriority(MatchPriority.LOW));
+        .map(c -> {
+          final InstanceBuilder<Object> instanceBuilder = InstanceBuilder.fromConstructor(c);
+          return new ConstructorClassInstanceBuilder<>(Collections.emptyList(), Optional.empty(),
+              instanceBuilder);
+        })
+        .map(Match.withPriority(MatchPriority.DEFAULT));
   }
 
   public static <A extends Annotation> InstanceBuilderDetector forAnnotation(
@@ -69,7 +62,8 @@ public class ConstructorInstanceBuilder<Source> implements InstanceBuilder<Sourc
           }
         });
 
-        return new ConstructorInstanceBuilder<>(fields, fieldNames, c);
+        final InstanceBuilder<Object> instanceBuilder = InstanceBuilder.fromConstructor(c);
+        return new ConstructorClassInstanceBuilder<>(fields, fieldNames, instanceBuilder);
       });
     }).map(Match.withPriority(MatchPriority.HIGH));
   }

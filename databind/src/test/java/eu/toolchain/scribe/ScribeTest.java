@@ -24,9 +24,10 @@ public class ScribeTest {
 
   @Test
   public void testBuilder() {
-    final ClassMapping a = (ClassMapping) mapper.mapping(JavaType.of(BuilderTest.class));
-    assertThat(a, instanceOf(ConcreteClassMapping.class));
-    final ConcreteClassMapping ca = (ConcreteClassMapping) a;
+    final ClassMapping<BuilderTest> a =
+        (ClassMapping<BuilderTest>) mapper.mapping(BuilderTest.class);
+    assertThat(a, instanceOf(DatabindClassMapping.class));
+    final DatabindClassMapping<BuilderTest> ca = (DatabindClassMapping<BuilderTest>) a;
     assertThat(ca.getDeferred(), instanceOf(BuilderClassEncoding.class));
   }
 
@@ -43,9 +44,10 @@ public class ScribeTest {
 
   @Test
   public void testEntityCreator() {
-    final ClassMapping a = (ClassMapping) mapper.mapping(JavaType.of(EntityCreatorTest.class));
-    assertThat(a, instanceOf(ConcreteClassMapping.class));
-    final ConcreteClassMapping ca = (ConcreteClassMapping) a;
+    final ClassMapping<EntityCreatorTest> a =
+        (ClassMapping<EntityCreatorTest>) mapper.mapping(EntityCreatorTest.class);
+    assertThat(a, instanceOf(DatabindClassMapping.class));
+    final DatabindClassMapping<EntityCreatorTest> ca = (DatabindClassMapping<EntityCreatorTest>) a;
     assertThat(ca.getDeferred(), instanceOf(MethodClassEncoding.class));
   }
 
@@ -83,7 +85,7 @@ public class ScribeTest {
   @Test
   public void testConstructorPropertiesVanilla() {
     assertThat(mapper.mapping(ConstructorPropertiesVanilla.class),
-        instanceOf(ConcreteClassMapping.class));
+        instanceOf(DatabindClassMapping.class));
   }
 
   public static class ConstructorPropertiesPropertyOverride {
@@ -102,6 +104,6 @@ public class ScribeTest {
   @Test
   public void testConstructorPropertiesPropertyOverride() {
     assertThat(mapper.mapping(ConstructorPropertiesPropertyOverride.class),
-        instanceOf(ConcreteClassMapping.class));
+        instanceOf(DatabindClassMapping.class));
   }
 }

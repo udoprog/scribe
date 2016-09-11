@@ -23,14 +23,16 @@ public class DefaultModule implements Module {
   public void register(ScribeBuilder b) {
     /* support constructors */
     b
-        .instanceBuilder(ConstructorInstanceBuilder.forEmpty())
-        .instanceBuilder(ConstructorInstanceBuilder.forAnnotation(ConstructorProperties.class,
+        .instanceBuilder(ConstructorClassInstanceBuilder.forEmpty())
+        .instanceBuilder(ConstructorClassInstanceBuilder.forAnnotation(ConstructorProperties.class,
             a -> Optional.of(Arrays.asList(a.value()))));
 
-    b.fieldReader(GetterFieldReader::detect);
+    b.fieldReader(GetterFieldReader.forBeanGetter());
+
+    b.fields(ImmediateFields::detect);
 
     b.classEncoding(MethodClassEncoding::detect);
-    b.classEncoding(BuilderClassEncoding::detect);
+    b.classEncoding(BuilderClassEncoding.forStaticMethod("builder"));
 
     b.mapping(
         OptionalMapping.forType(Optional.class, Optional::isPresent, Optional::get, Optional::of,

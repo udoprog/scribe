@@ -16,7 +16,7 @@ import static eu.toolchain.scribe.Streams.streamRequireOne;
 @Data
 public class MethodClassEncoding<Source> implements ClassEncoding<Source> {
   private final List<DefaultEntityFieldMapping<Object>> fields;
-  private final InstanceBuilder<Source> instanceBuilder;
+  private final ClassInstanceBuilder<Source> classInstanceBuilder;
 
   @Override
   public <Target, EntityTarget> EntityEncoder<Target, EntityTarget, Source> newEntityEncoder(
@@ -62,7 +62,7 @@ public class MethodClassEncoding<Source> implements ClassEncoding<Source> {
       fields.add(streamRequireOne(field.newEntityFieldDecoder(resolver, factory)));
     }
 
-    return new DefaultEntityDecoder<>(Collections.unmodifiableList(fields), instanceBuilder,
+    return new DefaultEntityDecoder<>(Collections.unmodifiableList(fields), classInstanceBuilder,
         factory);
   }
 

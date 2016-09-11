@@ -1,13 +1,14 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.detector.FieldReaderDetector;
 import eu.toolchain.scribe.detector.Match;
 import eu.toolchain.scribe.detector.MatchPriority;
 import eu.toolchain.scribe.reflection.Annotations;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.Data;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 @Data
 public class GetterFieldReader implements FieldReader {
@@ -36,26 +37,30 @@ public class GetterFieldReader implements FieldReader {
     return fieldType;
   }
 
-  public static Stream<Match<FieldReader>> detect(
-      final JavaType type, final String fieldName, final JavaType fieldType
-  ) {
-    final String getterName = getFieldName(fieldName, fieldType);
-
-    return type.getMethod(getterName).map(getter -> {
-      final JavaType returnType = getter.getReturnType();
-      final Annotations annotations = Annotations.of(getter.getAnnotationStream());
-
-      if (!fieldType.equals(returnType)) {
-        throw new IllegalArgumentException(
-            "Getter " + getter + " return incompatible return value (" + returnType +
-                "), expected (" + fieldType + ")");
-      }
-
-      return new GetterFieldReader(getter, annotations, returnType);
-    }).map(Match.withPriority(MatchPriority.LOW));
+  public static FieldReaderDetector forBeanGetter() {
+    return forName(GetterFieldReader::beanGetterName);
   }
 
-  private static String getFieldName(final String fieldName, final JavaType fieldType) {
+  public static FieldReaderDetector forName(final BiFunction<JavaType, String, String> name) {
+    return (type, fieldName, fieldType) -> {
+      final String getterName = name.apply(fieldType, fieldName);
+
+      return type.getMethod(getterName).map(getter -> {
+        final JavaType returnType = getter.getReturnType();
+        final Annotations annotations = Annotations.of(getter.getAnnotationStream());
+
+        if (!fieldType.equals(returnType)) {
+          throw new IllegalArgumentException(
+              "Getter " + getter + " return incompatible return value (" + returnType +
+                  "), expected (" + fieldType + ")");
+        }
+
+        return new GetterFieldReader(getter, annotations, returnType);
+      }).map(Match.withPriority(MatchPriority.DEFAULT));
+    };
+  }
+
+  private static String beanGetterName(final JavaType fieldType, final String fieldName) {
     if (fieldType.isBoolean() && !fieldType.isBoxed()) {
       return "is" + LOWER_TO_UPPER.apply(fieldName);
     }

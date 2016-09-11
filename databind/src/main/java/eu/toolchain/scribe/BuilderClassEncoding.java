@@ -1,5 +1,6 @@
 package eu.toolchain.scribe;
 
+import eu.toolchain.scribe.detector.ClassEncodingDetector;
 import eu.toolchain.scribe.detector.Match;
 import eu.toolchain.scribe.detector.MatchPriority;
 import eu.toolchain.scribe.reflection.AccessibleType;
@@ -10,6 +11,8 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static eu.toolchain.scribe.Streams.streamRequireOne;
@@ -22,7 +25,7 @@ import static eu.toolchain.scribe.Streams.streamRequireOne;
 @Data
 public class BuilderClassEncoding<Source> implements ClassEncoding<Source> {
   private final List<BuilderEntityFieldMapping<Object>> fields;
-  private final JavaType.Method newInstance;
+  private final InstanceBuilder<Object> newInstance;
   private final JavaType.Method build;
 
   @Override
@@ -73,54 +76,87 @@ public class BuilderClassEncoding<Source> implements ClassEncoding<Source> {
         factory);
   }
 
-  public static Stream<Match<ClassEncoding<Object>>> detect(
-      final EntityResolver resolver, final JavaType type
+  public static ClassEncodingDetector forStaticMethod(final String methodName) {
+    return (resolver, type) -> {
+      return type.getMethod("builder").filter(AccessibleType::isStatic).map(method -> {
+        final InstanceBuilder<Object> instanceBuilder = InstanceBuilder.fromStaticMethod(method);
+        return setupBuilderClassEncoding(resolver, type, instanceBuilder);
+      }).map(Match.withPriority(MatchPriority.DEFAULT));
+    };
+  }
+
+  public static ClassEncodingDetector forRelatedClass(
+      final Function<JavaType, Optional<JavaType>> builderTypeResolver
   ) {
-    return type.getMethod("builder").filter(AccessibleType::isStatic).map(newInstance -> {
-      final ArrayList<BuilderEntityFieldMapping<Object>> fields = new ArrayList<>();
+    return (resolver, type) -> {
+      return builderTypeResolver
+          .apply(type)
+          .map(Stream::of)
+          .orElseGet(Stream::empty)
+          .map(builderClass -> {
+            final JavaType.Constructor builderClassConstructor = builderClass
+                .getConstructor()
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Builder class (" + builderClass + ") does not have an empty constructor"));
 
-      final JavaType returnType = newInstance.getReturnType();
+            final InstanceBuilder.Constructor<Object> instanceBuilder =
+                InstanceBuilder.fromConstructor(builderClassConstructor);
 
-      final JavaType.Method builderBuild = returnType
-          .getMethod("build")
-          .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Method build() missing on type (" + returnType + ")"));
+            return setupBuilderClassEncoding(resolver, type, instanceBuilder);
+          })
+          .map(Match.withPriority(MatchPriority.HIGH));
+    };
+  }
 
-      if (!builderBuild.getReturnType().equals(type)) {
-        throw new IllegalArgumentException(
-            builderBuild + " returns (" + builderBuild.getReturnType() +
-                ") instead forAnnotation expected (" + type + ")");
-      }
+  private static BuilderClassEncoding<Object> setupBuilderClassEncoding(
+      final EntityResolver resolver, final JavaType type,
+      final InstanceBuilder<Object> instanceBuilder
+  ) {
+    final ArrayList<BuilderEntityFieldMapping<Object>> fields = new ArrayList<>();
 
-      type.getFields().filter(f -> !f.isStatic()).forEach(field -> {
-        final JavaType propertyType = field.getFieldType();
+    final JavaType builderType = instanceBuilder.getInstanceType();
 
-        final FieldReader reader = resolver
-            .detectFieldReader(type, field.getName(), propertyType)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Can't figure out how to read (" + type + ") field (" + field.getName() + ")"));
+    final JavaType.Method builderBuild = builderType
+        .getMethod("build")
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Method build() missing on type (" + builderType + ")"));
 
-        final JavaType.Method setter = returnType
-            .getMethod(field.getName(), propertyType)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Builder does not have method " + returnType + "#" + field.getName() + "(" +
-                    propertyType + ")"));
+    if (!builderBuild.getReturnType().equals(type)) {
+      throw new IllegalArgumentException(
+          builderBuild + " returns (" + builderBuild.getReturnType() +
+              ") instead forAnnotation expected (" + type + ")");
+    }
 
-        final Annotations annotations =
-            reader.annotations().merge(Annotations.of(field.getAnnotationStream()));
+    resolver.detectFields(type).forEach(field -> {
+      final JavaType fieldType = field.getType();
 
-        final String fieldName =
-            resolver.detectFieldName(type, annotations).orElseGet(field::getName);
-
-        final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
-        final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
-        fields.add(new BuilderEntityFieldMapping<>(fieldName, m, reader, setter, flags));
+      final String name = resolver.detectFieldName(type, field.getAnnotations()).orElseGet(() -> {
+        return field
+            .getName()
+            .orElseThrow(
+                () -> new IllegalArgumentException("Unable to get field name (" + field + ")"));
       });
 
-      return new BuilderClassEncoding<>(Collections.unmodifiableList(fields), newInstance,
-          builderBuild);
-    }).map(Match.withPriority(MatchPriority.LOW));
+      final FieldReader reader = resolver
+          .detectFieldReader(type, name, fieldType)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Can't figure out how to read (" + type + ") field (" + name + ")"));
+
+      final JavaType.Method setter = builderType
+          .getMethod(name, fieldType)
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Builder does not have method " + builderType + "#" + name + "(" + fieldType + ")"));
+
+      final Annotations annotations = reader.annotations().merge(field.getAnnotations());
+
+      final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
+      final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
+      fields.add(new BuilderEntityFieldMapping<>(name, m, reader, setter, flags));
+    });
+
+    return new BuilderClassEncoding<>(Collections.unmodifiableList(fields), instanceBuilder,
+        builderBuild);
   }
 }
