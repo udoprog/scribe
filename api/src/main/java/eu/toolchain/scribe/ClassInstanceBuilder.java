@@ -1,7 +1,6 @@
 package eu.toolchain.scribe;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Describes a way that an instance of a type can be created and the fields that it has.
@@ -15,11 +14,4 @@ public interface ClassInstanceBuilder<Source> {
    * @return A list of fields.
    */
   List<EntityField> getFields();
-
-  /**
-   * Field names, if they are known.
-   *
-   * @return An optional list of field names.
-   */
-  Optional<List<String>> getFieldNames();
 }

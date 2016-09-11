@@ -8,7 +8,6 @@ import eu.toolchain.scribe.reflection.JavaType;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ImmediateFields {
@@ -23,10 +22,12 @@ public class ImmediateFields {
 
     while (it.hasNext()) {
       final JavaType.Field f = it.next();
+      final JavaType fieldType = f.getFieldType();
+      final Annotations annotations = Annotations.of(f.getAnnotationStream());
+      final String name =
+          resolver.detectFieldName(fieldType, annotations, index++).orElseGet(f::getName);
 
-      fields.add(
-          new EntityField(true, index++, Annotations.of(f.getAnnotationStream()), f.getFieldType(),
-              Optional.of(f.getName())));
+      fields.add(new EntityField(fieldType, annotations, name, f.getName()));
     }
 
     return Stream.of(fields).map(Match.withPriority(MatchPriority.DEFAULT));

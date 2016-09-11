@@ -130,30 +130,25 @@ public class BuilderClassEncoding<Source> implements ClassEncoding<Source> {
 
     resolver.detectFields(type).forEach(field -> {
       final JavaType fieldType = field.getType();
-
-      final String name = resolver.detectFieldName(type, field.getAnnotations()).orElseGet(() -> {
-        return field
-            .getName()
-            .orElseThrow(
-                () -> new IllegalArgumentException("Unable to get field name (" + field + ")"));
-      });
+      final String serializedName = field.getSerializedName();
 
       final FieldReader reader = resolver
-          .detectFieldReader(type, name, fieldType)
+          .detectFieldReader(type, serializedName, fieldType)
           .orElseThrow(() -> new IllegalArgumentException(
-              "Can't figure out how to read (" + type + ") field (" + name + ")"));
+              "Can't figure out how to read (" + type + ") field (" + serializedName + ")"));
 
       final JavaType.Method setter = builderType
-          .getMethod(name, fieldType)
+          .getMethod(field.getFieldName(), fieldType)
           .findFirst()
           .orElseThrow(() -> new IllegalArgumentException(
-              "Builder does not have method " + builderType + "#" + name + "(" + fieldType + ")"));
+              "Builder does not have method " + builderType + "#" + serializedName + "(" +
+                  fieldType + ")"));
 
       final Annotations annotations = reader.annotations().merge(field.getAnnotations());
 
       final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
       final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
-      fields.add(new BuilderEntityFieldMapping<>(name, m, reader, setter, flags));
+      fields.add(new BuilderEntityFieldMapping<>(serializedName, m, reader, setter, flags));
     });
 
     return new BuilderClassEncoding<>(Collections.unmodifiableList(fields), instanceBuilder,

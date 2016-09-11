@@ -73,33 +73,20 @@ public class MethodClassEncoding<Source> implements ClassEncoding<Source> {
       final ArrayList<DefaultEntityFieldMapping<Object>> fields = new ArrayList<>();
 
       for (final EntityField field : creator.getFields()) {
-        final String fieldName = field
-            .getName()
-            .orElseGet(() -> creator
-                .getFieldNames()
-                .map(names -> names.get(field.getIndex()))
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "Cannot detect property name for field: " + field.toString())));
+        final String serializedName = field.getSerializedName();
+        final String fieldName = field.getFieldName();
 
         final FieldReader reader = resolver
             .detectFieldReader(type, fieldName, field.getType())
             .orElseThrow(() -> new IllegalArgumentException(
                 "Can't figure out how to read " + type + " field (" + fieldName + ")"));
 
-        final Annotations base = field.getAnnotations().merge(reader.annotations());
-
-        final Annotations annotations;
-
-        if (!field.isImmediate()) {
-          annotations = base.merge(resolver.detectImmediateAnnotations(type, fieldName));
-        } else {
-          annotations = base;
-        }
+        final Annotations annotations = field.getAnnotations().merge(reader.annotations());
 
         final Mapping<Object> m = resolver.mapping(reader.fieldType(), annotations);
         final Flags flags = resolver.detectFieldFlags(reader.fieldType(), annotations);
 
-        fields.add(new DefaultEntityFieldMapping<>(fieldName, m, reader, flags));
+        fields.add(new DefaultEntityFieldMapping<>(serializedName, m, reader, flags));
       }
 
       return Stream.of(new MethodClassEncoding<>(Collections.unmodifiableList(fields), creator));

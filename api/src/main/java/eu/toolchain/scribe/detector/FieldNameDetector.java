@@ -8,5 +8,7 @@ import java.util.stream.Stream;
 
 @FunctionalInterface
 public interface FieldNameDetector {
-  Stream<Match<String>> detect(EntityResolver resolver, JavaType type, Annotations field);
+  Stream<Match<String>> detect(
+      EntityResolver resolver, JavaType type, Annotations annotations, int index
+  );
 }

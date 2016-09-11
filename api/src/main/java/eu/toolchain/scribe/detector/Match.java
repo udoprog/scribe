@@ -20,7 +20,7 @@ public class Match<T> {
     return value -> new Match<>(value, priority);
   }
 
-  private static final Comparator<Match<?>> BY_SCORE_COMPARATOR =
+  private static final Comparator<Match<?>> BY_PRIORITY =
       (a, b) -> Integer.compare(b.getPriority().ordinal(), a.getPriority().ordinal());
 
   public static <S, T> Optional<T> bestUniqueMatch(
@@ -29,7 +29,7 @@ public class Match<T> {
     final List<Match<T>> results = alternatives.flatMap(map).collect(Collectors.toList());
 
     final List<Match<T>> sorted = new ArrayList<>(results);
-    Collections.sort(sorted, BY_SCORE_COMPARATOR);
+    Collections.sort(sorted, BY_PRIORITY);
 
     if (results.size() > 1) {
       if (sorted.get(0).getPriority() == sorted.get(1).getPriority()) {

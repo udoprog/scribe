@@ -14,7 +14,6 @@ import eu.toolchain.scribe.reflection.JavaType;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class AutoMatterModule implements Module {
@@ -45,8 +44,9 @@ public class AutoMatterModule implements Module {
       while (it.hasNext()) {
         final JavaType.Method m = it.next();
         final Annotations annotations = Annotations.of(m.getAnnotationStream());
-        fields.add(new EntityField(true, index++, annotations, m.getReturnType(),
-            Optional.of(m.getName())));
+        final String name =
+            resolver.detectFieldName(m.getReturnType(), annotations, index++).orElseGet(m::getName);
+        fields.add(new EntityField(m.getReturnType(), annotations, name, m.getName()));
       }
 
       return Stream.of(fields).map(Match.withPriority(MatchPriority.HIGH));

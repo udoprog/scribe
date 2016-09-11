@@ -29,8 +29,9 @@ public class NativeAnnotationsModule implements Module {
         .decodeValue(StaticMethodEntityDecodeValue.forAnnotation(EntityCreator.class));
 
     b.fieldReader(AnnotatedFieldReader.forAnnotation(FieldGetter.class, FieldGetter::value));
+    b.fieldReader(AnnotatedFieldReader.forAnnotation(Property.class, Property::value));
 
-    b.fieldName((resolver, type, annotations) -> annotations
+    b.fieldName((resolver, type, annotations, index) -> annotations
         .getAnnotation(Property.class)
         .map(Property::value)
         .map(Match.withPriority(MatchPriority.HIGH)));

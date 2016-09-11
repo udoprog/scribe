@@ -1,7 +1,6 @@
 package eu.toolchain.scribe;
 
 import java.beans.ConstructorProperties;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +23,11 @@ public class DefaultModule implements Module {
     /* support constructors */
     b
         .instanceBuilder(ConstructorClassInstanceBuilder.forEmpty())
-        .instanceBuilder(ConstructorClassInstanceBuilder.forAnnotation(ConstructorProperties.class,
-            a -> Optional.of(Arrays.asList(a.value()))));
+        .instanceBuilder(
+            ConstructorClassInstanceBuilder.forAnnotation(ConstructorProperties.class));
+
+    b.fieldName(MethodAnnotationFieldNames.forAnnotation(ConstructorProperties.class,
+        ConstructorProperties::value));
 
     b.fieldReader(GetterFieldReader.forBeanGetter());
 

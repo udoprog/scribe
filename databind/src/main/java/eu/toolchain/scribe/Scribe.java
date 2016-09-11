@@ -3,9 +3,9 @@ package eu.toolchain.scribe;
 import eu.toolchain.scribe.detector.ClassEncodingDetector;
 import eu.toolchain.scribe.detector.DecodeValueDetector;
 import eu.toolchain.scribe.detector.EncodeValueDetector;
-import eu.toolchain.scribe.detector.FieldsDetector;
 import eu.toolchain.scribe.detector.FieldNameDetector;
 import eu.toolchain.scribe.detector.FieldReaderDetector;
+import eu.toolchain.scribe.detector.FieldsDetector;
 import eu.toolchain.scribe.detector.FlagDetector;
 import eu.toolchain.scribe.detector.InstanceBuilderDetector;
 import eu.toolchain.scribe.detector.MappingDetector;
@@ -13,6 +13,7 @@ import eu.toolchain.scribe.detector.Match;
 import eu.toolchain.scribe.detector.SubTypesDetector;
 import eu.toolchain.scribe.detector.TypeAliasDetector;
 import eu.toolchain.scribe.detector.TypeNameDetector;
+import eu.toolchain.scribe.reflection.AnnotatedType;
 import eu.toolchain.scribe.reflection.Annotations;
 import eu.toolchain.scribe.reflection.JavaType;
 import lombok.AllArgsConstructor;
@@ -238,9 +239,9 @@ public class Scribe implements EntityResolver {
    * {@inheritDoc}
    */
   @Override
-  public Optional<String> detectFieldName(JavaType type, Annotations annotations) {
+  public Optional<String> detectFieldName(JavaType type, Annotations annotations, int index) {
     return Match.bestUniqueMatch(fieldNameDetectors.stream(),
-        d -> d.detect(this, type, annotations));
+        d -> d.detect(this, type, annotations, index));
   }
 
   /**
@@ -271,11 +272,27 @@ public class Scribe implements EntityResolver {
     for (final JavaType.Parameter p : executable.getParameters()) {
       final int i = index++;
 
-      final Annotations annotations = Annotations.of(p.getAnnotationStream());
-      final JavaType type = p.getParameterType();
-      final Optional<String> name = detectFieldName(type, annotations);
+      final Annotations annotations = Annotations
+          .of(executable.getAnnotationStream())
+          .merge(Annotations.of(p.getAnnotationStream()));
 
-      fields.add(new EntityField(false, i, annotations, type, name));
+      final JavaType type = p.getParameterType();
+
+      final String name = detectFieldName(type, annotations, i).orElseThrow(
+          () -> new RuntimeException(
+              "Cannot detect name for field #" + i + " on method (" + executable + ")"));
+
+      // TODO: make this configurable
+      final Annotations fullAnnotations = annotations.merge(executable
+          .getEncapsulatingType()
+          .getField(name)
+          .map(AnnotatedType::getAnnotationStream)
+          .map(Annotations::of)
+          .orElseGet(Annotations::empty));
+
+      final String serializedName = detectFieldName(type, fullAnnotations, i).orElse(name);
+
+      fields.add(new EntityField(type, fullAnnotations, serializedName, name));
     }
 
     return fields;

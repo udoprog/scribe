@@ -148,9 +148,10 @@ public interface EntityResolver {
    *
    * @param type Type to detect field name for.
    * @param annotations Annotations to detect field name for.
+   * @param index Index of the field.
    * @return An optional field name.
    */
-  Optional<String> detectFieldName(JavaType type, Annotations annotations);
+  Optional<String> detectFieldName(JavaType type, Annotations annotations, int index);
 
   /**
    * Detect the name of the given type.

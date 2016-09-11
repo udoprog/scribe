@@ -26,10 +26,9 @@ public class JacksonAnnotationsModule implements Module {
 
     builder.encodeValue(EntityEncodeValue.forAnnotation(JsonValue.class));
 
-    builder.fieldReader(
-        AnnotatedFieldReader.forAnnotation(JsonGetter.class, JsonGetter::value));
+    builder.fieldReader(AnnotatedFieldReader.forAnnotation(JsonGetter.class, JsonGetter::value));
 
-    builder.fieldName((resolver, type, annotations) -> annotations
+    builder.fieldName((resolver, type, annotations, index) -> annotations
         .getAnnotation(JsonProperty.class)
         .map(JsonProperty::value)
         .map(Match.withPriority(MatchPriority.HIGH)));

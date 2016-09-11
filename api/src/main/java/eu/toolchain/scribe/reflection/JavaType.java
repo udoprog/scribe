@@ -134,15 +134,16 @@ public class JavaType implements AccessibleType, AnnotatedType {
       final JavaType returnType = of(m.getGenericReturnType(), parent);
       final List<Parameter> parameters = buildParameters(m, parent);
       final List<Annotation> annotations = immutableCopy(m.getAnnotations());
-      return new Method(m, annotations, m.getModifiers(), returnType, m.getName(), parameters);
+      return new Method(m, this, annotations, m.getModifiers(), returnType, m.getName(),
+          parameters);
     });
   }
 
   public Stream<Constructor> getConstructors() {
     return Arrays.stream(type.getDeclaredConstructors()).map(m -> {
       final List<Parameter> parameters = buildParameters(m, parent);
-      return new Constructor(m, parameters, immutableCopy(m.getAnnotations()), m.getModifiers(),
-          this);
+      return new Constructor(m, this, parameters, immutableCopy(m.getAnnotations()),
+          m.getModifiers(), this);
     });
   }
 
@@ -313,10 +314,11 @@ public class JavaType implements AccessibleType, AnnotatedType {
   }
 
   @Data
-  @EqualsAndHashCode(exclude = {"internalType"})
+  @EqualsAndHashCode(exclude = {"internalType", "encapsulatingType"})
   public static class Constructor implements ExecutableType, AccessibleType, AnnotatedType {
     @Getter(AccessLevel.NONE)
     private final java.lang.reflect.Constructor<?> internalType;
+    private final JavaType encapsulatingType;
 
     private final List<Parameter> parameters;
     private final List<Annotation> annotations;
@@ -335,10 +337,11 @@ public class JavaType implements AccessibleType, AnnotatedType {
   }
 
   @Data
-  @EqualsAndHashCode(exclude = {"internalType"})
+  @EqualsAndHashCode(exclude = {"internalType", "encapsulatingType"})
   public static class Method implements ExecutableType, AccessibleType, AnnotatedType {
     @Getter(AccessLevel.NONE)
     private final java.lang.reflect.Method internalType;
+    private final JavaType encapsulatingType;
 
     private final List<Annotation> annotations;
     private final int modifiers;
